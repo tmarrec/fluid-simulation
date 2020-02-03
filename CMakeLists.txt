@@ -17,26 +17,37 @@ cmake_policy(SET CMP0072 NEW)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -Wextra -DGL_GLEXT_PROTOTYPES")
 #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
 
-set(EXT_LIBS Qt5::OpenGL ${OPENGL_LIBRARIES})
-
 find_package(Qt5 COMPONENTS OpenGL REQUIRED)
 if (Qt5OpenGL_FOUND)
-    message(STATUS "Found Qt ${Qt5OpenGL_VERSION}")
+	message(STATUS "Found Qt ${Qt5OpenGL_VERSION}")
 else (Qt5OpenGL_FOUND)
-    message(EROR "Unable to find QTOpenGL library")
+	message(EROR "Unable to find QTOpenGL library")
 endif(Qt5OpenGL_FOUND)
 find_package(OpenGL REQUIRED) # define OPENGL_LIBRARIES
 
 add_executable(${PROJECT_NAME}
-  src/main.cpp
-  src/mainwindow.cpp
-  src/mainwindow.h
-  src/mainwindow.ui
+ 	src/main.cpp
+	
+	src/MainWindow.cpp
+	src/MainWindow.h
+
+	src/GLWidget.h
+	src/GLWidget.cpp
+
+	src/OpenGL.cpp
+	src/OpenGL.h
+
+	src/Shader.cpp
+	src/Shader.h
+
+	src/shapes/Triangle.cpp
+	src/shapes/Triangle.h
 )
 
+set(EXT_LIBS Qt5::OpenGL ${OPENGL_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${EXT_LIBS})
