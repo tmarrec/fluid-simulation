@@ -7,26 +7,29 @@
 #include <fstream>
 #include <streambuf>
 
+#include <QDateTime>
+
 Triangle::Triangle(int w, int h)
 		: OpenGL(w, h)
+		, shader {
+			"../src/shaders/triangle.vert",
+			"../src/shaders/triangle.frag"
+		}
 {
 	std::cout << "Triangle construct" << std::endl;
 	_vertices = {
-		0.5f,		0.5f, 		0.0f, 		// Top Right
-		0.5f,		-0.5f, 		0.0f, 		// Bottom Right
-		-0.5f,		-0.5f, 		0.0f, 		// Bottom Left
-		-0.5f,		0.5f, 		0.0f, 		// Bottom Right
+		0.0f,		0.5f, 		0.0f, 		// Top Center
+		0.5f,		-0.5f, 		0.0f, 		// Bottom Left
+		-0.5f,		-0.5f, 		0.0f, 		// Bottom Right
 	};
 
 	_normals = {
 		0,		1,		0,
-		0,		0,		0,
-		0,		0,		0,
+		1,		0,		1,
 	};
 
 	_indices = {
-		0, 1, 3, // First Triangle
-		1, 2, 3  // Second Triangle
+		0, 2, 1, // Triangle
 	};
 
 	// Initialize the geometry
@@ -49,7 +52,7 @@ Triangle::Triangle(int w, int h)
 		);
 
 		// 4. Then set our vertex attributes pointers
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
 		glEnableVertexAttribArray(0);
 
 		// 5. Copy our normals array in a buffer for OpenGL to use
@@ -62,7 +65,7 @@ Triangle::Triangle(int w, int h)
 		);
 
 		// 6. Copy our vertices array in a buffer for OpenGL to use
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)0);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
 		glEnableVertexAttribArray(1);
 
 		// 7. Copy our index array in a element buffer for OpenGL to use
@@ -77,11 +80,7 @@ Triangle::Triangle(int w, int h)
 	// 8. Unbind the VAO
 	glBindVertexArray(0);
 
-	Shader test {
-			"../src/shaders/triangle.vert",
-			"../src/shaders/triangle.frag"
-	};
-	test.use();
+	shader.use();
 
 
 }
@@ -91,11 +90,26 @@ Triangle::~Triangle() {
 }
 
 void Triangle::draw() {
-	std::cout << "draw triangle" << std::endl;
 	OpenGL::draw();
 
-	glUseProgram(_program);
+	
+	//glUseProgram(_program);
+	
+	float time = sin(QDateTime::currentMSecsSinceEpoch()) / 2.0f + 0.5f;
+	std::cout << time << std::endl;
+	shader.use();
+	shader.set_float("time", time);
+	
+	/*	
+	glm::mat4 _model {1.0f};
+	glm::mat4 _view {1.0f};
+	glm::mat4 _projection {1.0f};
+	glUniformMatrix4fv(glGetUniformLocation(_program, "model"), 1, GL_FALSE, glm::value_ptr(_model));
+	glUniformMatrix4fv(glGetUniformLocation(_program, "view"), 1, GL_FALSE, glm::value_ptr(_view));
+	glUniformMatrix4fv(glGetUniformLocation(_program, "projection"), 1, GL_FALSE, glm::value_ptr(_projection));
+	*/
+
 	glBindVertexArray(_vao);
-	glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, 0);
+	glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }

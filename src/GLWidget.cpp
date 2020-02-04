@@ -1,16 +1,19 @@
 #include "GLWidget.h"
 #include "shapes/Triangle.h"
+#include "MainWindow.h"
 
-#include <QMessageBox>
 #include <QDateTime>
+#include <QMessageBox>
 
 #include <iostream>
+#include <chrono>
 
 GLWidget::GLWidget(QWidget *parent)
-		: QOpenGLWidget(parent)
+			: QOpenGLWidget(parent)
+			, _frame_count{0}
+			, _start_timer{0}
 {
 	std::cout << "GLWidget constructor" << std::endl;
-
 	setFixedSize(800, 600);
 }
 
@@ -37,14 +40,22 @@ void GLWidget::initializeGL() {
 		exit(1);
 	}	
 
+	_start_timer = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
 	_openGL.reset(new Triangle{100, 150});
 }
 
 void GLWidget::paintGL() {
-	std::int64_t start_time = QDateTime::currentMSecsSinceEpoch();
 	_openGL->draw();
 	glFinish();
-	std::int64_t end_time = QDateTime::currentMSecsSinceEpoch();
-	_last_time = end_time-start_time;
-	std::cout << _last_time << std::endl;
+	std::uint64_t end_timer = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+	if (end_timer-_start_timer > 1000) {
+		std::cout << "FPS: " << _frame_count << std::endl;
+		_frame_count = 0;
+		_start_timer = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	}
+
+	_frame_count++;
+	update();
 }

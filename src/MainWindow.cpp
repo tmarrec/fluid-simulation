@@ -16,6 +16,7 @@ MainWindow::MainWindow() {
 	format.setVersion(4, 5);
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	format.setDepthBufferSize(24);
+	format.setSwapInterval(0);
 	QSurfaceFormat::setDefaultFormat(format);
 
     // Layout QT
@@ -62,3 +63,4 @@ void MainWindow::on_rectangleButton_clicked()
 {
 	std::cout << "rect" << std::endl;
 }
+

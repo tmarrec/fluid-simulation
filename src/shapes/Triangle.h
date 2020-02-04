@@ -2,6 +2,8 @@
 
 #include "../OpenGL.h"
 
+#include "../Shader.h"
+
 #include <vector>
 
 class Triangle : public OpenGL {
@@ -30,8 +32,5 @@ private:
 	// Shader Program
 	GLuint _program;
 
-	// Different available programs (?)
-	GLuint _program_color;
-	GLuint _program_normal;
-
+	Shader shader;
 };

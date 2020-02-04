@@ -27,6 +27,6 @@ private:
 	std::unique_ptr<OpenGL> _openGL;
 
 
-	std::int64_t _last_time;
-
+	std::uint64_t _frame_count;
+	std::uint64_t _start_timer;
 };
