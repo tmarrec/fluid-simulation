@@ -68,20 +68,28 @@ void Shader::use() {
 	glUseProgram(_id);
 }
 
-void Shader::set_bool(const std::string &name, bool value) const {
-	glUniform1i(glGetUniformLocation(_id, name.c_str()), (int)value);
-}
-
-void Shader::set_int(const std::string &name, int value) const {
-	glUniform1i(glGetUniformLocation(_id, name.c_str()), value);
-}
-
-void Shader::set_float(const std::string &name, float value) const {
+int Shader::get_location(const std::string &name) const {
 	int location = glGetUniformLocation(_id, name.c_str());
 	if (location == -1) {
 		std::cout << "SHADER: CAN'T FIND UNIFORM LOCATION : " << name << std::endl;
 	}	
-	glUniform4f(location, 0.0f, value, 0.0f, 1.0f);
+	return location;
+}
+
+void Shader::set_1b(const std::string &name, bool value) const {
+	glUniform1i(get_location(name), (int)value);
+}
+
+void Shader::set_1i(const std::string &name, int value) const {
+	glUniform1i(get_location(name), value);
+}
+
+void Shader::set_1f(const std::string &name, float value) const {
+	glUniform1f(get_location(name), value);
+}
+
+void Shader::set_4f(const std::string &name, glm::vec4 values) const {
+	glUniform4f(get_location(name), values.x, values.y, values.z, values.w);
 }
 
 void Shader::check_compilation(unsigned int shader, std::string type) {

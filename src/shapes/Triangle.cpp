@@ -10,11 +10,12 @@
 #include <QDateTime>
 
 Triangle::Triangle(int w, int h)
-		: OpenGL(w, h)
-		, shader {
+		: OpenGL {w, h}
+		, _shader {
 			"../src/shaders/triangle.vert",
 			"../src/shaders/triangle.frag"
 		}
+		, _color {1.0f, 0.0f, 1.0f, 1.0f}
 {
 	std::cout << "Triangle construct" << std::endl;
 	_vertices = {
@@ -80,9 +81,7 @@ Triangle::Triangle(int w, int h)
 	// 8. Unbind the VAO
 	glBindVertexArray(0);
 
-	shader.use();
-
-
+	_shader.use();
 }
 
 Triangle::~Triangle() {
@@ -92,13 +91,9 @@ Triangle::~Triangle() {
 void Triangle::draw() {
 	OpenGL::draw();
 
-	
-	//glUseProgram(_program);
-	
-	float time = sin(QDateTime::currentMSecsSinceEpoch()) / 2.0f + 0.5f;
-	std::cout << time << std::endl;
-	shader.use();
-	shader.set_float("time", time);
+	_shader.use();
+
+	apply_color();
 	
 	/*	
 	glm::mat4 _model {1.0f};
@@ -112,4 +107,8 @@ void Triangle::draw() {
 	glBindVertexArray(_vao);
 	glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
+}
+
+void Triangle::apply_color() {
+	_shader.set_4f("_color", _color);
 }

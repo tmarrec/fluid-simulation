@@ -32,5 +32,9 @@ private:
 	// Shader Program
 	GLuint _program;
 
-	Shader shader;
+	Shader _shader;
+
+	glm::vec4 _color;
+
+	void apply_color();
 };
