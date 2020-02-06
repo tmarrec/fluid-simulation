@@ -14,6 +14,7 @@ public:
 	void set_1i(const std::string &name, int value) const;	
 	void set_1f(const std::string &name, float value) const;	
 	void set_4f(const std::string &name, glm::vec4 values) const;
+	void set_mat4(const std::string &name, glm::mat4 values) const;
 
 private:
 	unsigned int _id;

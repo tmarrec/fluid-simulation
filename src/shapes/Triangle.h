@@ -13,6 +13,7 @@ public:
 	~Triangle() override;
 
 	void draw() override;
+	float test = 0;
 
 
 private:
@@ -35,6 +36,6 @@ private:
 	Shader _shader;
 
 	glm::vec4 _color;
-
 	void apply_color();
+
 };

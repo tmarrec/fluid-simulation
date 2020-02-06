@@ -15,9 +15,18 @@ public:
 
 	virtual void draw(void);
 
+	unsigned short width() const;
+	unsigned short height() const;
+	glm::mat4 projection() const;
+	void set_delta_time(float delta_time);
+	float delta_time() const;
+
 private:
 	unsigned short _width;
 	unsigned short _height;
 	bool _draw_fill;
 
+	float _delta_time;
+
+	glm::mat4 _projection;
 };

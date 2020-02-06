@@ -15,7 +15,7 @@ Triangle::Triangle(int w, int h)
 			"../src/shaders/triangle.vert",
 			"../src/shaders/triangle.frag"
 		}
-		, _color {1.0f, 0.0f, 1.0f, 1.0f}
+		, _color {1.0f, 0.5f, 1.0f, 1.0f}
 {
 	std::cout << "Triangle construct" << std::endl;
 	_vertices = {
@@ -94,15 +94,20 @@ void Triangle::draw() {
 	_shader.use();
 
 	apply_color();
+
+	float time = sin(QDateTime::currentMSecsSinceEpoch()) / 2.0f + 0.5f;
 	
-	/*	
+	test += 100 * delta_time();
+
 	glm::mat4 _model {1.0f};
+	_model = glm::rotate(_model, glm::radians(test), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	glm::mat4 _view {1.0f};
-	glm::mat4 _projection {1.0f};
-	glUniformMatrix4fv(glGetUniformLocation(_program, "model"), 1, GL_FALSE, glm::value_ptr(_model));
-	glUniformMatrix4fv(glGetUniformLocation(_program, "view"), 1, GL_FALSE, glm::value_ptr(_view));
-	glUniformMatrix4fv(glGetUniformLocation(_program, "projection"), 1, GL_FALSE, glm::value_ptr(_projection));
-	*/
+	_view = glm::translate(_view, glm::vec3(0.0f, 0.0f, -2.0f));
+
+	_shader.set_mat4("model", _model);
+	_shader.set_mat4("view", _view);
+	_shader.set_mat4("projection", projection());
 
 	glBindVertexArray(_vao);
 	glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, nullptr);
