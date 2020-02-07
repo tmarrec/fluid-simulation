@@ -10,7 +10,8 @@
 #include <QDateTime>
 
 Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec2 scale)
-		: _shader {
+		: Entity(position, rotation, scale)
+		, _shader {
 			"../src/shaders/triangle.vert",
 			"../src/shaders/triangle.frag"
 		}
@@ -88,6 +89,7 @@ Triangle::~Triangle() {
 }
 
 void Triangle::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) {
+	std::cout << "GOOD DRAW" << std::endl;
 	_shader.use();
 
 	apply_color();

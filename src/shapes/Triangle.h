@@ -12,7 +12,7 @@ public:
 	Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec2 scale);
 	~Triangle();
 
-	void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) override;
+	virtual void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time);
 
 	void set_position(glm::vec3 position);
 	void set_rotation(glm::vec3 rotation);

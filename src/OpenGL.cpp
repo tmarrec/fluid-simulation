@@ -15,11 +15,12 @@ OpenGL::OpenGL(int w, int h)
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, _width, _height);
 
-	Triangle t1 {glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec2{1.0f, 1.0f}};
-	Triangle t2 {glm::vec3{3.0f, 0.0f, 0.0f}, glm::vec3{5.0f, 80.0f, 0.0f}, glm::vec2{1.0f, 1.0f}};
 
-	test.push_back(std::make_unique<Entity>(std::move(t1)));
-	test.push_back(std::make_unique<Entity>(std::move(t2)));
+	auto t1 {std::make_unique<Triangle>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec2{1.0f, 1.0f})};
+	auto t2 {std::make_unique<Triangle>(glm::vec3{3.0f, 0.0f, 0.0f}, glm::vec3{5.0f, 80.0f, 0.0f}, glm::vec2{1.0f, 1.0f})};
+
+	test.push_back(std::move(t1));
+	test.push_back(std::move(t2));
 }
 
 OpenGL::~OpenGL(void) {
@@ -40,7 +41,6 @@ void OpenGL::draw(void) {
 	for (auto & t : test) {
 		t->draw(view_position(), projection(), delta_time());
 	}
-	
 	//test.draw(view_position(), projection(), delta_time());
 	//test2.draw(view_position(), projection(), delta_time());
 	
