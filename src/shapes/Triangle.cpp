@@ -1,6 +1,4 @@
 #include "Triangle.h"
-#include "../OpenGL.h"
-#include "../Shader.h"
 
 #include <iostream>
 #include <string>
@@ -89,7 +87,6 @@ Triangle::~Triangle() {
 }
 
 void Triangle::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) {
-	std::cout << "GOOD DRAW" << std::endl;
 	_shader.use();
 
 	apply_color();

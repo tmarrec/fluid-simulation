@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../OpenGL.h"
-#include "../Entity.h"
 #include "../Shader.h"
 
 #include <vector>

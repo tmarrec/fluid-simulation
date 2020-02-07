@@ -10,7 +10,7 @@
 #include <vector>
 #include <memory>
 
-#include "Entity.h"
+#include "ECS.h"
 
 class OpenGL {
 
@@ -36,5 +36,6 @@ private:
 
 	glm::mat4 _projection;
 	glm::vec3 _view_position;
-	std::vector<std::unique_ptr<Entity>> test;
+
+	ECS _ecs;
 };
