@@ -1,18 +1,18 @@
 #pragma once
 
 #include "../OpenGL.h"
-
+#include "../Entity.h"
 #include "../Shader.h"
 
 #include <vector>
 
-class Triangle : public OpenGL {
+class Triangle : public Entity {
 
 public:
-	explicit Triangle(int w, int h);
-	~Triangle() override;
+	Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec2 scale);
+	~Triangle();
 
-	void draw() override;
+	void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) override;
 
 	void set_position(glm::vec3 position);
 	void set_rotation(glm::vec3 rotation);
@@ -43,5 +43,6 @@ private:
 
 	glm::vec3 _position;
 	glm::vec3 _rotation;
+	glm::vec2 _scale;
 
 };

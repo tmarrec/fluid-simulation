@@ -7,6 +7,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <vector>
+#include <memory>
+
+#include "Entity.h"
+
 class OpenGL {
 
 public:
@@ -31,4 +36,5 @@ private:
 
 	glm::mat4 _projection;
 	glm::vec3 _view_position;
+	std::vector<std::unique_ptr<Entity>> test;
 };

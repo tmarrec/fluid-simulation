@@ -9,15 +9,15 @@
 
 #include <QDateTime>
 
-Triangle::Triangle(int w, int h)
-		: OpenGL {w, h}
-		, _shader {
+Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec2 scale)
+		: _shader {
 			"../src/shaders/triangle.vert",
 			"../src/shaders/triangle.frag"
 		}
 		, _color {1.0f, 0.5f, 1.0f, 1.0f}
-		, _position {0.0f, 0.0f, 0.0f}
-		, _rotation {0.0f, 0.0f, 0.0f}
+		, _position {position}
+		, _rotation {rotation}
+		, _scale {scale}
 {
 	_vertices = {
 		0.0f,		0.5f, 		0.0f, 		// Top Center
@@ -81,22 +81,18 @@ Triangle::Triangle(int w, int h)
 
 	// 8. Unbind the VAO
 	glBindVertexArray(0);
-
-	_shader.use();
 }
 
 Triangle::~Triangle() {
 	
 }
 
-void Triangle::draw() {
-	OpenGL::draw();
-
+void Triangle::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) {
 	_shader.use();
 
 	apply_color();
 
-	_rotation.x += 100 * delta_time();
+	_rotation.x += 100 * delta_time;
 
 	// Matrice model pour definir la position
 	// et la rotation de l'objet dans l'espace
@@ -105,13 +101,14 @@ void Triangle::draw() {
 	model = glm::rotate(model, glm::radians(_rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(_rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::scale(model, glm::vec3{_scale, 1.0f});
 
 	glm::mat4 view {1.0f};
-	view = glm::translate(view, view_position());
+	view = glm::translate(view, view_position);
 
 	_shader.set_mat4("model", model);
 	_shader.set_mat4("view", view);
-	_shader.set_mat4("projection", projection());
+	_shader.set_mat4("projection", projection);
 
 	glBindVertexArray(_vao);
 	glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, nullptr);

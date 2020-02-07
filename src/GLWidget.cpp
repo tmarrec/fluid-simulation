@@ -40,7 +40,7 @@ void GLWidget::initializeGL() {
 
 	_start_timer = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-	_openGL.reset(new Triangle{150, 150});
+	_openGL.reset(new OpenGL{800, 600});
 }
 
 void GLWidget::paintGL() {

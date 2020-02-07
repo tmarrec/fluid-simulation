@@ -44,6 +44,12 @@ add_executable(${PROJECT_NAME}
 
 	src/Shader.cpp
 	src/Shader.h
+	
+	src/ECS.cpp
+	src/ECS.h
+
+	src/Entity.cpp
+	src/Entity.h
 
 	src/shapes/Triangle.cpp
 	src/shapes/Triangle.h
