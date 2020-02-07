@@ -4,6 +4,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <QListWidget>
 
 
 #include <iostream>
@@ -23,6 +24,14 @@ MainWindow::MainWindow() {
 	QVBoxLayout *main_layout = new QVBoxLayout;
     QHBoxLayout *container = new QHBoxLayout;
 
+	// Left Panel, with TreeView
+	QVBoxLayout *left_side_panel_l = new QVBoxLayout;	
+	QListWidget *list = new QListWidget;
+    left_side_panel_l->addWidget(list);
+	QWidget *left_side_panel_w = new QWidget;
+    left_side_panel_w->setLayout(left_side_panel_l);
+	container->addWidget(left_side_panel_w);
+
 
 	// Widget OpenGL
 	GLWidget *glw = new GLWidget(this);
@@ -34,10 +43,11 @@ MainWindow::MainWindow() {
     side_panel_l->addWidget(test);
 	QPushButton *test2 = new QPushButton;
     side_panel_l->addWidget(test2);
-
     QWidget *side_panel_w = new QWidget;
     side_panel_w->setLayout(side_panel_l);
 	container->addWidget(side_panel_w);
+
+	
 
 	// Main Widget
     QWidget *w = new QWidget;
@@ -64,3 +74,7 @@ void MainWindow::on_rectangleButton_clicked()
 	std::cout << "rect" << std::endl;
 }
 
+void MainWindow::add_item_to_QListW(std::string name) {
+	//list->addItem("salut");
+	std::cout << "loleee" << std::endl;
+}

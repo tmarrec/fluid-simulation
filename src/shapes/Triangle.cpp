@@ -91,7 +91,7 @@ void Triangle::draw(glm::vec3 view_position, glm::mat4 projection, float delta_t
 
 	apply_color();
 
-	_rotation.x += 100 * delta_time;
+	_rotation.x += 150 * delta_time;
 
 	// Matrice model pour definir la position
 	// et la rotation de l'objet dans l'espace

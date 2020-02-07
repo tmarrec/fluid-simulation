@@ -13,4 +13,8 @@ public:
 private slots:
 	void on_triangleButton_clicked();
 	void on_rectangleButton_clicked();
+
+private:
+	void add_item_to_QListW(std::string name);
+
 };

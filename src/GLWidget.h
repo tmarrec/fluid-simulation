@@ -27,5 +27,6 @@ private:
 	std::unique_ptr<OpenGL> _openGL;
 
 	std::uint64_t _frame_count;
-	std::uint64_t _start_timer;
+	std::uint64_t _start_timer_fps;
+	std::uint64_t _start_timer_frame;
 };
