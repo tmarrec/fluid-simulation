@@ -20,6 +20,7 @@ public:
 	glm::mat4 projection() const;
 	void set_delta_time(float delta_time);
 	float delta_time() const;
+	glm::vec3 view_position() const;
 
 private:
 	unsigned short _width;
@@ -29,4 +30,5 @@ private:
 	float _delta_time;
 
 	glm::mat4 _projection;
+	glm::vec3 _view_position;
 };

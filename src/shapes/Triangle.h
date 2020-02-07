@@ -13,8 +13,11 @@ public:
 	~Triangle() override;
 
 	void draw() override;
-	float test = 0;
 
+	void set_position(glm::vec3 position);
+	void set_rotation(glm::vec3 rotation);
+	glm::vec3 position() const;
+	glm::vec3 rotation() const;
 
 private:
 	std::vector<GLfloat> 	_vertices;
@@ -37,5 +40,8 @@ private:
 
 	glm::vec4 _color;
 	void apply_color();
+
+	glm::vec3 _position;
+	glm::vec3 _rotation;
 
 };

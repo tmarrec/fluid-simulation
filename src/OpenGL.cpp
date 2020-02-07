@@ -6,7 +6,9 @@ OpenGL::OpenGL(int w, int h)
 		: _width{w}
 		, _height{h}
 		, _draw_fill{true}
-		, _projection{1.0f} {
+		, _projection{1.0f}
+		, _view_position{0.0f, 0.0f, -5.0f}
+{
 
 	_projection = glm::perspective(glm::radians(70.0f), (float)width()/(float)height(), 0.1f, 100.0f);
 	glEnable(GL_DEPTH_TEST);
@@ -46,4 +48,8 @@ float OpenGL::delta_time() const {
 
 void OpenGL::set_delta_time(float delta_time) {
 	_delta_time = delta_time;
+}
+
+glm::vec3 OpenGL::view_position() const {
+	return _view_position;
 }

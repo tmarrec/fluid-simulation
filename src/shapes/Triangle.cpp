@@ -16,8 +16,9 @@ Triangle::Triangle(int w, int h)
 			"../src/shaders/triangle.frag"
 		}
 		, _color {1.0f, 0.5f, 1.0f, 1.0f}
+		, _position {0.0f, 0.0f, 0.0f}
+		, _rotation {0.0f, 0.0f, 0.0f}
 {
-	std::cout << "Triangle construct" << std::endl;
 	_vertices = {
 		0.0f,		0.5f, 		0.0f, 		// Top Center
 		0.5f,		-0.5f, 		0.0f, 		// Bottom Left
@@ -95,18 +96,21 @@ void Triangle::draw() {
 
 	apply_color();
 
-	float time = sin(QDateTime::currentMSecsSinceEpoch()) / 2.0f + 0.5f;
-	
-	test += 100 * delta_time();
+	_rotation.x += 100 * delta_time();
 
-	glm::mat4 _model {1.0f};
-	_model = glm::rotate(_model, glm::radians(test), glm::vec3(0.0f, 1.0f, 0.0f));
+	// Matrice model pour definir la position
+	// et la rotation de l'objet dans l'espace
+	glm::mat4 model {1.0f};
+	model = glm::translate(model, _position);
+	model = glm::rotate(model, glm::radians(_rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(_rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-	glm::mat4 _view {1.0f};
-	_view = glm::translate(_view, glm::vec3(0.0f, 0.0f, -2.0f));
+	glm::mat4 view {1.0f};
+	view = glm::translate(view, view_position());
 
-	_shader.set_mat4("model", _model);
-	_shader.set_mat4("view", _view);
+	_shader.set_mat4("model", model);
+	_shader.set_mat4("view", view);
 	_shader.set_mat4("projection", projection());
 
 	glBindVertexArray(_vao);
@@ -116,4 +120,20 @@ void Triangle::draw() {
 
 void Triangle::apply_color() {
 	_shader.set_4f("_color", _color);
+}
+
+void Triangle::set_position(glm::vec3 position) {
+	_position = position;
+}
+
+void Triangle::set_rotation(glm::vec3 rotation) {
+	_rotation = rotation;
+}
+
+glm::vec3 Triangle::position() const {
+	return _position;
+}
+
+glm::vec3 Triangle::rotation() const {
+	return _rotation;
 }

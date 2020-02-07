@@ -13,7 +13,6 @@ GLWidget::GLWidget(QWidget *parent)
 			, _frame_count{0}
 			, _start_timer{0}
 {
-	std::cout << "GLWidget constructor" << std::endl;
 	setFixedSize(800, 600);
 }
 
@@ -30,7 +29,6 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event) {
 }
 
 void GLWidget::initializeGL() {
-	std::cout << "init_GL" << std::endl;
 	connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GLWidget::cleanup);
 	if (!initializeOpenGLFunctions()) {
 		QMessageBox::critical(
@@ -42,7 +40,7 @@ void GLWidget::initializeGL() {
 
 	_start_timer = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-	_openGL.reset(new Triangle{100, 150});
+	_openGL.reset(new Triangle{150, 150});
 }
 
 void GLWidget::paintGL() {
