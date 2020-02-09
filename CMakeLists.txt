@@ -50,6 +50,9 @@ add_executable(${PROJECT_NAME}
 
 	src/Entity.cpp
 	src/Entity.h
+	
+	src/Shape.cpp
+	src/Shape.h
 
 	src/shapes/Triangle.cpp
 	src/shapes/Triangle.h
