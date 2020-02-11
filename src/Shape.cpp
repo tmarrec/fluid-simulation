@@ -1,6 +1,6 @@
 #include "Shape.h"
 
-Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec2 scale,
+Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	std::vector<GLfloat> vertices, std::vector<GLfloat> normals,
 	std::vector<GLuint> indices)
 	: Entity(position, rotation, scale)

@@ -2,17 +2,17 @@
 
 #include <iostream>
 
-Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec2 scale)
+Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec2 faces)
 		: Shape(
 			position,
 			rotation,
 			scale,
-			generate_vertices(),
+			generate_vertices(faces),
 			std::vector<GLfloat>{
 				0,		1,		0,
 				1,		0,		1,
 			},
-			generate_indices()	
+			generate_indices(faces)	
 		)
 		, _shader {
 			"../src/shaders/triangle.vert",
@@ -23,32 +23,28 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec2 scale)
 
 }
 
-std::vector<GLfloat> Sphere::generate_vertices() {
+std::vector<GLfloat> Sphere::generate_vertices(glm::vec2 faces) {
 	std::vector<GLfloat> vertices;
 	float x, y, z, xy;
 	float nx, ny, nz;
 
-	// temp
-	float sector_count = 10;
-	float stack_count = 10;
-	float radius = 1;
+	unsigned int longitude_count = faces[0];
+	unsigned int latitude_count = faces[1];
 
+	float longitude_step = 2*glm::pi<float>() / longitude_count;
+	float latitude_step = glm::pi<float>() / latitude_count;
+	float longitude_angle, latitude_angle;
 
-	float sector_step = 2*glm::pi<float>() / sector_count;
-	float stack_step = glm::pi<float>() / stack_count;
-	float sector_angle, stack_angle;
+	for (int i = 0; i <= latitude_count; ++i) {
+		latitude_angle = glm::pi<float>() / 2 - i * latitude_step;
+		xy = cosf(latitude_angle); 
+		z = sinf(latitude_angle); 
+		for (int j = 0; j <= longitude_count; ++j) {
+			longitude_angle = j*longitude_step;
 
-	for (int i = 0; i <= stack_count; ++i) {
-		stack_angle = glm::pi<float>() / 2 - i * stack_step;
-		xy = radius * cosf(stack_angle); 
-		z = radius * sinf(stack_angle); 
-		for (int j = 0; j <= sector_count; ++j) {
-			sector_angle = j*sector_step;
+			x = xy * cosf(longitude_angle);
+			y = xy * sinf(longitude_angle);
 
-			x = xy * cosf(sector_angle);
-			y = xy * sinf(sector_angle);
-
-			std::cout << x << " " << y << " " << z << std::endl;
 			vertices.push_back(x);
 			vertices.push_back(y);
 			vertices.push_back(z);
@@ -57,26 +53,23 @@ std::vector<GLfloat> Sphere::generate_vertices() {
 	return vertices;
 }
 
-std::vector<GLuint> Sphere::generate_indices() {
+std::vector<GLuint> Sphere::generate_indices(glm::vec2 faces) {
 	std::vector<GLuint> indices;
 	int k1, k2;
+	unsigned int longitude_count = faces[0];
+	unsigned int latitude_count = faces[1];
 
-	// temp
-	float sector_count = 10;
-	float stack_count = 10;
-	float radius = 1;
+	for (int i = 0; i < latitude_count; ++i) {
+		k1 = i * (longitude_count+1);
+		k2 = k1 + longitude_count + 1;
 
-	for (int i = 0; i < stack_count; ++i) {
-		k1 = i * (sector_count+1);
-		k2 = k1 + sector_count + 1;
-
-		for (int j = 0; j < sector_count; ++j, ++k1, ++k2) {
+		for (int j = 0; j < longitude_count; ++j, ++k1, ++k2) {
 			if (i != 0) {
 				indices.push_back(k1);
 				indices.push_back(k2);
 				indices.push_back(k1+1);
 			}
-			if (i != stack_count-1) {
+			if (i != latitude_count-1) {
 				indices.push_back(k1+1);
 				indices.push_back(k2);
 				indices.push_back(k2+1);

@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec2 scale)
+Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 		: Shape(
 			position,
 			rotation,

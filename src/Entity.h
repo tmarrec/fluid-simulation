@@ -7,7 +7,7 @@
 class Entity {
 
 public:
-	Entity(glm::vec3 position, glm::vec3 rotation, glm::vec2 scale);
+	Entity(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 	~Entity(void);
 
 	virtual void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time);
@@ -24,5 +24,5 @@ public:
 private:
 	glm::vec3 _position;
 	glm::vec3 _rotation;
-	glm::vec2 _scale;
+	glm::vec3 _scale;
 };

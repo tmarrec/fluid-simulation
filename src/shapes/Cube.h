@@ -5,7 +5,7 @@
 class Cube : public Shape {
 
 public:
-	Cube(glm::vec3 position, glm::vec3 rotation, glm::vec2 scale);
+	Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 	~Cube();
 
 	virtual void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time);

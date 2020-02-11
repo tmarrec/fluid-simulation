@@ -6,7 +6,7 @@
 class Shape : public Entity {
 
 public:
-	Shape(glm::vec3 position, glm::vec3 rotation, glm::vec2 scale,
+	Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 		std::vector<GLfloat> vertices, std::vector<GLfloat> normals,
 		std::vector<GLuint> indices);
 	~Shape(void);

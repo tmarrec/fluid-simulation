@@ -1,7 +1,7 @@
 #include "Entity.h"
 #include <iostream>
 
-Entity::Entity(glm::vec3 position, glm::vec3 rotation, glm::vec2 scale)
+Entity::Entity(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 	: _position {position}
 	, _rotation {rotation}
 	, _scale {scale}
@@ -49,7 +49,7 @@ glm::mat4 Entity::get_model() const {
 	model = glm::rotate(model, glm::radians(_rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(_rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::rotate(model, glm::radians(_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	model = glm::scale(model, glm::vec3{_scale, 1.0f});
+	model = glm::scale(model, glm::vec3{_scale});
 
 	return model;
 }
