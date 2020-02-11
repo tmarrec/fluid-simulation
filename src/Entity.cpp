@@ -37,6 +37,8 @@ void Entity::rotate_test(float delta_time) {
 	_rotation.x -= 20 * delta_time;
 	_rotation.y += 150 * delta_time;
 	_rotation.z += 50 * delta_time;
+
+	_position.y = sin(_rotation.z/30);
 }
 
 glm::mat4 Entity::get_model() const {
