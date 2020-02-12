@@ -1,6 +1,11 @@
 #pragma once
 
+class GLWidget;
+
 #include <QMainWindow>
+#include <QListWidget>
+
+#include "GLWidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -9,12 +14,16 @@ class MainWindow : public QMainWindow
 public:
 	MainWindow();
 	~MainWindow();
+	void add_item_to_QListW(std::string name);
 
 private slots:
 	void on_triangleButton_clicked();
 	void on_rectangleButton_clicked();
+	void add_triangle();
+	void add_cube();
+	void add_sphere();
 
 private:
-	void add_item_to_QListW(std::string name);
-
+	QListWidget *_list;
+	GLWidget *_glw;
 };

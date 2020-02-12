@@ -1,19 +1,26 @@
 #pragma once
 
+
+class MainWindow;
+class OpenGL;
+
 #include "OpenGL.h"
+#include "MainWindow.h"
 
 #include <memory>
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_4_5_Core>
 
+
 class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Core {
 
 public:
-	explicit GLWidget(QWidget *parent = nullptr);	
+	explicit GLWidget(MainWindow *parent = nullptr);	
 	~GLWidget();
 
 	void cleanup();
+	void add_shape(std::string shape);
 	
 
 protected:
@@ -29,4 +36,5 @@ private:
 	std::uint64_t _frame_count;
 	std::uint64_t _start_timer_fps;
 	std::uint64_t _start_timer_frame;
+	MainWindow * _main_window;
 };

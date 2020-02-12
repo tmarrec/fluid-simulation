@@ -1,6 +1,4 @@
 #include "GLWidget.h"
-#include "shapes/Triangle.h"
-#include "MainWindow.h"
 
 #include <QDateTime>
 #include <QMessageBox>
@@ -8,13 +6,14 @@
 #include <iostream>
 #include <chrono>
 
-GLWidget::GLWidget(QWidget *parent)
+GLWidget::GLWidget(MainWindow *parent)
 			: QOpenGLWidget(parent)
 			, _frame_count{0}
 			, _start_timer_fps{0}
 			, _start_timer_frame{0}
+			, _main_window{parent}
 {
-	setFixedSize(800, 600);
+	setFixedSize(1280, 720);
 }
 
 GLWidget::~GLWidget() {
@@ -29,6 +28,10 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event) {
 	std::cout << "mouse move" << std::endl;
 }
 
+void GLWidget::add_shape(std::string shape) {
+	_openGL->add_shape(shape);
+}
+
 void GLWidget::initializeGL() {
 	connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GLWidget::cleanup);
 	if (!initializeOpenGLFunctions()) {
@@ -40,7 +43,7 @@ void GLWidget::initializeGL() {
 	}	
 
 	_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	_openGL.reset(new OpenGL{800, 600});
+	_openGL.reset(new OpenGL{1280, 720, _main_window});
 }
 
 void GLWidget::paintGL() {

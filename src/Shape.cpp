@@ -1,4 +1,5 @@
 #include "Shape.h"
+#include <iostream>
 
 Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	std::vector<GLfloat> vertices, std::vector<GLfloat> normals,
@@ -76,6 +77,7 @@ std::vector<GLuint> Shape::indices() const {
 
 void Shape::draw_vertex() const {
 	glBindVertexArray(_vao);
-	glDrawElements(GL_TRIANGLES, Shape::indices().size(), GL_UNSIGNED_INT, nullptr);
+	std::cout << indices().size() << std::endl;
+	glDrawElements(GL_TRIANGLES, indices().size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }

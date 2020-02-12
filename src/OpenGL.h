@@ -11,11 +11,12 @@
 #include <memory>
 
 #include "ECS.h"
+#include "MainWindow.h"
 
 class OpenGL {
 
 public:
-	explicit OpenGL(int w, int h);
+	explicit OpenGL(int w, int h, MainWindow * main_window);
 	virtual ~OpenGL(void);
 
 	virtual void draw(void);
@@ -27,6 +28,8 @@ public:
 	float delta_time() const;
 	glm::vec3 view_position() const;
 
+	void add_shape(std::string shape);
+
 private:
 	unsigned short _width;
 	unsigned short _height;
@@ -36,6 +39,8 @@ private:
 
 	glm::mat4 _projection;
 	glm::vec3 _view_position;
+
+	MainWindow * _main_window;
 
 	ECS _ecs;
 };
