@@ -1,7 +1,7 @@
 #include "ECS.h"
 #include <iostream>
 
-ECS::ECS(void) {
+ECS::ECS() {
 
 }
 

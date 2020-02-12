@@ -1,5 +1,7 @@
 #pragma once
 
+class MainWindow;
+
 #include <vector>
 #include <memory>
 
@@ -8,7 +10,7 @@
 class ECS {
 
 public:
-	ECS(void);
+	ECS();
 	~ECS(void);
 	void add(std::unique_ptr<Entity> entity);
 	void render_all(glm::vec3 view_position, glm::mat4 projection, float delta_time);

@@ -1,12 +1,15 @@
 #include "Entity.h"
 #include <iostream>
 
+unsigned long Entity::_next_id = 0;
+
 Entity::Entity(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 	: _position {position}
 	, _rotation {rotation}
 	, _scale {scale}
+	, _id{_next_id++}
 {
-
+	std::cout << "New Entity : " << _id << std::endl;
 }
 
 Entity::~Entity(void) {

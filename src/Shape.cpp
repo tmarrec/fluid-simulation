@@ -9,6 +9,7 @@ Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	, _normals{normals}
 	, _indices{indices}
 {
+	//_id = ++next_id;
 	// Initialize the geometry
 	// 1. Generate geometry buffers
 	glGenBuffers(1, &_vbo);
@@ -77,7 +78,6 @@ std::vector<GLuint> Shape::indices() const {
 
 void Shape::draw_vertex() const {
 	glBindVertexArray(_vao);
-	std::cout << indices().size() << std::endl;
 	glDrawElements(GL_TRIANGLES, indices().size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }
