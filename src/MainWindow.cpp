@@ -82,6 +82,9 @@ MainWindow::MainWindow() {
 MainWindow::~MainWindow() {
 }
 
+void MainWindow::on_item_clicked(QListWidgetItem *item) {
+
+}
 
 void MainWindow::on_triangleButton_clicked()
 {
@@ -107,4 +110,4 @@ void MainWindow::add_sphere() {
 
 void MainWindow::add_item_to_QListW(std::string name) {
 	_list->addItem(name.c_str());
-}
+

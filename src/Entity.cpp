@@ -44,6 +44,10 @@ void Entity::rotate_test(float delta_time) {
 	_position.y = sin(_rotation.z/35);
 }
 
+const unsigned long Entity::id() const {
+	return _id;
+}
+
 glm::mat4 Entity::get_model() const {
 	// Matrice model pour definir la position
 	// et la rotation et le scale de l'objet dans l'espace

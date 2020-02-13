@@ -23,11 +23,11 @@ private:
 	std::vector<GLuint>		_indices;
 	
 	// Vertex Array Buffer
-	GLuint _vao;
+	//GLuint _vao;
 	// Vertex Buffer Object
-	GLuint _vbo;
+	//GLuint _vbo;
 	// Normal Buffer
-	GLuint _nbo;
+	//GLuint _nbo;
 	// Face Buffer
-	GLuint _ebo;
+	//GLuint _ebo;
 };

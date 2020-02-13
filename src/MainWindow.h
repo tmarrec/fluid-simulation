@@ -17,6 +17,7 @@ public:
 	void add_item_to_QListW(std::string name);
 
 private slots:
+	void on_item_clicked(QListWidgetItem *item);
 	void on_triangleButton_clicked();
 	void on_rectangleButton_clicked();
 	void add_triangle();

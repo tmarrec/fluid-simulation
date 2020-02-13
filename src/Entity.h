@@ -21,6 +21,8 @@ public:
 	glm::mat4 get_model() const;
 	glm::mat4 get_view(glm::vec3 view_position) const;
 
+	const unsigned long id() const;
+
 private:
 	glm::vec3 _position;
 	glm::vec3 _rotation;
