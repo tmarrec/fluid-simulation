@@ -23,8 +23,13 @@ private slots:
 	void add_triangle();
 	void add_cube();
 	void add_sphere();
+	void change_slide_x(int value);
+	void change_slide_y(int value);
+	void change_slide_z(int value);
 
 private:
 	QListWidget *_list;
 	GLWidget *_glw;
+
+	uint _selected_entity;
 };

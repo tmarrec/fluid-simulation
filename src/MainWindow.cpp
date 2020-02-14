@@ -6,11 +6,14 @@
 #include <QPushButton>
 #include <QMenu>
 #include <QMenuBar>
+#include <QSlider>
 
 
 #include <iostream>
 
-MainWindow::MainWindow() {
+MainWindow::MainWindow()
+	: _selected_entity{0}
+{
 	setWindowTitle(tr("cowboy-engine 0.1"));
 
 	// Parametres OpenGL 
@@ -65,6 +68,18 @@ MainWindow::MainWindow() {
     side_panel_l->addWidget(test);
 	QPushButton *test2 = new QPushButton;
     side_panel_l->addWidget(test2);
+
+
+	QSlider *slide_x = new QSlider(Qt::Orientation::Horizontal);
+    side_panel_l->addWidget(slide_x);
+	connect(slide_x, &QSlider::valueChanged, this, &MainWindow::change_slide_x);
+	QSlider *slide_y = new QSlider(Qt::Orientation::Horizontal);
+    side_panel_l->addWidget(slide_y);
+	connect(slide_y, &QSlider::valueChanged, this, &MainWindow::change_slide_y);
+	QSlider *slide_z = new QSlider(Qt::Orientation::Horizontal);
+    side_panel_l->addWidget(slide_z);
+	connect(slide_z, &QSlider::valueChanged, this, &MainWindow::change_slide_z);
+
     QWidget *side_panel_w = new QWidget;
     side_panel_w->setLayout(side_panel_l);
 	container->addWidget(side_panel_w);
@@ -83,10 +98,21 @@ MainWindow::MainWindow() {
 MainWindow::~MainWindow() {
 }
 
+void MainWindow::change_slide_x(int value) {
+	_glw->move(_selected_entity, 'x', value);
+}
+
+void MainWindow::change_slide_y(int value) {
+	_glw->move(_selected_entity, 'y', value);
+}
+
+void MainWindow::change_slide_z(int value) {
+	_glw->move(_selected_entity, 'z', value);
+}
+
 void MainWindow::on_item_clicked(QListWidgetItem *item) {
 	uint selected_id = item->data(100).value<uint>();
-	_glw->select_entity(selected_id);
-	std::cout << selected_id << std::endl;
+	_selected_entity = selected_id;
 }
 
 void MainWindow::on_triangleButton_clicked()

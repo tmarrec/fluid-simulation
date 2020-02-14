@@ -36,6 +36,10 @@ void GLWidget::select_entity(uint selected_id) {
 	_openGL->select_entity(selected_id);
 }
 
+void GLWidget::move(uint id, char pos, uint value) {
+	_openGL->move(id, pos, value);
+}
+
 void GLWidget::initializeGL() {
 	connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GLWidget::cleanup);
 	if (!initializeOpenGLFunctions()) {

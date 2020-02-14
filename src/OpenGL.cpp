@@ -24,7 +24,7 @@ OpenGL::OpenGL(int w, int h, MainWindow * main_window)
 	// Tests
 	auto t1 {std::make_unique<Triangle>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
 	auto t2 {std::make_unique<Cube>(glm::vec3{3.0f, 0.0f, 0.0f}, glm::vec3{5.0f, 80.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
-	auto t3 {std::make_unique<Sphere>(glm::vec3{-3.0f, 0.0f, 0.0f}, glm::vec3{5.0f, 80.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec2{8, 8})};
+	auto t3 {std::make_unique<Sphere>(glm::vec3{-3.0f, 0.0f, 0.0f}, glm::vec3{5.0f, 80.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec2{80, 80})};
 
 	_ecs.add(std::move(t1));
 	_main_window->add_item_to_QListW(0, "triangle");
@@ -37,6 +37,11 @@ OpenGL::OpenGL(int w, int h, MainWindow * main_window)
 
 OpenGL::~OpenGL(void) {
 
+}
+
+
+void OpenGL::move(uint id, char pos, uint value) {
+	_ecs.move(id, pos, value);
 }
 
 void OpenGL::add_shape(std::string shape) {
