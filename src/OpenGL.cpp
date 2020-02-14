@@ -41,15 +41,15 @@ void OpenGL::add_shape(std::string shape) {
 	if (shape == "triangle") {
 		auto s {std::make_unique<Triangle>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
 		std::cout << s->id() << std::endl;
-		_main_window->add_item_to_QListW(shape+std::to_string(s->id()));
+		_main_window->add_item_to_QListW(s->id(), shape);
 		_ecs.add(std::move(s));
 	} else if (shape == "cube") {
 		auto s {std::make_unique<Cube>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
-		_main_window->add_item_to_QListW(shape+std::to_string(s->id()));
+		_main_window->add_item_to_QListW(s->id(), shape);
 		_ecs.add(std::move(s));
 	} else {
 		auto s {std::make_unique<Sphere>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec2{5, 5})};
-		_main_window->add_item_to_QListW(shape+std::to_string(s->id()));
+		_main_window->add_item_to_QListW(s->id(), shape);
 		_ecs.add(std::move(s));
 	}
 

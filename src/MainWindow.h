@@ -14,7 +14,7 @@ class MainWindow : public QMainWindow
 public:
 	MainWindow();
 	~MainWindow();
-	void add_item_to_QListW(std::string name);
+	void add_item_to_QListW(uint id, std::string name);
 
 private slots:
 	void on_item_clicked(QListWidgetItem *item);

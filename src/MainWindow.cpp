@@ -53,6 +53,7 @@ MainWindow::MainWindow() {
     left_side_panel_w->setLayout(left_side_panel_l);
 	container->addWidget(left_side_panel_w);
 
+	connect(_list, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(on_item_clicked(QListWidgetItem*)));
 
 	// Widget OpenGL
 	_glw = new GLWidget(this);
@@ -83,7 +84,8 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::on_item_clicked(QListWidgetItem *item) {
-
+	uint selected_id = item->data(100).value<uint>();
+	std::cout << selected_id << std::endl;
 }
 
 void MainWindow::on_triangleButton_clicked()
@@ -108,6 +110,8 @@ void MainWindow::add_sphere() {
 	_glw->add_shape("sphere");
 }
 
-void MainWindow::add_item_to_QListW(std::string name) {
-	_list->addItem(name.c_str());
-
+void MainWindow::add_item_to_QListW(uint id, std::string name) {
+	QListWidgetItem *item = new QListWidgetItem(name.c_str());
+	item->setData(100, QVariant(id));
+	_list->addItem(item);
+}
