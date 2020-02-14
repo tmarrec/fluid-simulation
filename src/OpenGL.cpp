@@ -24,11 +24,14 @@ OpenGL::OpenGL(int w, int h, MainWindow * main_window)
 	// Tests
 	auto t1 {std::make_unique<Triangle>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
 	auto t2 {std::make_unique<Cube>(glm::vec3{3.0f, 0.0f, 0.0f}, glm::vec3{5.0f, 80.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
-	auto t3 {std::make_unique<Sphere>(glm::vec3{-3.0f, 0.0f, 0.0f}, glm::vec3{5.0f, 80.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec2{5, 5})};
+	auto t3 {std::make_unique<Sphere>(glm::vec3{-3.0f, 0.0f, 0.0f}, glm::vec3{5.0f, 80.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec2{8, 8})};
 
 	_ecs.add(std::move(t1));
+	_main_window->add_item_to_QListW(0, "triangle");
 	_ecs.add(std::move(t2));
+	_main_window->add_item_to_QListW(1, "cube");
 	_ecs.add(std::move(t3));
+	_main_window->add_item_to_QListW(2, "sphere");
 	// Fin Test
 }
 
@@ -70,6 +73,10 @@ void OpenGL::draw(void) {
 	// Render tout ici
 	_ecs.render_all(view_position(), projection(), delta_time());
 	
+}
+
+void OpenGL::select_entity(uint selected_id) {
+	_ecs.get(selected_id);
 }
 
 unsigned short OpenGL::width() const {

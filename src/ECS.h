@@ -14,6 +14,7 @@ public:
 	~ECS(void);
 	void add(std::unique_ptr<Entity> entity);
 	void render_all(glm::vec3 view_position, glm::mat4 projection, float delta_time);
+	void get(uint id);
 
 private:
 	std::vector<std::unique_ptr<Entity>> _entities;

@@ -32,6 +32,10 @@ void GLWidget::add_shape(std::string shape) {
 	_openGL->add_shape(shape);
 }
 
+void GLWidget::select_entity(uint selected_id) {
+	_openGL->select_entity(selected_id);
+}
+
 void GLWidget::initializeGL() {
 	connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GLWidget::cleanup);
 	if (!initializeOpenGLFunctions()) {

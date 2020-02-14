@@ -85,6 +85,7 @@ MainWindow::~MainWindow() {
 
 void MainWindow::on_item_clicked(QListWidgetItem *item) {
 	uint selected_id = item->data(100).value<uint>();
+	_glw->select_entity(selected_id);
 	std::cout << selected_id << std::endl;
 }
 

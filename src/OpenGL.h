@@ -31,6 +31,8 @@ public:
 
 	void add_shape(std::string shape);
 
+	void select_entity(uint selected_id);
+
 private:
 	unsigned short _width;
 	unsigned short _height;

@@ -21,7 +21,7 @@ public:
 
 	void cleanup();
 	void add_shape(std::string shape);
-	
+	void select_entity(uint selected_id);
 
 protected:
 	// Override from QOpenGLWidget
