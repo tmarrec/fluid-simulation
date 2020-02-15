@@ -36,7 +36,7 @@ void GLWidget::select_entity(uint selected_id) {
 	_openGL->select_entity(selected_id);
 }
 
-void GLWidget::move(uint id, char pos, uint value) {
+void GLWidget::move(uint id, char pos, float value) {
 	_openGL->move(id, pos, value);
 }
 

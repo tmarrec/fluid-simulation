@@ -21,7 +21,7 @@ void ECS::get(uint id) {
 	}
 }
 
-void ECS::move(uint id, char pos, uint value) {
+void ECS::move(uint id, char pos, float value) {
 	for (auto & e : _entities) {
 		if (e->id() == id) {
 			auto p = e->position();

@@ -32,7 +32,7 @@ public:
 	void add_shape(std::string shape);
 
 	void select_entity(uint selected_id);
-	void move(uint id, char pos, uint value);
+	void move(uint id, char pos, float value);
 
 private:
 	unsigned short _width;

@@ -1,3 +1,4 @@
+#include "config.h"
 #include "MainWindow.h"
 
 #include <iostream>
@@ -7,7 +8,7 @@
 
 int main(int argc, char *argv[])
 {
-	std::cout << "#- Cowboy Engine 0.1 -#" << std::endl;
+	std::cout << "#- " << PROJECT_NAME << " " << PROJECT_VER << " -#" << std::endl << std::endl;
 
 	QApplication a(argc, argv);
 

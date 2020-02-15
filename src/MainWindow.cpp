@@ -1,3 +1,4 @@
+#include "config.h"
 #include "MainWindow.h"
 #include "GLWidget.h"
 
@@ -7,6 +8,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QSlider>
+#include <QGroupBox>
 
 
 #include <iostream>
@@ -14,7 +16,7 @@
 MainWindow::MainWindow()
 	: _selected_entity{0}
 {
-	setWindowTitle(tr("cowboy-engine 0.1"));
+	setWindowTitle(TITLE);
 
 	// Parametres OpenGL 
 	QSurfaceFormat format;
@@ -28,6 +30,11 @@ MainWindow::MainWindow()
     // Layout QT
 	QVBoxLayout *main_layout = new QVBoxLayout;
     QHBoxLayout *container = new QHBoxLayout;
+
+	QGroupBox *properties_box = new QGroupBox("Properties");
+	properties_box->setMinimumWidth(300);
+	QGroupBox *tree_box = new QGroupBox("Tree");
+	tree_box->setMinimumWidth(200);
 	
 	// Menu
 	QWidget *topFiller = new QWidget;
@@ -53,8 +60,8 @@ MainWindow::MainWindow()
 	_list = new QListWidget;
     left_side_panel_l->addWidget(_list);
 	QWidget *left_side_panel_w = new QWidget;
-    left_side_panel_w->setLayout(left_side_panel_l);
-	container->addWidget(left_side_panel_w);
+    tree_box->setLayout(left_side_panel_l);
+	container->addWidget(tree_box);
 
 	connect(_list, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(on_item_clicked(QListWidgetItem*)));
 
@@ -71,18 +78,24 @@ MainWindow::MainWindow()
 
 
 	QSlider *slide_x = new QSlider(Qt::Orientation::Horizontal);
+	slide_x->setMinimum(-100);
+	slide_x->setMaximum(100);
     side_panel_l->addWidget(slide_x);
 	connect(slide_x, &QSlider::valueChanged, this, &MainWindow::change_slide_x);
 	QSlider *slide_y = new QSlider(Qt::Orientation::Horizontal);
+	slide_y->setMinimum(-100);
+	slide_y->setMaximum(100);
     side_panel_l->addWidget(slide_y);
 	connect(slide_y, &QSlider::valueChanged, this, &MainWindow::change_slide_y);
 	QSlider *slide_z = new QSlider(Qt::Orientation::Horizontal);
+	slide_z->setMinimum(-100);
+	slide_z->setMaximum(100);
     side_panel_l->addWidget(slide_z);
 	connect(slide_z, &QSlider::valueChanged, this, &MainWindow::change_slide_z);
 
     QWidget *side_panel_w = new QWidget;
-    side_panel_w->setLayout(side_panel_l);
-	container->addWidget(side_panel_w);
+    properties_box->setLayout(side_panel_l);
+	container->addWidget(properties_box);
 
 	// Main Widget
     QWidget *w = new QWidget;

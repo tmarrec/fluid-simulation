@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(cowboy-engine)
+project(cowboy-engine VERSION "0.0.2")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -30,7 +30,10 @@ else (Qt5OpenGL_FOUND)
 endif(Qt5OpenGL_FOUND)
 find_package(OpenGL REQUIRED) # define OPENGL_LIBRARIES
 
+configure_file("src/config.h.in" "config.h")
+
 add_executable(${PROJECT_NAME}
+	src/config.h
  	src/main.cpp
 	
 	src/MainWindow.cpp
