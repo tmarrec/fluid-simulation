@@ -7,8 +7,7 @@ class GLWidget;
 
 #include "GLWidget.h"
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
 	Q_OBJECT
 
 public:
@@ -30,6 +29,7 @@ private slots:
 private:
 	QListWidget *_list;
 	GLWidget *_glw;
+	OpenGL *_openGL;
 
 	uint _selected_entity;
 };

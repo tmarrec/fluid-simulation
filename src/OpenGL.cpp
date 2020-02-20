@@ -6,14 +6,14 @@
 
 #include <iostream>
 
-OpenGL::OpenGL(int w, int h, MainWindow * main_window)
+OpenGL::OpenGL(unsigned int w, unsigned int h, MainWindow * main_window)
 		: _width{w}
 		, _height{h}
 		, _draw_fill{true}
 		, _projection{1.0f}
 		, _view_position{0.0f, 0.0f, -5.0f}
-		, _ecs{}
 		, _main_window{main_window}
+		, _ecs{}
 {
 
 	_projection = glm::perspective(glm::radians(70.0f), (float)width()/(float)height(), 0.1f, 100.0f);
@@ -22,6 +22,7 @@ OpenGL::OpenGL(int w, int h, MainWindow * main_window)
 
 
 	// Tests
+	/*
 	auto t1 {std::make_unique<Triangle>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
 	auto t2 {std::make_unique<Cube>(glm::vec3{3.0f, 0.0f, 0.0f}, glm::vec3{5.0f, 80.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
 	auto t3 {std::make_unique<Sphere>(glm::vec3{-3.0f, 0.0f, 0.0f}, glm::vec3{5.0f, 80.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec2{10, 10})};
@@ -32,6 +33,7 @@ OpenGL::OpenGL(int w, int h, MainWindow * main_window)
 	_main_window->add_item_to_QListW(1, "cube");
 	_ecs.add(std::move(t3));
 	_main_window->add_item_to_QListW(2, "sphere");
+	*/
 	// Fin Test
 }
 
@@ -39,9 +41,14 @@ OpenGL::~OpenGL(void) {
 
 }
 
+void OpenGL::test() {
+	std::cout << "uwu" << std::endl;
+}
+
 
 void OpenGL::move(uint id, char pos, float value) {
 	_ecs.move(id, pos, value);
+	_ecs.test();
 }
 
 void OpenGL::add_shape(std::string shape) {
@@ -78,10 +85,6 @@ void OpenGL::draw(void) {
 	// Render tout ici
 	_ecs.render_all(view_position(), projection(), delta_time());
 	
-}
-
-void OpenGL::select_entity(uint selected_id) {
-	_ecs.get(selected_id);
 }
 
 unsigned short OpenGL::width() const {

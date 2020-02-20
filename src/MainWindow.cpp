@@ -17,6 +17,10 @@ MainWindow::MainWindow()
 	: _selected_entity{0}
 {
 	setWindowTitle(TITLE);
+	
+	// Widget OpenGL
+	_glw = new GLWidget(this);
+	_openGL = _glw->openGL();
 
 	// Parametres OpenGL 
 	QSurfaceFormat format;
@@ -24,11 +28,10 @@ MainWindow::MainWindow()
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	format.setDepthBufferSize(24);
 	format.setSwapInterval(0);
+	format.setSamples(8);
 	QSurfaceFormat::setDefaultFormat(format);
 
-
     // Layout QT
-	QVBoxLayout *main_layout = new QVBoxLayout;
     QHBoxLayout *container = new QHBoxLayout;
 
 	QGroupBox *properties_box = new QGroupBox("Properties");
@@ -52,21 +55,19 @@ MainWindow::MainWindow()
 	add_menu->addAction(add_cube);
 
 	QAction *add_sphere = new QAction("Sphere", this);
-    connect(add_sphere, &QAction::triggered, this, &MainWindow::add_sphere);
+	// TODO connect 
+	connect(add_sphere, &QAction::triggered, _openGL, &OpenGL::test);
 	add_menu->addAction(add_sphere);
 
 	// Left Panel, with TreeView
 	QVBoxLayout *left_side_panel_l = new QVBoxLayout;	
 	_list = new QListWidget;
     left_side_panel_l->addWidget(_list);
-	QWidget *left_side_panel_w = new QWidget;
     tree_box->setLayout(left_side_panel_l);
 	container->addWidget(tree_box);
 
 	connect(_list, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(on_item_clicked(QListWidgetItem*)));
 
-	// Widget OpenGL
-	_glw = new GLWidget(this);
     container->addWidget(_glw);
 
 	// Side Panel
@@ -93,17 +94,12 @@ MainWindow::MainWindow()
     side_panel_l->addWidget(slide_z);
 	connect(slide_z, &QSlider::valueChanged, this, &MainWindow::change_slide_z);
 
-    QWidget *side_panel_w = new QWidget;
     properties_box->setLayout(side_panel_l);
 	container->addWidget(properties_box);
 
 	// Main Widget
     QWidget *w = new QWidget;
     w->setLayout(container);
-
-	
-    main_layout->addWidget(w);
-    setLayout(main_layout);
 
 	setCentralWidget(w);
 }

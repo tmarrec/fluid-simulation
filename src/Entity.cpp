@@ -16,10 +16,6 @@ Entity::~Entity(void) {
 
 }
 
-void Entity::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) {
-	std::cout << "bad draw :(" << std::endl;
-}
-
 void Entity::set_position(glm::vec3 position) {
 	_position = position;
 }
@@ -44,7 +40,7 @@ void Entity::rotate_test(float delta_time) {
 	_position.y = sin(_rotation.z/35);
 }
 
-const unsigned long Entity::id() const {
+unsigned long Entity::id() const {
 	return _id;
 }
 

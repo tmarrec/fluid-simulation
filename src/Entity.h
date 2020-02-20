@@ -10,7 +10,7 @@ public:
 	Entity(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 	~Entity(void);
 
-	virtual void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time);
+	virtual void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) = 0;
 
 	void set_position(glm::vec3 position);
 	void set_rotation(glm::vec3 rotation);
@@ -21,7 +21,7 @@ public:
 	glm::mat4 get_model() const;
 	glm::mat4 get_view(glm::vec3 view_position) const;
 
-	const unsigned long id() const;
+	unsigned long id() const;
 
 private:
 	glm::vec3 _position;

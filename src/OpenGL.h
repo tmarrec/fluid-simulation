@@ -14,10 +14,11 @@
 #include "MainWindow.h"
 
 
-class OpenGL {
+class OpenGL : public QObject {
+	Q_OBJECT
 
 public:
-	explicit OpenGL(int w, int h, MainWindow * main_window);
+	explicit OpenGL(unsigned int w, unsigned int h, MainWindow * main_window);
 	virtual ~OpenGL(void);
 
 	virtual void draw(void);
@@ -31,12 +32,14 @@ public:
 
 	void add_shape(std::string shape);
 
-	void select_entity(uint selected_id);
 	void move(uint id, char pos, float value);
 
+public slots:
+	void test();
+
 private:
-	unsigned short _width;
-	unsigned short _height;
+	unsigned int _width;
+	unsigned int _height;
 	bool _draw_fill;
 
 	float _delta_time;

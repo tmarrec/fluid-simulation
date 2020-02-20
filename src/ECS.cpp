@@ -13,12 +13,9 @@ void ECS::add(std::unique_ptr<Entity> entity) {
 	_entities.push_back(std::move(entity));
 }
 
-void ECS::get(uint id) {
-	for (auto & e : _entities) {
-		if (e->id() == id) {
-			e->set_position(glm::vec3{0.0f, 0.0f, 2.0f});
-		}
-	}
+void ECS::test() {
+	std::cout << "test" << std::endl;
+	auto & t = _entities.front();
 }
 
 void ECS::move(uint id, char pos, float value) {

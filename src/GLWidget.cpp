@@ -14,26 +14,23 @@ GLWidget::GLWidget(MainWindow *parent)
 			, _main_window{parent}
 {
 	setFixedSize(1280, 720);
+	_openGL = new OpenGL{1280, 720, _main_window};
 }
 
 GLWidget::~GLWidget() {
 
 }
 
-void GLWidget::cleanup() {
-	_openGL.reset(nullptr);
+OpenGL * GLWidget::openGL() {
+	return _openGL;
 }
 
-void GLWidget::mouseMoveEvent(QMouseEvent *event) {
-	std::cout << "mouse move" << std::endl;
+void GLWidget::cleanup() {
+
 }
 
 void GLWidget::add_shape(std::string shape) {
 	_openGL->add_shape(shape);
-}
-
-void GLWidget::select_entity(uint selected_id) {
-	_openGL->select_entity(selected_id);
 }
 
 void GLWidget::move(uint id, char pos, float value) {
@@ -51,7 +48,6 @@ void GLWidget::initializeGL() {
 	}	
 
 	_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	_openGL.reset(new OpenGL{1280, 720, _main_window});
 }
 
 void GLWidget::paintGL() {
