@@ -29,10 +29,6 @@ void GLWidget::cleanup() {
 
 }
 
-void GLWidget::add_shape(std::string shape) {
-	_openGL->add_shape(shape);
-}
-
 void GLWidget::move(uint id, char pos, float value) {
 	_openGL->move(id, pos, value);
 }

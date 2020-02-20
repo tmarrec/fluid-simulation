@@ -41,33 +41,27 @@ OpenGL::~OpenGL(void) {
 
 }
 
-void OpenGL::test() {
-	std::cout << "uwu" << std::endl;
-}
-
-
 void OpenGL::move(uint id, char pos, float value) {
 	_ecs.move(id, pos, value);
 	_ecs.test();
 }
 
-void OpenGL::add_shape(std::string shape) {
-	// TODO a changer avec une enum plutot que string
-	if (shape == "triangle") {
-		auto s {std::make_unique<Triangle>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
-		std::cout << s->id() << std::endl;
-		_main_window->add_item_to_QListW(s->id(), shape);
-		_ecs.add(std::move(s));
-	} else if (shape == "cube") {
-		auto s {std::make_unique<Cube>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
-		_main_window->add_item_to_QListW(s->id(), shape);
-		_ecs.add(std::move(s));
-	} else {
-		auto s {std::make_unique<Sphere>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec2{5, 5})};
-		_main_window->add_item_to_QListW(s->id(), shape);
-		_ecs.add(std::move(s));
-	}
+void OpenGL::add_triangle() {
+	auto s {std::make_unique<Triangle>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
+	_main_window->add_item_to_QListW(s->id(), "triangle");
+	_ecs.add(std::move(s));
+}
 
+void OpenGL::add_cube() {
+	auto s {std::make_unique<Cube>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
+	_main_window->add_item_to_QListW(s->id(), "cube");
+	_ecs.add(std::move(s));
+}
+
+void OpenGL::add_sphere() {
+	auto s {std::make_unique<Sphere>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec2{5,5})};
+	_main_window->add_item_to_QListW(s->id(), "sphere");
+	_ecs.add(std::move(s));
 }
 
 void OpenGL::draw(void) {

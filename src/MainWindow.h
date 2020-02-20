@@ -19,9 +19,6 @@ private slots:
 	void on_item_clicked(QListWidgetItem *item);
 	void on_triangleButton_clicked();
 	void on_rectangleButton_clicked();
-	void add_triangle();
-	void add_cube();
-	void add_sphere();
 	void change_slide_x(int value);
 	void change_slide_y(int value);
 	void change_slide_z(int value);

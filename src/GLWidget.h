@@ -21,7 +21,6 @@ public:
 	~GLWidget();
 
 	void cleanup();
-	void add_shape(std::string shape);
 	void move(uint id, char pos, float value);
 	OpenGL * openGL();
 

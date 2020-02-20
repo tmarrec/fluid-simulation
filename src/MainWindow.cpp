@@ -47,16 +47,15 @@ MainWindow::MainWindow()
 	
 	// Menu Actions
 	QAction *add_triangle = new QAction("Triangle", this);
-    connect(add_triangle, &QAction::triggered, this, &MainWindow::add_triangle);
+	connect(add_triangle, &QAction::triggered, _openGL, &OpenGL::add_triangle);
 	add_menu->addAction(add_triangle);
 
 	QAction *add_cube = new QAction("Cube", this);
-    connect(add_cube, &QAction::triggered, this, &MainWindow::add_cube);
+	connect(add_cube, &QAction::triggered, _openGL, &OpenGL::add_cube);
 	add_menu->addAction(add_cube);
 
 	QAction *add_sphere = new QAction("Sphere", this);
-	// TODO connect 
-	connect(add_sphere, &QAction::triggered, _openGL, &OpenGL::test);
+	connect(add_sphere, &QAction::triggered, _openGL, &OpenGL::add_sphere);
 	add_menu->addAction(add_sphere);
 
 	// Left Panel, with TreeView
@@ -65,7 +64,6 @@ MainWindow::MainWindow()
     left_side_panel_l->addWidget(_list);
     tree_box->setLayout(left_side_panel_l);
 	container->addWidget(tree_box);
-
 	connect(_list, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(on_item_clicked(QListWidgetItem*)));
 
     container->addWidget(_glw);
@@ -132,18 +130,6 @@ void MainWindow::on_triangleButton_clicked()
 void MainWindow::on_rectangleButton_clicked()
 {
 	std::cout << "rect" << std::endl;
-}
-
-void MainWindow::add_triangle() {
-	_glw->add_shape("triangle");
-}
-
-void MainWindow::add_cube() {
-	_glw->add_shape("cube");
-}
-
-void MainWindow::add_sphere() {
-	_glw->add_shape("sphere");
 }
 
 void MainWindow::add_item_to_QListW(uint id, std::string name) {

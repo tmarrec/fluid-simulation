@@ -30,12 +30,12 @@ public:
 	float delta_time() const;
 	glm::vec3 view_position() const;
 
-	void add_shape(std::string shape);
-
 	void move(uint id, char pos, float value);
 
 public slots:
-	void test();
+	void add_triangle();
+	void add_cube();
+	void add_sphere();
 
 private:
 	unsigned int _width;
