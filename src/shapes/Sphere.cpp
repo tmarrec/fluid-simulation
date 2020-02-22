@@ -12,7 +12,8 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec
 				0,		1,		0,
 				1,		0,		1,
 			},
-			generate_indices(faces)	
+			generate_indices(faces),
+			"sphere"	
 		)
 		, _shader {
 			"../src/shaders/triangle.vert",

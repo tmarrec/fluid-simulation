@@ -38,7 +38,8 @@ Cube::Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 				6, 3, 7,
 				4, 0, 1,
 				4, 1, 5,
-			}
+			},
+			"cube"
 		)
 		, _shader {
 			"../src/shaders/triangle.vert",

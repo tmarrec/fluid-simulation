@@ -18,7 +18,8 @@ Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 			},
 			std::vector<GLuint>{
 				0, 2, 1, // Triangle
-			}
+			},
+			"triangle"
 		)
 		, _shader {
 			"../src/shaders/triangle.vert",

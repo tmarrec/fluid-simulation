@@ -6,6 +6,7 @@ class GLWidget;
 #include <QListWidget>
 
 #include "GLWidget.h"
+#include "Entity_Item.h"
 
 class MainWindow : public QMainWindow {
 	Q_OBJECT
@@ -13,12 +14,10 @@ class MainWindow : public QMainWindow {
 public:
 	MainWindow();
 	~MainWindow();
-	void add_item_to_QListW(uint id, std::string name);
+	void add_item_to_QListW(std::unique_ptr<Entity> & shape_ptr);
 
 private slots:
 	void on_item_clicked(QListWidgetItem *item);
-	void on_triangleButton_clicked();
-	void on_rectangleButton_clicked();
 	void change_slide_x(int value);
 	void change_slide_y(int value);
 	void change_slide_z(int value);

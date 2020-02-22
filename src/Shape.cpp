@@ -3,13 +3,15 @@
 
 Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	std::vector<GLfloat> vertices, std::vector<GLfloat> normals,
-	std::vector<GLuint> indices)
+	std::vector<GLuint> indices, std::string type)
 	: Entity(position, rotation, scale)
 	, _vertices{vertices}
 	, _normals{normals}
 	, _indices{indices}
+	, _type{type}
 {
-	}
+		
+}
 
 Shape::~Shape(void) {
 
@@ -25,6 +27,10 @@ std::vector<GLfloat> Shape::normals() const {
 
 std::vector<GLuint> Shape::indices() const {
 	return _indices;
+}
+
+const std::string Shape::type() const {
+	return _type;
 }
 
 void Shape::draw_vertex() const {

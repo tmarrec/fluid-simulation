@@ -47,14 +47,25 @@ MainWindow::MainWindow()
 	
 	// Menu Actions
 	QAction *add_triangle = new QAction("Triangle", this);
+	//TODO connect a ECS directement putot que openGL
+	//TODO connect a ECS directement putot que openGL
+	//TODO connect a ECS directement putot que openGL
+	//TODO connect a ECS directement putot que openGL
 	connect(add_triangle, &QAction::triggered, _openGL, &OpenGL::add_triangle);
 	add_menu->addAction(add_triangle);
 
 	QAction *add_cube = new QAction("Cube", this);
+	//TODO connect a ECS directement putot que openGL
+	//TODO connect a ECS directement putot que openGL
+	//TODO connect a ECS directement putot que openGL
+	//TODO connect a ECS directement putot que openGL
 	connect(add_cube, &QAction::triggered, _openGL, &OpenGL::add_cube);
 	add_menu->addAction(add_cube);
 
 	QAction *add_sphere = new QAction("Sphere", this);
+	//TODO connect a ECS directement putot que openGL
+	//TODO connect a ECS directement putot que openGL
+	//TODO connect a ECS directement putot que openGL
 	connect(add_sphere, &QAction::triggered, _openGL, &OpenGL::add_sphere);
 	add_menu->addAction(add_sphere);
 
@@ -80,16 +91,27 @@ MainWindow::MainWindow()
 	slide_x->setMinimum(-100);
 	slide_x->setMaximum(100);
     side_panel_l->addWidget(slide_x);
+	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
+	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
+	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
 	connect(slide_x, &QSlider::valueChanged, this, &MainWindow::change_slide_x);
 	QSlider *slide_y = new QSlider(Qt::Orientation::Horizontal);
 	slide_y->setMinimum(-100);
 	slide_y->setMaximum(100);
     side_panel_l->addWidget(slide_y);
+	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
+	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
+	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
+	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
 	connect(slide_y, &QSlider::valueChanged, this, &MainWindow::change_slide_y);
 	QSlider *slide_z = new QSlider(Qt::Orientation::Horizontal);
 	slide_z->setMinimum(-100);
 	slide_z->setMaximum(100);
     side_panel_l->addWidget(slide_z);
+	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
+	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
+	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
+	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
 	connect(slide_z, &QSlider::valueChanged, this, &MainWindow::change_slide_z);
 
     properties_box->setLayout(side_panel_l);
@@ -118,22 +140,20 @@ void MainWindow::change_slide_z(int value) {
 }
 
 void MainWindow::on_item_clicked(QListWidgetItem *item) {
+	/*
 	uint selected_id = item->data(100).value<uint>();
 	_selected_entity = selected_id;
+	*/
+	Entity_Item *s = item->data(100).value<Entity_Item*>();
+	std::cout << s->name() << std::endl;
 }
 
-void MainWindow::on_triangleButton_clicked()
-{
-	std::cout << "triangle" << std::endl;
-}
+Q_DECLARE_METATYPE(Entity_Item*)
 
-void MainWindow::on_rectangleButton_clicked()
-{
-	std::cout << "rect" << std::endl;
-}
-
-void MainWindow::add_item_to_QListW(uint id, std::string name) {
-	QListWidgetItem *item = new QListWidgetItem(name.c_str());
-	item->setData(100, QVariant(id));
+void MainWindow::add_item_to_QListW(std::unique_ptr<Entity> & shape_ptr) {
+	// TODO link pointer to this item
+	Entity_Item *s = new Entity_Item(shape_ptr);
+	QListWidgetItem *item = new QListWidgetItem(s->name().c_str());
+	item->setData(100, QVariant::fromValue(s));
 	_list->addItem(item);
 }

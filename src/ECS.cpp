@@ -13,11 +13,6 @@ void ECS::add(std::unique_ptr<Entity> entity) {
 	_entities.push_back(std::move(entity));
 }
 
-void ECS::test() {
-	std::cout << "test" << std::endl;
-	auto & t = _entities.front();
-}
-
 void ECS::move(uint id, char pos, float value) {
 	for (auto & e : _entities) {
 		if (e->id() == id) {

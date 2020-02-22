@@ -53,7 +53,10 @@ add_executable(${PROJECT_NAME}
 
 	src/Entity.cpp
 	src/Entity.h
-	
+
+	src/Entity_Item.cpp
+	src/Entity_Item.h
+
 	src/Shape.cpp
 	src/Shape.h
 
