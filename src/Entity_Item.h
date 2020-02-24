@@ -12,6 +12,7 @@ public:
 	void prout();
 
 	const std::string name() const;
+	const std::unique_ptr<Entity> & shape_ptr() const;
 
 private:
 	const std::unique_ptr<Entity> & _shape_ptr;

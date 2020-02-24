@@ -15,3 +15,7 @@ Entity_Item::~Entity_Item(void) {
 const std::string Entity_Item::name() const {
 	return _name;
 }
+
+const std::unique_ptr<Entity> & Entity_Item::shape_ptr() const {
+	return _shape_ptr;
+}

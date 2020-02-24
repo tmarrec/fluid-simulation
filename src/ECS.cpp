@@ -26,7 +26,6 @@ void ECS::move(uint id, char pos, float value) {
 			}	
 		}
 	}
-
 }
 
 void ECS::render_all(glm::vec3 view_position, glm::mat4 projection, float delta_time) {

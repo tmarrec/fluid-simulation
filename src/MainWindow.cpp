@@ -32,7 +32,6 @@ MainWindow::MainWindow()
 	_openGL = _glw->openGL();
 
 
-
     // Layout QT
     QHBoxLayout *container = new QHBoxLayout;
 
@@ -130,15 +129,16 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::change_slide_x(int value) {
-	_glw->move(_selected_entity, 'x', value);
+	_selected_entity->shape_ptr()->set_position(glm::vec3{0.0f, 0.0f, 0.0f});
+	//_glw->move(_selected_entity, 'x', value);
 }
 
 void MainWindow::change_slide_y(int value) {
-	_glw->move(_selected_entity, 'y', value);
+	//_glw->move(_selected_entity, 'y', value);
 }
 
 void MainWindow::change_slide_z(int value) {
-	_glw->move(_selected_entity, 'z', value);
+	//_glw->move(_selected_entity, 'z', value);
 }
 
 void MainWindow::on_item_clicked(QListWidgetItem *item) {
@@ -148,6 +148,7 @@ void MainWindow::on_item_clicked(QListWidgetItem *item) {
 	*/
 	Entity_Item *s = item->data(100).value<Entity_Item*>();
 	std::cout << s->name() << std::endl;
+	_selected_entity = s;
 }
 
 Q_DECLARE_METATYPE(Entity_Item*)

@@ -23,9 +23,9 @@ private slots:
 	void change_slide_z(int value);
 
 private:
-	QListWidget *_list;
-	GLWidget *_glw;
-	OpenGL *_openGL;
+	QListWidget* _list;
+	GLWidget* _glw;
+	OpenGL* _openGL;
 
-	uint _selected_entity;
+	Entity_Item* _selected_entity;
 };
