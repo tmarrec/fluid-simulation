@@ -18,10 +18,6 @@ MainWindow::MainWindow()
 {
 	setWindowTitle(TITLE);
 	
-	// Widget OpenGL
-	_glw = new GLWidget(this);
-	_openGL = _glw->openGL();
-
 	// Parametres OpenGL 
 	QSurfaceFormat format;
 	format.setVersion(4, 5);
@@ -30,6 +26,12 @@ MainWindow::MainWindow()
 	format.setSwapInterval(0);
 	format.setSamples(8);
 	QSurfaceFormat::setDefaultFormat(format);
+	
+	// Widget OpenGL
+	_glw = new GLWidget(this);
+	_openGL = _glw->openGL();
+
+
 
     // Layout QT
     QHBoxLayout *container = new QHBoxLayout;
