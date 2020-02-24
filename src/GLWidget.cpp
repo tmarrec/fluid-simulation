@@ -29,10 +29,6 @@ void GLWidget::cleanup() {
 
 }
 
-void GLWidget::move(uint id, char pos, float value) {
-	_openGL->move(id, pos, value);
-}
-
 void GLWidget::initializeGL() {
 	connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GLWidget::cleanup);
 	if (!initializeOpenGLFunctions()) {

@@ -126,36 +126,36 @@ MainWindow::MainWindow()
 }
 
 MainWindow::~MainWindow() {
+
 }
 
 void MainWindow::change_slide_x(int value) {
-	_selected_entity->shape_ptr()->set_position(glm::vec3{0.0f, 0.0f, 0.0f});
-	//_glw->move(_selected_entity, 'x', value);
+	auto s = _selected_entity->shape_ptr();
+	auto p = s->position();
+	s->set_position(glm::vec3{0.05f*value, p.y, p.z});
 }
 
 void MainWindow::change_slide_y(int value) {
-	//_glw->move(_selected_entity, 'y', value);
+	auto s = _selected_entity->shape_ptr();
+	auto p = s->position();
+	s->set_position(glm::vec3{p.x, 0.05f*value, p.z});
 }
 
 void MainWindow::change_slide_z(int value) {
-	//_glw->move(_selected_entity, 'z', value);
+	auto s = _selected_entity->shape_ptr();
+	auto p = s->position();
+	s->set_position(glm::vec3{p.x, p.y, 0.05f*value});
 }
 
 void MainWindow::on_item_clicked(QListWidgetItem *item) {
-	/*
-	uint selected_id = item->data(100).value<uint>();
-	_selected_entity = selected_id;
-	*/
-	Entity_Item *s = item->data(100).value<Entity_Item*>();
-	std::cout << s->name() << std::endl;
+	auto s = item->data(100).value<Entity_Item*>();
 	_selected_entity = s;
 }
 
 Q_DECLARE_METATYPE(Entity_Item*)
 
-void MainWindow::add_item_to_QListW(std::unique_ptr<Entity> & shape_ptr) {
-	// TODO link pointer to this item
-	Entity_Item *s = new Entity_Item(shape_ptr);
+void MainWindow::add_item_to_QListW(std::shared_ptr<Entity> shape_ptr) {
+	auto s = new Entity_Item(shape_ptr);
 	QListWidgetItem *item = new QListWidgetItem(s->name().c_str());
 	item->setData(100, QVariant::fromValue(s));
 	_list->addItem(item);

@@ -21,7 +21,6 @@ public:
 	~GLWidget();
 
 	void cleanup();
-	void move(uint id, char pos, float value);
 	OpenGL * openGL();
 
 protected:

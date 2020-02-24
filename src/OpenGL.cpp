@@ -24,27 +24,22 @@ OpenGL::~OpenGL(void) {
 
 }
 
-void OpenGL::move(uint id, char pos, float value) {
-	_ecs.move(id, pos, value);
-}
-
 void OpenGL::add_triangle() {
-	// TODO truc
-	std::unique_ptr<Entity> s = std::unique_ptr<Triangle>(new Triangle(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
+	auto s = std::shared_ptr<Triangle>(new Triangle(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
 	_main_window->add_item_to_QListW(s);
-	_ecs.add(std::move(s));
+	_ecs.add(s);
 }
 
 void OpenGL::add_cube() {
-	auto s {std::make_unique<Cube>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f})};
-	//_main_window->add_item_to_QListW(s->id(), "cube");
-	_ecs.add(std::move(s));
+	auto s = std::shared_ptr<Cube>(new Cube(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
+	_main_window->add_item_to_QListW(s);
+	_ecs.add(s);
 }
 
 void OpenGL::add_sphere() {
-	auto s {std::make_unique<Sphere>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec2{10,10})};
-	//_main_window->add_item_to_QListW(s->id(), "sphere");
-	_ecs.add(std::move(s));
+	auto s = std::shared_ptr<Sphere>(new Sphere(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, glm::vec2{10,10}));
+	_main_window->add_item_to_QListW(s);
+	_ecs.add(s);
 }
 
 void OpenGL::draw(void) {

@@ -14,7 +14,7 @@ class MainWindow : public QMainWindow {
 public:
 	MainWindow();
 	~MainWindow();
-	void add_item_to_QListW(std::unique_ptr<Entity> & shape_ptr);
+	void add_item_to_QListW(std::shared_ptr<Entity> shape_ptr);
 
 private slots:
 	void on_item_clicked(QListWidgetItem *item);

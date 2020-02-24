@@ -1,7 +1,7 @@
 #include "Entity_Item.h"
 #include <iostream>
 
-Entity_Item::Entity_Item(std::unique_ptr<Entity> & shape_ptr)
+Entity_Item::Entity_Item(std::shared_ptr<Entity> shape_ptr)
 	: _shape_ptr{shape_ptr}
 	, _name{std::to_string(shape_ptr->id())}
 {
@@ -16,6 +16,7 @@ const std::string Entity_Item::name() const {
 	return _name;
 }
 
-const std::unique_ptr<Entity> & Entity_Item::shape_ptr() const {
+std::shared_ptr<Entity> Entity_Item::shape_ptr() {
 	return _shape_ptr;
 }
+

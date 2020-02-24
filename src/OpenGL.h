@@ -30,8 +30,6 @@ public:
 	float delta_time() const;
 	glm::vec3 view_position() const;
 
-	void move(uint id, char pos, float value);
-
 public slots:
 	void add_triangle();
 	void add_cube();
