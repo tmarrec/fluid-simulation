@@ -10,7 +10,6 @@ Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	, _indices{indices}
 	, _type{type}
 {
-	std::cout << "create shape" << std::endl;
 	// Initialize the geometry
 	// 1. Generate geometry buffers
 	glGenBuffers(1, &_vbo);
@@ -64,14 +63,6 @@ Shape::~Shape(void) {
 
 }
 
-std::vector<GLfloat> Shape::vertices() const {
-	return _vertices;
-}
-
-std::vector<GLfloat> Shape::normals() const {
-	return _normals;
-}
-
 std::vector<GLuint> Shape::indices() const {
 	return _indices;
 }
@@ -80,15 +71,8 @@ const std::string Shape::type() const {
 	return _type;
 }
 
-void Shape::draw_vertex() const {
-		
-	GLuint _vao;
-	GLuint _vbo;
-	GLuint _nbo;
-	GLuint _ebo;
-	
-
-
+void Shape::draw_vertex() {
+	/*
 	// Initialize the geometry
 	// 1. Generate geometry buffers
 	glGenBuffers(1, &_vbo);
@@ -103,8 +87,8 @@ void Shape::draw_vertex() const {
 		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 		glBufferData(
 			GL_ARRAY_BUFFER,
-			vertices().size()*sizeof(GLfloat),
-			vertices().data(),
+			_vertices.size()*sizeof(GLfloat),
+			_vertices.data(),
 			GL_STATIC_DRAW
 		);
 
@@ -116,8 +100,8 @@ void Shape::draw_vertex() const {
 		glBindBuffer(GL_ARRAY_BUFFER, _nbo);
 		glBufferData(
 			GL_ARRAY_BUFFER,
-			normals().size()*sizeof(GLfloat),
-			normals().data(),
+			_normals.size()*sizeof(GLfloat),
+			_normals.data(),
 			GL_STATIC_DRAW
 		);
 
@@ -129,14 +113,14 @@ void Shape::draw_vertex() const {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
 		glBufferData(
 			GL_ELEMENT_ARRAY_BUFFER,
-			indices().size()*sizeof(GLfloat),
-			indices().data(),
+			_indices.size()*sizeof(GLfloat),
+			_indices.data(),
 			GL_STATIC_DRAW
 		);
 
 	// 8. Unbind the VAO
 	glBindVertexArray(0);
-
+	*/
 
 	glBindVertexArray(_vao);
 	glDrawElements(GL_TRIANGLES, indices().size(), GL_UNSIGNED_INT, nullptr);

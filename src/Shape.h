@@ -11,11 +11,9 @@ public:
 		std::vector<GLuint> indices, std::string type);
 	~Shape(void);
 	
-	std::vector<GLfloat> vertices() const;
-	std::vector<GLfloat> normals() const;
 	std::vector<GLuint> indices() const;
 
-	void draw_vertex() const;
+	void draw_vertex();
 	
 	const std::string type() const;
 
