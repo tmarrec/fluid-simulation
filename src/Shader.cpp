@@ -71,7 +71,7 @@ void Shader::use() {
 int Shader::get_location(const std::string &name) const {
 	int location = glGetUniformLocation(_id, name.c_str());
 	if (location == -1) {
-		std::cout << "SHADER: CAN'T FIND UNIFORM LOCATION : " << name << std::endl;
+		//std::cout << "SHADER: CAN'T FIND UNIFORM LOCATION : " << name << std::endl;
 	}	
 	return location;
 }

@@ -39,6 +39,9 @@ void GLWidget::initializeGL() {
 		exit(1);
 	}	
 
+	glEnable(GL_DEPTH_TEST);
+	glViewport(0, 0, 1280, 720);
+
 	_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 

@@ -8,8 +8,10 @@ uniform mat4 view;
 uniform mat4 projection;
 
 out vec3 normal;
+out vec3 pos;
 
 void main(void) {
 	normal = inormal;
+	pos = position;
 	gl_Position = projection * view * model * vec4(position, 1.0f);
 }

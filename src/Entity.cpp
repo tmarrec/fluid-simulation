@@ -34,7 +34,7 @@ glm::vec3 Entity::rotation() const {
 
 void Entity::rotate_test(float delta_time) {
 	_rotation.x -= 20 * delta_time;
-	_rotation.y += 150 * delta_time;
+	_rotation.y += 40 * delta_time;
 	_rotation.z += 50 * delta_time;
 
 	_position.y = sin(_rotation.z/35);
