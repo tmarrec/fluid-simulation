@@ -15,6 +15,7 @@ public:
 	MainWindow();
 	~MainWindow();
 	void add_item_to_QListW(std::shared_ptr<Entity> shape_ptr);
+	void change_selected_entity(Entity_Item* e);
 
 private slots:
 	void on_item_clicked(QListWidgetItem *item);

@@ -92,27 +92,16 @@ MainWindow::MainWindow()
 	slide_x->setMinimum(-100);
 	slide_x->setMaximum(100);
     side_panel_l->addWidget(slide_x);
-	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
-	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
-	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
 	connect(slide_x, &QSlider::valueChanged, this, &MainWindow::change_slide_x);
 	QSlider *slide_y = new QSlider(Qt::Orientation::Horizontal);
 	slide_y->setMinimum(-100);
 	slide_y->setMaximum(100);
     side_panel_l->addWidget(slide_y);
-	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
-	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
-	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
-	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
 	connect(slide_y, &QSlider::valueChanged, this, &MainWindow::change_slide_y);
 	QSlider *slide_z = new QSlider(Qt::Orientation::Horizontal);
 	slide_z->setMinimum(-100);
 	slide_z->setMaximum(100);
     side_panel_l->addWidget(slide_z);
-	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
-	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
-	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
-	//TODO connect a ECS plutot que MainWindow pour modifier pos de la shape
 	connect(slide_z, &QSlider::valueChanged, this, &MainWindow::change_slide_z);
 
     properties_box->setLayout(side_panel_l);
@@ -149,13 +138,20 @@ void MainWindow::change_slide_z(int value) {
 
 void MainWindow::on_item_clicked(QListWidgetItem *item) {
 	auto s = item->data(100).value<Entity_Item*>();
-	_selected_entity = s;
+	change_selected_entity(s);
 }
+
+void MainWindow::change_selected_entity(Entity_Item* e) {
+	_selected_entity = e;
+}
+
+
 
 Q_DECLARE_METATYPE(Entity_Item*)
 
 void MainWindow::add_item_to_QListW(std::shared_ptr<Entity> shape_ptr) {
 	auto s = new Entity_Item(shape_ptr);
+	change_selected_entity(s);
 	QListWidgetItem *item = new QListWidgetItem(s->name().c_str());
 	item->setData(100, QVariant::fromValue(s));
 	_list->addItem(item);
