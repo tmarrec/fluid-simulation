@@ -2,11 +2,11 @@
 
 #include "../Shape.h"
 
-class Cube : public Shape {
+class Quad : public Shape {
 
 public:
-	Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
-	~Cube();
+	Quad(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+	~Quad();
 
 	void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) override;
 

@@ -14,6 +14,7 @@ public:
 	std::vector<GLuint> indices() const;
 
 	void draw_vertex();
+	void draw_vertex_quads();
 	
 	const std::string type() const;
 
@@ -23,13 +24,7 @@ private:
 	std::vector<GLuint>		_indices;
 	
 	// Vertex Array Buffer
-	GLuint _vao;
-	// Vertex Buffer Object
-	GLuint _vbo;
-	// Normal Buffer
-	GLuint _nbo;
-	// Face Buffer
-	GLuint _ebo;
+	GLuint _VAO;
 	
 	const std::string _type;
 };
