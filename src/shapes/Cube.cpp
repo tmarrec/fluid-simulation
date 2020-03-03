@@ -80,7 +80,7 @@ Cube::Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
  				20, 21, 22, 20, 22, 23 	 //bottom
 			},
 			"cube",
-			{1.0f, 1.0f, 1.0f}
+			{1.0f, 1.0f, 0.0f}
 		)
 		, _shader {
 			"../src/shaders/vert.vert",

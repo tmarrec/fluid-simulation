@@ -42,7 +42,7 @@ void OpenGL::add_sphere() {
 }
 
 void OpenGL::draw(void) {
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if (_draw_fill) {

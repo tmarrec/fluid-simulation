@@ -14,8 +14,8 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec
 			{0.0f, 0.0f, 1.0f}
 		)
 		, _shader {
-			"../src/shaders/vert.vert",
-			"../src/shaders/frag.frag"
+			"../src/shaders/error.vert",
+			"../src/shaders/error.frag"
 		}
 {
 
