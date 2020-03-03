@@ -19,13 +19,13 @@ Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 			std::vector<GLuint>{
 				0, 2, 1, // Triangle
 			},
-			"triangle"
+			"triangle",
+			{1.0f, 0.5f, 1.0f}
 		)
 		, _shader {
-			"../src/shaders/triangle.vert",
-			"../src/shaders/triangle.frag"
+			"../src/shaders/vert.vert",
+			"../src/shaders/frag.frag"
 		}
-		, _color {1.0f, 0.5f, 1.0f, 1.0f}
 {
 
 }
@@ -48,6 +48,6 @@ void Triangle::draw(glm::vec3 view_position, glm::mat4 projection, float delta_t
 }
 
 void Triangle::apply_color() {
-	_shader.set_4f("_color", _color);
+	_shader.set_3f("_color", color());
 }
 

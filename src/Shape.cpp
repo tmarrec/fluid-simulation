@@ -3,12 +3,13 @@
 
 Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	std::vector<GLfloat> vertices, std::vector<GLfloat> normals,
-	std::vector<GLuint> indices, std::string type)
+	std::vector<GLuint> indices, std::string type, glm::vec3 color)
 	: Entity(position, rotation, scale)
 	, _vertices{vertices}
 	, _normals{normals}
 	, _indices{indices}
 	, _type{type}
+	, _color{color}
 {
 	GLuint VBO;
 	GLuint NBO;
@@ -65,8 +66,11 @@ const std::string Shape::type() const {
 	return _type;
 }
 
+const glm::vec3 Shape::color() const {
+	return _color;
+}
+
 void Shape::draw_vertex() {
-	/*
 	GLuint VBO;
 	GLuint NBO;
 	GLuint EBO;
@@ -108,7 +112,6 @@ void Shape::draw_vertex() {
 		);
 
 	glBindVertexArray(0);
-	*/
 
 	glBindVertexArray(_VAO);
 	glDrawElements(GL_TRIANGLES, indices().size(), GL_UNSIGNED_INT, nullptr);

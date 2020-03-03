@@ -14,6 +14,5 @@ public:
 private:
 	Shader _shader;
 
-	glm::vec4 _color;
 	void apply_color();
 };

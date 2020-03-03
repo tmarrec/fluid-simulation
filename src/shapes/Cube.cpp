@@ -22,7 +22,13 @@ Cube::Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 				0.5f,		-0.5f, 		0.5f, 		// Bottom Right
 			},
 			std::vector<GLfloat>{
+				1,		0,		1,
+				1,		0,		1,
+				1,		0,		1,
 				0,		1,		0,
+				1,		0,		1,
+				1,		0,		1,
+				1,		0,		1,
 				1,		0,		1,
 			},
 			std::vector<GLuint>{
@@ -39,13 +45,13 @@ Cube::Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 				4, 0, 1,
 				4, 1, 5,
 			},
-			"cube"
+			"cube",
+			{1.0f, 1.0f, 1.0f}
 		)
 		, _shader {
-			"../src/shaders/triangle.vert",
-			"../src/shaders/triangle.frag"
+			"../src/shaders/vert.vert",
+			"../src/shaders/frag.frag"
 		}
-		, _color {0.0f, 1.0f, 0.0f, 1.0f}
 {
 
 }
@@ -68,6 +74,6 @@ void Cube::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time)
 }
 
 void Cube::apply_color() {
-	_shader.set_4f("_color", _color);
+	_shader.set_3f("_color", color());
 }
 
