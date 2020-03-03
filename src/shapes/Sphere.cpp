@@ -8,17 +8,14 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec
 			rotation,
 			scale,
 			generate_vertices(faces),
-			std::vector<GLfloat>{
-				0,		1,		0,
-				1,		0,		1,
-			},
+			generate_vertices(faces),
 			generate_indices(faces),
 			"sphere",
 			{0.0f, 0.0f, 1.0f}
 		)
 		, _shader {
 			"../src/shaders/vert.vert",
-			"../src/shaders/error.frag"
+			"../src/shaders/frag.frag"
 		}
 {
 
@@ -27,7 +24,6 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec
 std::vector<GLfloat> Sphere::generate_vertices(glm::vec2 faces) {
 	std::vector<GLfloat> vertices;
 	float x, y, z, xy;
-	//float nx, ny, nz;
 
 	unsigned int longitude_count = faces[0];
 	unsigned int latitude_count = faces[1];

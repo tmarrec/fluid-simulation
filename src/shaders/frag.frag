@@ -13,7 +13,7 @@ void main(void) {
 
 	// diffuse
 	vec3 norm = normalize(normal);
-	vec3 lightDir = normalize(vec3(10,10,10) - pos); // <- light pos
+	vec3 lightDir = normalize(vec3(0,0,10) - pos); // <- light pos
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuse = diff * vec3(1,0,0); // <- light color
 
