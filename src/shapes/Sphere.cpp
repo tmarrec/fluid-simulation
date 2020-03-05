@@ -10,7 +10,7 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec
 			generate_vertices(faces),
 			generate_vertices(faces),
 			generate_indices(faces),
-			"sphere",
+			"Sphere",
 			{0.0f, 0.0f, 1.0f},
 			{
 				"../src/shaders/error.vert",

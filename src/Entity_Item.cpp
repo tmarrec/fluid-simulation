@@ -3,7 +3,7 @@
 
 Entity_Item::Entity_Item(std::shared_ptr<Entity> shape_ptr)
 	: _shape_ptr{shape_ptr}
-	, _name{std::to_string(shape_ptr->id())}
+	, _name{shape_ptr->name()}
 {
 	
 }

@@ -24,7 +24,7 @@ OpenGL::~OpenGL(void) {
 }
 
 void OpenGL::add_triangle() {
-	auto s = std::shared_ptr<Quad>(new Quad(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
+	auto s = std::shared_ptr<Triangle>(new Triangle(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 }

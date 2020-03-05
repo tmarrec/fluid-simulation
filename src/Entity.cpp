@@ -3,12 +3,14 @@
 
 unsigned long Entity::_next_id = 0;
 
-Entity::Entity(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+Entity::Entity(std::string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 	: _position {position}
 	, _rotation {rotation}
 	, _scale {scale}
-	, _id{_next_id++}
+	, _id{_next_id}
+	, _name{name + " " + std::to_string(_id)}
 {
+	_next_id++;	
 	std::cout << "New Entity : " << _id << std::endl;
 }
 
@@ -42,6 +44,10 @@ void Entity::rotate_test(float delta_time) {
 
 unsigned long Entity::id() const {
 	return _id;
+}
+
+const std::string Entity::name() const {
+	return _name;
 }
 
 glm::mat4 Entity::get_model() const {

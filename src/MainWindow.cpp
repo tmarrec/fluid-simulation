@@ -37,7 +37,7 @@ MainWindow::MainWindow()
 
 	QGroupBox *properties_box = new QGroupBox("Properties");
 	properties_box->setMinimumWidth(300);
-	QGroupBox *tree_box = new QGroupBox("Tree");
+	QGroupBox *tree_box = new QGroupBox("Entities");
 	tree_box->setMinimumWidth(200);
 	
 	// Menu
@@ -144,8 +144,6 @@ void MainWindow::on_item_clicked(QListWidgetItem *item) {
 void MainWindow::change_selected_entity(Entity_Item* e) {
 	_selected_entity = e;
 }
-
-
 
 Q_DECLARE_METATYPE(Entity_Item*)
 

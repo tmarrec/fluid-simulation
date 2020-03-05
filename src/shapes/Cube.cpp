@@ -79,7 +79,7 @@ Cube::Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
  				16, 17, 18, 16, 18, 19,  //upper
  				20, 21, 22, 20, 22, 23 	 //bottom
 			},
-			"cube",
+			"Cube",
 			{1.0f, 1.0f, 0.0f},
 			{ // TODO c'est ignoble
 				"../src/shaders/vert.vert",

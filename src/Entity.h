@@ -4,10 +4,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <string>
+
 class Entity {
 
 public:
-	Entity(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+	Entity(std::string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 	~Entity(void);
 
 	virtual void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) = 0;
@@ -22,6 +24,7 @@ public:
 	glm::mat4 get_view(glm::vec3 view_position) const;
 
 	unsigned long id() const;
+	const std::string name() const;
 
 private:
 	glm::vec3 _position;
@@ -30,5 +33,6 @@ private:
 	
 	const unsigned long _id;
 	static unsigned long _next_id;
+	std::string _name;
 };
 

@@ -5,7 +5,7 @@ Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	std::vector<GLfloat> vertices, std::vector<GLfloat> normals,
 	std::vector<GLuint> indices, std::string type, glm::vec3 color,
 	Shader shader)
-	: Entity(position, rotation, scale)
+	: Entity(type, position, rotation, scale)
 	, _vertices{vertices}
 	, _normals{normals}
 	, _indices{indices}

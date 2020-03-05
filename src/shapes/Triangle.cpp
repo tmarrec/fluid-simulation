@@ -13,17 +13,18 @@ Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 				-0.5f,		-0.5f, 		0.0f, 		// Bottom Right
 			},
 			std::vector<GLfloat>{
-				0,		1,		0,
-				1,		0,		1,
+				1,		1,		1,
+				1,		1,		1,
+				1,		1,		1,
 			},
 			std::vector<GLuint>{
 				0, 2, 1, // Triangle
 			},
-			"triangle",
+			"Triangle",
 			{1.0f, 0.5f, 1.0f},
 			{
-			"../src/shaders/vert.vert",
-			"../src/shaders/frag.frag"
+				"../src/shaders/vert.vert",
+				"../src/shaders/frag.frag"
 			}
 		)
 {

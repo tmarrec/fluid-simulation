@@ -20,7 +20,7 @@ Quad::Quad(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 			std::vector<GLuint>{
 				0, 1, 2, 3 // Quad
 			},
-			"quad",
+			"Quad",
 			{1.0f, 0.5f, 1.0f},
 			{
 				"../src/shaders/vert.vert",
