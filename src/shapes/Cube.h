@@ -12,7 +12,5 @@ public:
 
 
 private:
-	Shader _shader;
-
 	void apply_color();
 };

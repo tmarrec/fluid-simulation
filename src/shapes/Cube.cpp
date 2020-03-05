@@ -80,12 +80,12 @@ Cube::Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
  				20, 21, 22, 20, 22, 23 	 //bottom
 			},
 			"cube",
-			{1.0f, 1.0f, 0.0f}
+			{1.0f, 1.0f, 0.0f},
+			{ // TODO c'est ignoble
+				"../src/shaders/vert.vert",
+				"../src/shaders/frag.frag"
+			}
 		)
-		, _shader {
-			"../src/shaders/vert.vert",
-			"../src/shaders/frag.frag"
-		}
 {
 
 }
@@ -95,19 +95,19 @@ Cube::~Cube() {
 }
 
 void Cube::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) {
-	_shader.use();
+	shader().use();
 	apply_color();
 
 	rotate_test(delta_time);
 
-	_shader.set_mat4("model", get_model());
-	_shader.set_mat4("view", get_view(view_position));
-	_shader.set_mat4("projection", projection);
+	shader().set_mat4("model", get_model());
+	shader().set_mat4("view", get_view(view_position));
+	shader().set_mat4("projection", projection);
 
 	draw_vertex();
 }
 
 void Cube::apply_color() {
-	_shader.set_3f("_color", color());
+	shader().set_3f("_color", color());
 }
 

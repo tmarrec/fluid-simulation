@@ -12,8 +12,6 @@ public:
 
 
 private:
-	Shader _shader;
-
 	glm::vec4 _color;
 	void apply_color();
 	std::vector<GLfloat> generate_vertices(glm::vec2 faces);

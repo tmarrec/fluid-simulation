@@ -20,12 +20,12 @@ Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 				0, 2, 1, // Triangle
 			},
 			"triangle",
-			{1.0f, 0.5f, 1.0f}
-		)
-		, _shader {
+			{1.0f, 0.5f, 1.0f},
+			{
 			"../src/shaders/vert.vert",
 			"../src/shaders/frag.frag"
-		}
+			}
+		)
 {
 
 }
@@ -35,19 +35,19 @@ Triangle::~Triangle() {
 }
 
 void Triangle::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) {
-	_shader.use();
+	shader().use();
 	apply_color();
 
 	rotate_test(delta_time);
 
-	_shader.set_mat4("model", get_model());
-	_shader.set_mat4("view", get_view(view_position));
-	_shader.set_mat4("projection", projection);
+	shader().set_mat4("model", get_model());
+	shader().set_mat4("view", get_view(view_position));
+	shader().set_mat4("projection", projection);
 
 	draw_vertex();
 }
 
 void Triangle::apply_color() {
-	_shader.set_3f("_color", color());
+	shader().set_3f("_color", color());
 }
 

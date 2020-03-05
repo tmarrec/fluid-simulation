@@ -64,7 +64,7 @@ Shader::~Shader() {
 
 }
 
-void Shader::use() {
+const void Shader::use() const {
 	glUseProgram(_id);
 }
 
