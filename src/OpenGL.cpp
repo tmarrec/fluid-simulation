@@ -4,6 +4,7 @@
 #include "shapes/Cube.h"
 #include "shapes/Sphere.h"
 #include "shapes/Quad.h"
+#include "Light.h"
 
 #include <iostream>
 
@@ -36,9 +37,15 @@ void OpenGL::add_cube() {
 }
 
 void OpenGL::add_sphere() {
-	auto s = std::shared_ptr<Sphere>(new Sphere(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, glm::vec2{16, 16}));
+	auto s = std::shared_ptr<Sphere>(new Sphere(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, glm::vec2{8, 8}));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
+}
+
+void OpenGL::add_light() {
+	auto s = std::shared_ptr<Light>(new Light(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, "Light", glm::vec3{1.0f, 1.0f, 1.0f}));
+	_main_window->add_item_to_QListW(s);
+	//_ecs.add(s);
 }
 
 void OpenGL::draw(void) {

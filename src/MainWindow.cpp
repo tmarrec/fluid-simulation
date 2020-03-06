@@ -69,6 +69,13 @@ MainWindow::MainWindow()
 	connect(add_sphere, &QAction::triggered, _openGL, &OpenGL::add_sphere);
 	add_menu->addAction(add_sphere);
 
+	QAction *add_light = new QAction("Light", this);
+	//TODO connect a ECS directement putot que openGL
+	//TODO connect a ECS directement putot que openGL
+	//TODO connect a ECS directement putot que openGL
+	connect(add_light, &QAction::triggered, _openGL, &OpenGL::add_light);
+	add_menu->addAction(add_light);
+
 	// Left Panel, with TreeView
 	QVBoxLayout *left_side_panel_l = new QVBoxLayout;	
 	_list = new QListWidget;
@@ -81,10 +88,9 @@ MainWindow::MainWindow()
 
 	// Side Panel
 	QVBoxLayout *side_panel_l = new QVBoxLayout;	
-	QPushButton *test = new QPushButton;
-    side_panel_l->addWidget(test);
-	QPushButton *test2 = new QPushButton;
-    side_panel_l->addWidget(test2);
+	QPushButton *delete_button = new QPushButton("Delete");
+	connect(delete_button, &QPushButton::clicked, this, &MainWindow::delete_item_entities_tree_view);
+    side_panel_l->addWidget(delete_button);
 
 	// Sliders
 	_slide_x_label = new QLabel("x");
@@ -124,6 +130,10 @@ MainWindow::MainWindow()
 MainWindow::~MainWindow() {
 
 }
+
+void MainWindow::delete_item_entities_tree_view() {
+	std::cout << "kek" << std::endl;
+}	
 
 void MainWindow::change_slide_x(int value) {
 	if (_selected_entity != NULL) {

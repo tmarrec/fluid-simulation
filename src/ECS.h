@@ -1,12 +1,14 @@
 #pragma once
 
-class MainWindow;
-
 #include <vector>
 #include <memory>
 
 #include "Entity.h"
 
+/*
+class ECS : public QObject {
+	Q_OBJECT
+*/
 class ECS {
 
 public:

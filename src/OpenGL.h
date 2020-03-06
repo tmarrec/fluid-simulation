@@ -34,6 +34,7 @@ public slots:
 	void add_triangle();
 	void add_cube();
 	void add_sphere();
+	void add_light();
 
 private:
 	unsigned int _width;

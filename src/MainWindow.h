@@ -23,6 +23,7 @@ private slots:
 	void change_slide_x(int value);
 	void change_slide_y(int value);
 	void change_slide_z(int value);
+	void delete_item_entities_tree_view();
 
 private:
 	QListWidget* _list;
