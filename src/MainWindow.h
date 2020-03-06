@@ -4,6 +4,7 @@ class GLWidget;
 
 #include <QMainWindow>
 #include <QListWidget>
+#include <QLabel>
 
 #include "GLWidget.h"
 #include "Entity_Item.h"
@@ -27,6 +28,10 @@ private:
 	QListWidget* _list;
 	GLWidget* _glw;
 	OpenGL* _openGL;
+
+	QLabel *_slide_x_label;
+	QLabel *_slide_y_label;
+	QLabel *_slide_z_label;
 
 	Entity_Item* _selected_entity;
 };

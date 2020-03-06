@@ -10,11 +10,10 @@
 #include <QSlider>
 #include <QGroupBox>
 
-
 #include <iostream>
 
 MainWindow::MainWindow()
-	: _selected_entity{0}
+	: _selected_entity{NULL}
 {
 	setWindowTitle(TITLE);
 	
@@ -87,21 +86,29 @@ MainWindow::MainWindow()
 	QPushButton *test2 = new QPushButton;
     side_panel_l->addWidget(test2);
 
-
+	// Sliders
+	_slide_x_label = new QLabel("x");
 	QSlider *slide_x = new QSlider(Qt::Orientation::Horizontal);
 	slide_x->setMinimum(-100);
 	slide_x->setMaximum(100);
     side_panel_l->addWidget(slide_x);
+    side_panel_l->addWidget(_slide_x_label);
 	connect(slide_x, &QSlider::valueChanged, this, &MainWindow::change_slide_x);
+
+	_slide_y_label = new QLabel("y");
 	QSlider *slide_y = new QSlider(Qt::Orientation::Horizontal);
 	slide_y->setMinimum(-100);
 	slide_y->setMaximum(100);
     side_panel_l->addWidget(slide_y);
+    side_panel_l->addWidget(_slide_y_label);
 	connect(slide_y, &QSlider::valueChanged, this, &MainWindow::change_slide_y);
+
+	_slide_z_label = new QLabel("z");
 	QSlider *slide_z = new QSlider(Qt::Orientation::Horizontal);
 	slide_z->setMinimum(-100);
 	slide_z->setMaximum(100);
     side_panel_l->addWidget(slide_z);
+    side_panel_l->addWidget(_slide_z_label);
 	connect(slide_z, &QSlider::valueChanged, this, &MainWindow::change_slide_z);
 
     properties_box->setLayout(side_panel_l);
@@ -119,21 +126,30 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::change_slide_x(int value) {
-	auto s = _selected_entity->shape_ptr();
-	auto p = s->position();
-	s->set_position(glm::vec3{0.05f*value, p.y, p.z});
+	if (_selected_entity != NULL) {
+		auto s = _selected_entity->shape_ptr();
+		auto p = s->position();
+		s->set_position(glm::vec3{0.05f*value, p.y, p.z});
+		_slide_x_label->setText(std::to_string(0.05f*value).c_str());
+	}
 }
 
 void MainWindow::change_slide_y(int value) {
-	auto s = _selected_entity->shape_ptr();
-	auto p = s->position();
-	s->set_position(glm::vec3{p.x, 0.05f*value, p.z});
+	if (_selected_entity != NULL) {
+		auto s = _selected_entity->shape_ptr();
+		auto p = s->position();
+		s->set_position(glm::vec3{p.x, 0.05f*value, p.z});
+		_slide_y_label->setText(std::to_string(0.05f*value).c_str());
+	}
 }
 
 void MainWindow::change_slide_z(int value) {
-	auto s = _selected_entity->shape_ptr();
-	auto p = s->position();
-	s->set_position(glm::vec3{p.x, p.y, 0.05f*value});
+	if (_selected_entity != NULL) {
+		auto s = _selected_entity->shape_ptr();
+		auto p = s->position();
+		s->set_position(glm::vec3{p.x, p.y, 0.05f*value});
+		_slide_z_label->setText(std::to_string(0.05f*value).c_str());
+	}
 }
 
 void MainWindow::on_item_clicked(QListWidgetItem *item) {

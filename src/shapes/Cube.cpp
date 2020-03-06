@@ -82,8 +82,8 @@ Cube::Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 			"Cube",
 			{1.0f, 1.0f, 0.0f},
 			{ // TODO c'est ignoble
-				"../src/shaders/vert.vert",
-				"../src/shaders/frag.frag"
+				"shaders/vert.vert",
+				"shaders/frag.frag"
 			}
 		)
 {

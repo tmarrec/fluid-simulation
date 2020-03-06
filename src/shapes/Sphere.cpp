@@ -13,8 +13,8 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec
 			"Sphere",
 			{0.0f, 0.0f, 1.0f},
 			{
-				"../src/shaders/error.vert",
-				"../src/shaders/error.frag"
+				"shaders/error.vert",
+				"shaders/error.frag"
 			}	
 		)
 {

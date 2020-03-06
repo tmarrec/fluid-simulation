@@ -35,11 +35,12 @@ glm::vec3 Entity::rotation() const {
 }
 
 void Entity::rotate_test(float delta_time) {
-	_rotation.x -= 20 * delta_time;
-	_rotation.y += 40 * delta_time;
-	_rotation.z += 50 * delta_time;
+	glm::vec3 temp = {-20*delta_time, 40*delta_time, 50*delta_time};
+	set_rotation(rotation()+temp);
 
-	_position.y = sin(_rotation.z/35);
+	auto pos = position();
+	temp = {pos.x, sin(_rotation.z/35), pos.z};
+	set_position(temp);
 }
 
 unsigned long Entity::id() const {
