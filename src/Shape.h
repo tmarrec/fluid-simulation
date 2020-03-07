@@ -7,14 +7,14 @@ class Shape : public Entity {
 
 public:
 	Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
-		std::vector<GLfloat> vertices, std::vector<GLfloat> normals,
-		std::vector<GLuint> indices, std::string type, glm::vec3 color,
-		Shader shader);
+		std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> geometry,
+		std::string type, glm::vec3 color, Shader shader);
 	~Shape(void);
 	
 	std::vector<GLuint> indices() const;
 
-	void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time, std::vector<std::shared_ptr<Entity>> lights) override;
+	void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
+			std::vector<std::shared_ptr<Entity>> lights) override;
 	void draw_vertex();
 	void draw_vertex_quads();
 	void use_shader(glm::vec3 view_position, glm::mat4 projection,

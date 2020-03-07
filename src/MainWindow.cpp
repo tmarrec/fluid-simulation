@@ -75,6 +75,15 @@ MainWindow::MainWindow()
 	//TODO connect a ECS directement putot que openGL
 	connect(add_light, &QAction::triggered, _openGL, &OpenGL::add_light);
 	add_menu->addAction(add_light);
+	
+	QAction *add_model = new QAction("Model", this);
+	//TODO connect a ECS directement putot que openGL
+	//TODO connect a ECS directement putot que openGL
+	//TODO connect a ECS directement putot que openGL
+	connect(add_model, &QAction::triggered, _openGL, &OpenGL::add_model);
+	add_menu->addAction(add_model);
+
+
 
 	// Left Panel, with TreeView
 	QVBoxLayout *left_side_panel_l = new QVBoxLayout;	

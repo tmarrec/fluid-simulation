@@ -4,6 +4,7 @@
 #include "shapes/Cube.h"
 #include "shapes/Sphere.h"
 #include "shapes/Quad.h"
+#include "shapes/Model.h"
 
 #include <iostream>
 
@@ -17,9 +18,9 @@ OpenGL::OpenGL(unsigned int w, unsigned int h, MainWindow * main_window)
 {
 
 	//auto c = std::shared_ptr<Camera>(&_camera);
-	_camera = std::shared_ptr<Camera>(new Camera(glm::vec3{0.0f, 0.0f, -5.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, "Camera", 70.0f));
+	_camera = std::shared_ptr<Camera>(new Camera(glm::vec3{0.0f, -50.0f, -100.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, "Camera", 70.0f));
 
-	_projection = glm::perspective(glm::radians(_camera->FOV()), (float)width()/(float)height(), 0.1f, 100.0f);
+	_projection = glm::perspective(glm::radians(_camera->FOV()), (float)width()/(float)height(), 0.1f, 1000.0f);
 	//_main_window->add_item_to_QListW(_camera);
 	//_ecs.add(_camera);
 }
@@ -53,6 +54,13 @@ void OpenGL::add_light() {
 	auto l = std::shared_ptr<Light>(new Light(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, "Light", {r, g, b}));
 	_main_window->add_item_to_QListW(l);
 	_ecs.add(l);
+}
+
+void OpenGL::add_model() {
+	float scale = 0.7f;
+	auto m = std::shared_ptr<Model>(new Model(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{scale, scale, scale}));
+	_main_window->add_item_to_QListW(m);
+	_ecs.add(m);
 }
 
 void OpenGL::draw(void) {

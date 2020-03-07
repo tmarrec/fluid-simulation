@@ -11,4 +11,5 @@ public:
 private:
 	std::vector<GLfloat> generate_vertices(glm::vec2 faces);
 	std::vector<GLuint> generate_indices(glm::vec2 faces);
+	std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> get_geometry(glm::vec2 faces);
 };

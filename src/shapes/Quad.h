@@ -9,4 +9,5 @@ public:
 	~Quad();
 
 private:
+	std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> get_geometry();
 };

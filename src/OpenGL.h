@@ -35,6 +35,7 @@ public slots:
 	void add_cube();
 	void add_sphere();
 	void add_light();
+	void add_model();
 
 private:
 	unsigned int _width;

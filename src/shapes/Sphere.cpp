@@ -7,9 +7,7 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec
 			position,
 			rotation,
 			scale,
-			generate_vertices(faces),
-			generate_vertices(faces),
-			generate_indices(faces),
+			get_geometry(faces),
 			"Sphere",
 			{0.0f, 0.0f, 1.0f},
 			{
@@ -19,6 +17,11 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec
 		)
 {
 
+}
+
+std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Sphere::get_geometry(glm::vec2 faces) {
+	auto vertices = generate_vertices(faces);
+	return {vertices, vertices, generate_indices(faces)};
 }
 
 std::vector<GLfloat> Sphere::generate_vertices(glm::vec2 faces) {
