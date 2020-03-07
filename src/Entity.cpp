@@ -67,6 +67,6 @@ glm::mat4 Entity::get_model() const {
 glm::mat4 Entity::get_view(glm::vec3 view_position) const {
 	glm::mat4 view {1.0f};
 	view = glm::translate(view, view_position);
-
 	return view;
 }
+

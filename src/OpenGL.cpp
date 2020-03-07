@@ -41,7 +41,7 @@ void OpenGL::add_cube() {
 }
 
 void OpenGL::add_sphere() {
-	auto s = std::shared_ptr<Sphere>(new Sphere(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, glm::vec2{8, 8}));
+	auto s = std::shared_ptr<Sphere>(new Sphere(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, glm::vec2{16, 16}));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 }

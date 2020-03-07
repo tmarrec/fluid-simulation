@@ -104,10 +104,15 @@ void Cube::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time)
 	shader().set_mat4("view", get_view(view_position));
 	shader().set_mat4("projection", projection);
 
+	shader().set_3f("_view_pos", view_position);
+	shader().set_3f("_light_color", glm::vec3{1.0f, 1.0f, 1.0f});
+	shader().set_3f("_light_pos", glm::vec3{0.0f, 0.0f, 10.0f});
+
+
 	draw_vertex();
 }
 
 void Cube::apply_color() {
-	shader().set_3f("_color", color());
+	shader().set_3f("_object_color", color());
 }
 
