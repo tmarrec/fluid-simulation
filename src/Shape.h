@@ -14,8 +14,11 @@ public:
 	
 	std::vector<GLuint> indices() const;
 
+	void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time, std::vector<std::shared_ptr<Entity>> lights) override;
 	void draw_vertex();
 	void draw_vertex_quads();
+	void use_shader(glm::vec3 view_position, glm::mat4 projection,
+				std::vector<std::shared_ptr<Entity>> lights);
 	
 	const std::string type() const;
 	const glm::vec3 color() const;

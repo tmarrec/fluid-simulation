@@ -124,6 +124,34 @@ void Shape::draw_vertex() {
 	glBindVertexArray(0);
 }
 
+void Shape::use_shader(glm::vec3 view_position, glm::mat4 projection,
+				std::vector<std::shared_ptr<Entity>> lights) {
+	shader().use();
+	shader().set_3f("_object_color", color());
+
+	shader().set_mat4("model", get_model());
+	shader().set_mat4("view", get_view(view_position));
+	shader().set_mat4("projection", projection);
+
+	shader().set_3f("_view_pos", view_position);
+	shader().set_1i("_light_nb", lights.size());
+
+	for (size_t i = 0; i < lights.size(); ++i) {
+		auto light = std::static_pointer_cast<Light>(lights[i]);
+		auto temp = std::string("_point_lights[") + std::to_string(i) + "].position";
+		shader().set_3f(temp.c_str(), light->position());
+		temp = std::string("_point_lights[") + std::to_string(i) + "].color";
+		shader().set_3f(temp.c_str(), light->color());
+	}
+}
+
+void Shape::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
+				std::vector<std::shared_ptr<Entity>> lights) {
+	rotate_test(delta_time); 
+	use_shader(view_position, projection, lights);
+	draw_vertex();
+}
+
 void Shape::draw_vertex_quads() {
 	/*
 	// Initialize the geometry
