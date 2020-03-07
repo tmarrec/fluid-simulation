@@ -39,7 +39,7 @@ add_executable(${PROJECT_NAME}
  	src/main.cpp
 
 	src/shapes/tiny_obj_loader.h
-	
+
 	src/MainWindow.cpp
 	src/MainWindow.h
 

@@ -26,12 +26,20 @@ void Entity::set_rotation(glm::vec3 rotation) {
 	_rotation = rotation;
 }
 
+void Entity::set_scale(glm::vec3 scale) {
+	_scale = scale;
+}
+
 glm::vec3 Entity::position() const {
 	return _position;
 }
 
 glm::vec3 Entity::rotation() const {
 	return _rotation;
+}
+
+glm::vec3 Entity::scale() const {
+	return _scale;
 }
 
 void Entity::rotate_test(float delta_time) {

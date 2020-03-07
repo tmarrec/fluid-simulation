@@ -19,8 +19,10 @@ public:
 
 	void set_position(glm::vec3 position);
 	void set_rotation(glm::vec3 rotation);
+	void set_scale(glm::vec3 scale);
 	glm::vec3 position() const;
 	glm::vec3 rotation() const;
+	glm::vec3 scale() const;
 
 	void rotate_test(float delta_time);
 	glm::mat4 get_model() const;
