@@ -5,6 +5,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <string>
+#include <vector>
+#include <memory>
 
 class Entity {
 
@@ -12,7 +14,8 @@ public:
 	Entity(std::string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 	~Entity(void);
 
-	virtual void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) = 0;
+	virtual void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
+					std::vector<std::shared_ptr<Entity>> lights) = 0;
 
 	void set_position(glm::vec3 position);
 	void set_rotation(glm::vec3 rotation);

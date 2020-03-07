@@ -35,7 +35,8 @@ Quad::~Quad() {
 	
 }
 
-void Quad::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) {
+void Quad::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
+				std::vector<std::shared_ptr<Entity>> lights) {
 	shader().use();
 	apply_color();
 

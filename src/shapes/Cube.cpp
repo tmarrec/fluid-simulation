@@ -94,20 +94,27 @@ Cube::~Cube() {
 	
 }
 
-void Cube::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) {
+void Cube::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
+				std::vector<std::shared_ptr<Entity>> lights) {
 	shader().use();
 	apply_color();
 
-	rotate_test(delta_time);
+	//rotate_test(delta_time); 
 
 	shader().set_mat4("model", get_model());
 	shader().set_mat4("view", get_view(view_position));
 	shader().set_mat4("projection", projection);
 
 	shader().set_3f("_view_pos", view_position);
-	shader().set_3f("_light_color", glm::vec3{1.0f, 1.0f, 1.0f});
-	shader().set_3f("_light_pos", glm::vec3{0.0f, 0.0f, 10.0f});
+	shader().set_1i("_light_nb", lights.size());
 
+	for (size_t i = 0; i < lights.size(); ++i) {
+		auto light = std::static_pointer_cast<Light>(lights[i]);
+		auto temp = std::string("_point_lights[") + std::to_string(i) + "].position";
+		shader().set_3f(temp.c_str(), light->position());
+		temp = std::string("_point_lights[") + std::to_string(i) + "].color";
+		shader().set_3f(temp.c_str(), light->color());
+	}
 
 	draw_vertex();
 }

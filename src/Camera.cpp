@@ -22,7 +22,8 @@ float Camera::FOV() const {
 	return _FOV;
 }
 
-void Camera::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time) {
+void Camera::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
+				std::vector<std::shared_ptr<Entity>> lights) {
 
 }
 

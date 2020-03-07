@@ -17,7 +17,7 @@ OpenGL::OpenGL(unsigned int w, unsigned int h, MainWindow * main_window)
 {
 
 	//auto c = std::shared_ptr<Camera>(&_camera);
-	_camera = std::shared_ptr<Camera>(new Camera(glm::vec3{0.0f, 0.0f, -10.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, "Camera", 70.0f));
+	_camera = std::shared_ptr<Camera>(new Camera(glm::vec3{0.0f, 0.0f, -5.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, "Camera", 70.0f));
 
 	_projection = glm::perspective(glm::radians(_camera->FOV()), (float)width()/(float)height(), 0.1f, 100.0f);
 	//_main_window->add_item_to_QListW(_camera);
@@ -47,9 +47,12 @@ void OpenGL::add_sphere() {
 }
 
 void OpenGL::add_light() {
-	auto l = std::shared_ptr<Light>(new Light(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, "Light", glm::vec3{1.0f, 1.0f, 1.0f}));
+	float r = 1.0f;
+	float g = 1.0f;
+	float b = 1.0f;
+	auto l = std::shared_ptr<Light>(new Light(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, "Light", {r, g, b}));
 	_main_window->add_item_to_QListW(l);
-	//_ecs.add(l);
+	_ecs.add(l);
 }
 
 void OpenGL::draw(void) {

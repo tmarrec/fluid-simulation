@@ -17,6 +17,9 @@ public:
 	void add(std::shared_ptr<Entity> entity);
 	void render_all(glm::vec3 view_position, glm::mat4 projection, float delta_time);
 
+	std::vector<std::shared_ptr<Entity>> lights() const;
+
 private:
 	std::vector<std::shared_ptr<Entity>> _entities;
+	std::vector<std::shared_ptr<Entity>> _lights;
 };
