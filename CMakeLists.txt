@@ -65,6 +65,9 @@ add_executable(${PROJECT_NAME}
 	src/Light.cpp
 	src/Light.h
 
+	src/Camera.cpp
+	src/Camera.h
+
 	src/shapes/Triangle.cpp
 	src/shapes/Triangle.h
 	src/shapes/Cube.cpp

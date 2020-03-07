@@ -4,7 +4,6 @@
 #include "shapes/Cube.h"
 #include "shapes/Sphere.h"
 #include "shapes/Quad.h"
-#include "Light.h"
 
 #include <iostream>
 
@@ -13,11 +12,16 @@ OpenGL::OpenGL(unsigned int w, unsigned int h, MainWindow * main_window)
 		, _height{h}
 		, _draw_fill{true}
 		, _projection{1.0f}
-		, _view_position{0.0f, 0.0f, -5.0f}
 		, _main_window{main_window}
 		, _ecs{}
 {
-	_projection = glm::perspective(glm::radians(70.0f), (float)width()/(float)height(), 0.1f, 100.0f);
+
+	//auto c = std::shared_ptr<Camera>(&_camera);
+	_camera = std::shared_ptr<Camera>(new Camera(glm::vec3{0.0f, 0.0f, -10.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, "Camera", 70.0f));
+
+	_projection = glm::perspective(glm::radians(_camera->FOV()), (float)width()/(float)height(), 0.1f, 100.0f);
+	//_main_window->add_item_to_QListW(_camera);
+	//_ecs.add(_camera);
 }
 
 OpenGL::~OpenGL(void) {
@@ -43,9 +47,9 @@ void OpenGL::add_sphere() {
 }
 
 void OpenGL::add_light() {
-	auto s = std::shared_ptr<Light>(new Light(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, "Light", glm::vec3{1.0f, 1.0f, 1.0f}));
-	_main_window->add_item_to_QListW(s);
-	//_ecs.add(s);
+	auto l = std::shared_ptr<Light>(new Light(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, "Light", glm::vec3{1.0f, 1.0f, 1.0f}));
+	_main_window->add_item_to_QListW(l);
+	//_ecs.add(l);
 }
 
 void OpenGL::draw(void) {
@@ -59,8 +63,8 @@ void OpenGL::draw(void) {
 	}
 	
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	
-	_ecs.render_all(view_position(), projection(), delta_time());
+
+	_ecs.render_all(_camera->position(), projection(), delta_time());
 	
 }
 
@@ -84,6 +88,3 @@ void OpenGL::set_delta_time(float delta_time) {
 	_delta_time = delta_time;
 }
 
-glm::vec3 OpenGL::view_position() const {
-	return _view_position;
-}

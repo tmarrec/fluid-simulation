@@ -11,8 +11,9 @@
 #include <memory>
 
 #include "ECS.h"
+#include "Camera.h"
 #include "MainWindow.h"
-
+#include "Light.h"
 
 class OpenGL : public QObject {
 	Q_OBJECT
@@ -28,7 +29,6 @@ public:
 	glm::mat4 projection() const;
 	void set_delta_time(float delta_time);
 	float delta_time() const;
-	glm::vec3 view_position() const;
 
 public slots:
 	void add_triangle();
@@ -44,8 +44,7 @@ private:
 	float _delta_time;
 
 	glm::mat4 _projection;
-	glm::vec3 _view_position;
-
+	std::shared_ptr<Camera> _camera;
 	MainWindow * _main_window;
 
 	ECS _ecs;
