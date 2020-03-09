@@ -19,6 +19,8 @@ public:
 	void draw_vertex_quads();
 	void use_shader(glm::vec3 view_position, glm::mat4 projection,
 				std::vector<std::shared_ptr<Entity>> lights);
+
+	void test();
 	
 	const std::string type() const;
 	const glm::vec3 color() const;
@@ -29,11 +31,12 @@ private:
 	std::vector<GLfloat> 	_normals;
 	std::vector<GLuint>		_indices;
 	
-	// Vertex Array Buffer
 	GLuint _VAO;
+	GLuint VBO;
+	GLuint NBO;
+	GLuint EBO;
 
 	glm::vec3 _color;
-
 	Shader _shader;
 	
 	const std::string _type;

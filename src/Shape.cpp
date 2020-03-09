@@ -12,14 +12,19 @@ Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	, _color{color}
 	, _shader{shader}
 {
-	GLuint VBO;
-	GLuint NBO;
-	GLuint EBO;
+	test();
+}
 
+Shape::~Shape(void) {
+
+}
+
+void Shape::test() {
 	// Initialize the geometry
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &NBO);
 	glGenBuffers(1, &EBO);
+
 	glGenVertexArrays(1, &_VAO);
 
 	glBindVertexArray(_VAO);
@@ -47,16 +52,12 @@ Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 		glBufferData(
 			GL_ELEMENT_ARRAY_BUFFER,
-			_indices.size()*sizeof(GLfloat),
+			_indices.size()*sizeof(GLuint),
 			_indices.data(),
 			GL_STATIC_DRAW
 		);
 
 	glBindVertexArray(0);
-}
-
-Shape::~Shape(void) {
-
 }
 
 std::vector<GLuint> Shape::indices() const {
@@ -76,47 +77,7 @@ const Shader Shape::shader() const {
 }
 
 void Shape::draw_vertex() {
-	GLuint VBO;
-	GLuint NBO;
-	GLuint EBO;
-
-	// Initialize the geometry
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &NBO);
-	glGenBuffers(1, &EBO);
-	glGenVertexArrays(1, &_VAO);
-
-	glBindVertexArray(_VAO);
-		
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			_vertices.size()*sizeof(GLfloat),
-			_vertices.data(),
-			GL_STATIC_DRAW
-		);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
-		glEnableVertexAttribArray(0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, NBO);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			_normals.size()*sizeof(GLfloat),
-			_normals.data(),
-			GL_STATIC_DRAW
-		);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
-		glEnableVertexAttribArray(1);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER,
-			_indices.size()*sizeof(GLfloat),
-			_indices.data(),
-			GL_STATIC_DRAW
-		);
-
-	glBindVertexArray(0);
+	//test(); // <- Ce que je ne devrais pas appeller normalement
 
 	glBindVertexArray(_VAO);
 	glDrawElements(GL_TRIANGLES, indices().size(), GL_UNSIGNED_INT, nullptr);

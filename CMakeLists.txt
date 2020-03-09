@@ -30,7 +30,7 @@ if (Qt5OpenGL_FOUND)
 else (Qt5OpenGL_FOUND)
 	message(EROR "Unable to find QTOpenGL library")
 endif(Qt5OpenGL_FOUND)
-find_package(OpenGL REQUIRED) # define OPENGL_LIBRARIES
+find_package(OpenGL REQUIRED)
 
 configure_file("src/config.h.in" "config.h")
 

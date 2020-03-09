@@ -60,6 +60,7 @@ void OpenGL::add_model() {
 	float scale = 0.7f;
 	auto m = std::shared_ptr<Model>(new Model(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{scale, scale, scale}));
 	_main_window->add_item_to_QListW(m);
+	//m->test();
 	_ecs.add(m);
 }
 
