@@ -12,14 +12,18 @@ Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	, _color{color}
 	, _shader{shader}
 {
-	test();
+
 }
 
 Shape::~Shape(void) {
 
 }
 
-void Shape::test() {
+void Shape::set_geometry() {
+	GLuint VBO;
+	GLuint NBO;
+	GLuint EBO;
+
 	// Initialize the geometry
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &NBO);
@@ -77,8 +81,6 @@ const Shader Shape::shader() const {
 }
 
 void Shape::draw_vertex() {
-	//test(); // <- Ce que je ne devrais pas appeller normalement
-
 	glBindVertexArray(_VAO);
 	glDrawElements(GL_TRIANGLES, indices().size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
@@ -112,57 +114,3 @@ void Shape::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time
 	draw_vertex();
 }
 
-void Shape::draw_vertex_quads() {
-	/*
-	// Initialize the geometry
-	// 1. Generate geometry buffers
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &NBO);
-	glGenBuffers(1, &EBO);
-	glGenVertexArrays(1, &_VAO);
-
-	// 2. Bind Vertex Array Object
-	glBindVertexArray(_VAO);
-		
-		// 3. Copy our vertices array in a buffer for OpenGL to use
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			_vertices.size()*sizeof(GLfloat),
-			_vertices.data(),
-			GL_STATIC_DRAW
-		);
-
-		// 4. Then set our vertex attributes pointers
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), (GLvoid*)nullptr);
-		glEnableVertexAttribArray(0);
-
-		// 5. Copy our normals array in a buffer for OpenGL to use
-		glBindBuffer(GL_ARRAY_BUFFER, NBO);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			_normals.size()*sizeof(GLfloat),
-			_normals.data(),
-			GL_STATIC_DRAW
-		);
-
-		// 6. Copy our vertices array in a buffer for OpenGL to use
-		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), (GLvoid*)nullptr);
-		glEnableVertexAttribArray(1);
-
-		// 7. Copy our index array in a element buffer for OpenGL to use
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER,
-			_indices.size()*sizeof(GLfloat),
-			_indices.data(),
-			GL_STATIC_DRAW
-		);
-
-	// 8. Unbind the VAO
-	glBindVertexArray(0);
-	glBindVertexArray(_VAO);
-	glDrawElements(GL_QUADS, indices().size(), GL_UNSIGNED_INT, nullptr);
-	glBindVertexArray(0);
-	*/
-}

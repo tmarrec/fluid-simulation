@@ -16,7 +16,7 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec
 			}	
 		)
 {
-
+	set_geometry();
 }
 
 std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Sphere::get_geometry(glm::vec2 faces) {

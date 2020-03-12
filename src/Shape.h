@@ -16,28 +16,23 @@ public:
 	void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
 			std::vector<std::shared_ptr<Entity>> lights) override;
 	void draw_vertex();
-	void draw_vertex_quads();
 	void use_shader(glm::vec3 view_position, glm::mat4 projection,
 				std::vector<std::shared_ptr<Entity>> lights);
 
-	void test();
+	void set_geometry();
 	
 	const std::string type() const;
 	const glm::vec3 color() const;
 	const Shader shader() const;
-
+	
 private:
 	std::vector<GLfloat> 	_vertices;
 	std::vector<GLfloat> 	_normals;
 	std::vector<GLuint>		_indices;
-	
 	GLuint _VAO;
-	GLuint VBO;
-	GLuint NBO;
-	GLuint EBO;
 
 	glm::vec3 _color;
 	Shader _shader;
-	
+
 	const std::string _type;
 };

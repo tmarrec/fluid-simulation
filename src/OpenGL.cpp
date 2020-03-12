@@ -3,18 +3,18 @@
 #include "shapes/Triangle.h"
 #include "shapes/Cube.h"
 #include "shapes/Sphere.h"
-#include "shapes/Quad.h"
 #include "shapes/Model.h"
 
 #include <iostream>
 
-OpenGL::OpenGL(unsigned int w, unsigned int h, MainWindow * main_window)
+OpenGL::OpenGL(unsigned int w, unsigned int h, MainWindow * main_window, GLWidget * glw)
 		: _width{w}
 		, _height{h}
 		, _draw_fill{true}
 		, _projection{1.0f}
 		, _main_window{main_window}
 		, _ecs{}
+		, _glw{glw}
 {
 
 	//auto c = std::shared_ptr<Camera>(&_camera);
@@ -30,38 +30,48 @@ OpenGL::~OpenGL(void) {
 }
 
 void OpenGL::add_triangle() {
+	_glw->make_current();
 	auto s = std::shared_ptr<Triangle>(new Triangle(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
+	_glw->done_current();
 }
 
 void OpenGL::add_cube() {
+	_glw->make_current();
 	auto s = std::shared_ptr<Cube>(new Cube(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
+	_glw->done_current();
 }
 
 void OpenGL::add_sphere() {
+	_glw->make_current();
 	auto s = std::shared_ptr<Sphere>(new Sphere(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, glm::vec2{16, 16}));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
+	_glw->done_current();
 }
 
 void OpenGL::add_light() {
+	_glw->make_current();
 	float r = 1.0f;
 	float g = 1.0f;
 	float b = 1.0f;
 	auto l = std::shared_ptr<Light>(new Light(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, "Light", {r, g, b}));
 	_main_window->add_item_to_QListW(l);
 	_ecs.add(l);
+	_glw->done_current();
 }
 
 void OpenGL::add_model() {
+	_glw->make_current();
 	float scale = 0.7f;
 	auto m = std::shared_ptr<Model>(new Model(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{scale, scale, scale}));
 	_main_window->add_item_to_QListW(m);
 	//m->test();
 	_ecs.add(m);
+	_glw->done_current();
 }
 
 void OpenGL::draw(void) {
@@ -73,11 +83,9 @@ void OpenGL::draw(void) {
 	} else {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
-	
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	_ecs.render_all(_camera->position(), projection(), delta_time());
-	
 }
 
 unsigned short OpenGL::width() const {

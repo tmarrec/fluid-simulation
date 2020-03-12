@@ -19,7 +19,7 @@ class OpenGL : public QObject {
 	Q_OBJECT
 
 public:
-	explicit OpenGL(unsigned int w, unsigned int h, MainWindow * main_window);
+	explicit OpenGL(unsigned int w, unsigned int h, MainWindow * main_window, GLWidget * glw);
 	virtual ~OpenGL(void);
 
 	virtual void draw(void);
@@ -47,6 +47,6 @@ private:
 	glm::mat4 _projection;
 	std::shared_ptr<Camera> _camera;
 	MainWindow * _main_window;
-
 	ECS _ecs;
+	GLWidget * _glw;
 };

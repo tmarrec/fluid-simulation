@@ -14,7 +14,7 @@ GLWidget::GLWidget(MainWindow *parent)
 			, _main_window{parent}
 {
 	setFixedSize(1280, 720);
-	_openGL = new OpenGL{1280, 720, _main_window};
+	_openGL = new OpenGL{1280, 720, _main_window, this};
 }
 
 GLWidget::~GLWidget() {
@@ -38,9 +38,11 @@ MessageCallback( GLenum source,
                  const GLchar* message,
                  const void* userParam )
 {
+/*
   fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
             type, severity, message );
+			*/
 }
 
 void GLWidget::initializeGL() {
@@ -58,7 +60,16 @@ void GLWidget::initializeGL() {
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
 
+
 	_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
+void GLWidget::make_current() {
+	makeCurrent();
+}
+
+void GLWidget::done_current() {
+	doneCurrent();
 }
 
 void GLWidget::paintGL() {

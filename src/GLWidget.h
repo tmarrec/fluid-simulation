@@ -21,6 +21,8 @@ public:
 	~GLWidget();
 
 	void cleanup();
+	void make_current();
+	void done_current();
 	OpenGL * openGL();
 
 protected:

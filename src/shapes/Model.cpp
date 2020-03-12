@@ -19,20 +19,11 @@ Model::Model(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 			}
 		)
 {
-
+	set_geometry();
 }
 
 Model::~Model() {
 	
-}
-
-
-std::vector<GLfloat> Model::get_vertices() {
-
-}
-
-std::vector<GLuint> Model::get_indices() {
-
 }
 
 
