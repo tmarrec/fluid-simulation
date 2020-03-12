@@ -2,8 +2,8 @@
 #include <iostream>
 
 Camera::Camera(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
-	std::string type, float FOV)
-	: Entity(type, position, rotation, scale)
+	std::string type, float FOV, MainWindow * main_window)
+	: Entity(type, position, rotation, scale, main_window)
 	, _type{type}
 	, _FOV{FOV}
 {

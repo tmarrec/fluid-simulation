@@ -3,8 +3,8 @@
 
 Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> geometry, 
-	std::string type, glm::vec3 color, Shader shader)
-	: Entity(type, position, rotation, scale)
+	std::string type, glm::vec3 color, Shader shader, MainWindow * main_window)
+	: Entity(type, position, rotation, scale, main_window)
 	, _vertices{std::get<0>(geometry)}
 	, _normals{std::get<1>(geometry)}
 	, _indices{std::get<2>(geometry)}
@@ -109,7 +109,7 @@ void Shape::use_shader(glm::vec3 view_position, glm::mat4 projection,
 
 void Shape::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
 				std::vector<std::shared_ptr<Entity>> lights) {
-	//rotate_test(delta_time); 
+	rotate_test(delta_time); 
 	use_shader(view_position, projection, lights);
 	draw_vertex();
 }

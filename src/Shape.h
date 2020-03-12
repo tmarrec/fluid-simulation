@@ -2,13 +2,14 @@
 
 #include "OpenGL.h"
 #include "Shader.h"
+#include "MainWindow.h"
 
 class Shape : public Entity {
 
 public:
 	Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 		std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> geometry,
-		std::string type, glm::vec3 color, Shader shader);
+		std::string type, glm::vec3 color, Shader shader, MainWindow * main_window);
 	~Shape(void);
 	
 	std::vector<GLuint> indices() const;

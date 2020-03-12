@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(cowboy-engine VERSION "0.0.2")
+project(cowboy-engine VERSION "0.0.3")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -17,7 +17,7 @@ cmake_policy(SET CMP0072 NEW)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -pedantic -Wextra -DGL_GLEXT_PROTOTYPES")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -pedantic -Wextra -DGL_GLEXT_PROTOTYPES -w")
 #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)

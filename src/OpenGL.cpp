@@ -18,7 +18,7 @@ OpenGL::OpenGL(unsigned int w, unsigned int h, MainWindow * main_window, GLWidge
 {
 
 	//auto c = std::shared_ptr<Camera>(&_camera);
-	_camera = std::shared_ptr<Camera>(new Camera(glm::vec3{0.0f, -50.0f, -100.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, "Camera", 70.0f));
+	_camera = std::shared_ptr<Camera>(new Camera(glm::vec3{0.0f, -50.0f, -100.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, "Camera", 70.0f, main_window));
 
 	_projection = glm::perspective(glm::radians(_camera->FOV()), (float)width()/(float)height(), 0.1f, 1000.0f);
 	//_main_window->add_item_to_QListW(_camera);
@@ -39,7 +39,7 @@ void OpenGL::add_triangle() {
 
 void OpenGL::add_cube() {
 	_glw->make_current();
-	auto s = std::shared_ptr<Cube>(new Cube(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
+	auto s = std::shared_ptr<Cube>(new Cube(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, _main_window));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 	_glw->done_current();
@@ -58,7 +58,7 @@ void OpenGL::add_light() {
 	float r = 1.0f;
 	float g = 1.0f;
 	float b = 1.0f;
-	auto l = std::shared_ptr<Light>(new Light(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, "Light", {r, g, b}));
+	auto l = std::shared_ptr<Light>(new Light(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, "Light", {r, g, b}, _main_window));
 	_main_window->add_item_to_QListW(l);
 	_ecs.add(l);
 	_glw->done_current();

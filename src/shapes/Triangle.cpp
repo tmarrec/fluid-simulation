@@ -27,7 +27,8 @@ Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 			{
 				"shaders/vert.vert",
 				"shaders/frag.frag"
-			}
+			},
+			nullptr
 		)
 {
 	set_geometry();

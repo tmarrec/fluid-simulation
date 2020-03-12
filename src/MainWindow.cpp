@@ -28,7 +28,6 @@ MainWindow::MainWindow()
 	_glw = new GLWidget(this);
 	_openGL = _glw->openGL();
 
-
     // Layout QT
     QHBoxLayout *container = new QHBoxLayout;
 
@@ -195,6 +194,39 @@ void MainWindow::change_slide_z_scale(int value) {
 	}
 }
 
+void MainWindow::update_slide_position(glm::vec3 pos, const unsigned long id) {
+	if (_selected_entity != NULL && _selected_entity->shape_ptr()->id() == id) {
+		_slide_x_position->setValue(pos.x);
+		_slide_x_position_label->setText(std::to_string(int(pos.x)).c_str());
+		_slide_y_position->setValue(pos.y);
+		_slide_y_position_label->setText(std::to_string(int(pos.y)).c_str());
+		_slide_z_position->setValue(pos.z);
+		_slide_z_position_label->setText(std::to_string(int(pos.z)).c_str());
+	}
+}
+
+void MainWindow::update_slide_rotation(glm::vec3 pos, const unsigned long id) {
+	if (_selected_entity != NULL && _selected_entity->shape_ptr()->id() == id) {
+		_slide_x_rotation->setValue(pos.x);
+		_slide_x_rotation_label->setText(std::to_string(int(pos.x)).c_str());
+		_slide_y_rotation->setValue(pos.y);
+		_slide_y_rotation_label->setText(std::to_string(int(pos.y)).c_str());
+		_slide_z_rotation->setValue(pos.z);
+		_slide_z_rotation_label->setText(std::to_string(int(pos.z)).c_str());
+	}
+}
+
+void MainWindow::update_slide_scale(glm::vec3 pos, const unsigned long id) {
+	if (_selected_entity != NULL && _selected_entity->shape_ptr()->id() == id) {
+		_slide_x_scale->setValue(pos.x);
+		_slide_x_scale_label->setText(std::to_string(int(pos.x)).c_str());
+		_slide_y_scale->setValue(pos.y);
+		_slide_y_scale_label->setText(std::to_string(int(pos.y)).c_str());
+		_slide_z_scale->setValue(pos.z);
+		_slide_z_scale_label->setText(std::to_string(int(pos.z)).c_str());
+	}
+}
+
 void MainWindow::on_item_clicked(QListWidgetItem *item) {
 	auto s = item->data(100).value<Entity_Item*>();
 	change_selected_entity(s);
@@ -221,38 +253,44 @@ QGroupBox* MainWindow::position_box() {
 	QGroupBox *slide_x_box = new QGroupBox();
 	QHBoxLayout *slide_x_layout = new QHBoxLayout;
 	_slide_x_position_label = new QLabel("x");
-	QSlider *slide_x = new QSlider(Qt::Orientation::Horizontal);
-	slide_x->setMinimum(-100);
-	slide_x->setMaximum(100);
-	slide_x_layout->addWidget(slide_x);
+	_slide_x_position = new QSlider(Qt::Orientation::Horizontal);
+	_slide_x_position->setMinimumWidth(180);
+	_slide_x_position->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	_slide_x_position->setMinimum(-100);
+	_slide_x_position->setMaximum(100);
+	slide_x_layout->addWidget(_slide_x_position);
 	slide_x_layout->addWidget(_slide_x_position_label);
 	slide_x_box->setLayout(slide_x_layout);
 	box_layout->addWidget(slide_x_box);
-	connect(slide_x, &QSlider::valueChanged, this, &MainWindow::change_slide_x_position);
+	connect(_slide_x_position, &QSlider::sliderMoved, this, &MainWindow::change_slide_x_position);
 
 	QGroupBox *slide_y_box = new QGroupBox();
 	QHBoxLayout *slide_y_layout = new QHBoxLayout;
 	_slide_y_position_label = new QLabel("y");
-	QSlider *slide_y = new QSlider(Qt::Orientation::Horizontal);
-	slide_y->setMinimum(-100);
-	slide_y->setMaximum(100);
-	slide_y_layout->addWidget(slide_y);
+	_slide_y_position = new QSlider(Qt::Orientation::Horizontal);
+	_slide_y_position->setMinimumWidth(180);
+	_slide_y_position->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	_slide_y_position->setMinimum(-100);
+	_slide_y_position->setMaximum(100);
+	slide_y_layout->addWidget(_slide_y_position);
 	slide_y_layout->addWidget(_slide_y_position_label);
 	slide_y_box->setLayout(slide_y_layout);
 	box_layout->addWidget(slide_y_box);
-	connect(slide_y, &QSlider::valueChanged, this, &MainWindow::change_slide_y_position);
+	connect(_slide_y_position, &QSlider::sliderMoved, this, &MainWindow::change_slide_y_position);
 
 	QGroupBox *slide_z_box = new QGroupBox();
 	QHBoxLayout *slide_z_layout = new QHBoxLayout;
 	_slide_z_position_label = new QLabel("z");
-	QSlider *slide_z = new QSlider(Qt::Orientation::Horizontal);
-	slide_z->setMinimum(-100);
-	slide_z->setMaximum(100);
-	slide_z_layout->addWidget(slide_z);
+	_slide_z_position = new QSlider(Qt::Orientation::Horizontal);
+	_slide_z_position->setMinimumWidth(180);
+	_slide_z_position->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	_slide_z_position->setMinimum(-100);
+	_slide_z_position->setMaximum(100);
+	slide_z_layout->addWidget(_slide_z_position);
 	slide_z_layout->addWidget(_slide_z_position_label);
 	slide_z_box->setLayout(slide_z_layout);
 	box_layout->addWidget(slide_z_box);
-	connect(slide_z, &QSlider::valueChanged, this, &MainWindow::change_slide_z_position);
+	connect(_slide_z_position, &QSlider::sliderMoved, this, &MainWindow::change_slide_z_position);
 	
 	box->setLayout(box_layout);
 	return box;
@@ -265,38 +303,44 @@ QGroupBox* MainWindow::rotation_box() {
 	QGroupBox *slide_x_box = new QGroupBox();
 	QHBoxLayout *slide_x_layout = new QHBoxLayout;
 	_slide_x_rotation_label = new QLabel("x");
-	QSlider *slide_x = new QSlider(Qt::Orientation::Horizontal);
-	slide_x->setMinimum(-100);
-	slide_x->setMaximum(100);
-	slide_x_layout->addWidget(slide_x);
+	_slide_x_rotation = new QSlider(Qt::Orientation::Horizontal);
+	_slide_x_rotation->setMinimumWidth(180);
+	_slide_x_rotation->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	_slide_x_rotation->setMinimum(0);
+	_slide_x_rotation->setMaximum(360);
+	slide_x_layout->addWidget(_slide_x_rotation);
 	slide_x_layout->addWidget(_slide_x_rotation_label);
 	slide_x_box->setLayout(slide_x_layout);
 	box_layout->addWidget(slide_x_box);
-	connect(slide_x, &QSlider::valueChanged, this, &MainWindow::change_slide_x_rotation);
+	connect(_slide_x_rotation, &QSlider::sliderMoved, this, &MainWindow::change_slide_x_rotation);
 
 	QGroupBox *slide_y_box = new QGroupBox();
 	QHBoxLayout *slide_y_layout = new QHBoxLayout;
 	_slide_y_rotation_label = new QLabel("y");
-	QSlider *slide_y = new QSlider(Qt::Orientation::Horizontal);
-	slide_y->setMinimum(-100);
-	slide_y->setMaximum(100);
-	slide_y_layout->addWidget(slide_y);
+	_slide_y_rotation = new QSlider(Qt::Orientation::Horizontal);
+	_slide_y_rotation->setMinimumWidth(180);
+	_slide_y_rotation->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	_slide_y_rotation->setMinimum(0);
+	_slide_y_rotation->setMaximum(360);
+	slide_y_layout->addWidget(_slide_y_rotation);
 	slide_y_layout->addWidget(_slide_y_rotation_label);
 	slide_y_box->setLayout(slide_y_layout);
 	box_layout->addWidget(slide_y_box);
-	connect(slide_y, &QSlider::valueChanged, this, &MainWindow::change_slide_y_rotation);
+	connect(_slide_y_rotation, &QSlider::sliderMoved, this, &MainWindow::change_slide_y_rotation);
 
 	QGroupBox *slide_z_box = new QGroupBox();
 	QHBoxLayout *slide_z_layout = new QHBoxLayout;
 	_slide_z_rotation_label = new QLabel("z");
-	QSlider *slide_z = new QSlider(Qt::Orientation::Horizontal);
-	slide_z->setMinimum(-100);
-	slide_z->setMaximum(100);
-	slide_z_layout->addWidget(slide_z);
+	_slide_z_rotation = new QSlider(Qt::Orientation::Horizontal);
+	_slide_z_rotation->setMinimumWidth(180);
+	_slide_z_rotation->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	_slide_z_rotation->setMinimum(0);
+	_slide_z_rotation->setMaximum(360);
+	slide_z_layout->addWidget(_slide_z_rotation);
 	slide_z_layout->addWidget(_slide_z_rotation_label);
 	slide_z_box->setLayout(slide_z_layout);
 	box_layout->addWidget(slide_z_box);
-	connect(slide_z, &QSlider::valueChanged, this, &MainWindow::change_slide_z_rotation);
+	connect(_slide_z_rotation, &QSlider::sliderMoved, this, &MainWindow::change_slide_z_rotation);
 	
 	box->setLayout(box_layout);
 	return box;
@@ -309,38 +353,44 @@ QGroupBox* MainWindow::scale_box() {
 	QGroupBox *slide_x_box = new QGroupBox();
 	QHBoxLayout *slide_x_layout = new QHBoxLayout;
 	_slide_x_scale_label = new QLabel("x");
-	QSlider *slide_x = new QSlider(Qt::Orientation::Horizontal);
-	slide_x->setMinimum(-100);
-	slide_x->setMaximum(100);
-	slide_x_layout->addWidget(slide_x);
+	_slide_x_scale = new QSlider(Qt::Orientation::Horizontal);
+	_slide_x_scale->setMinimumWidth(180);
+	_slide_x_scale->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	_slide_x_scale->setMinimum(0);
+	_slide_x_scale->setMaximum(50);
+	slide_x_layout->addWidget(_slide_x_scale);
 	slide_x_layout->addWidget(_slide_x_scale_label);
 	slide_x_box->setLayout(slide_x_layout);
 	box_layout->addWidget(slide_x_box);
-	connect(slide_x, &QSlider::valueChanged, this, &MainWindow::change_slide_x_scale);
+	connect(_slide_x_scale, &QSlider::sliderMoved, this, &MainWindow::change_slide_x_scale);
 
 	QGroupBox *slide_y_box = new QGroupBox();
 	QHBoxLayout *slide_y_layout = new QHBoxLayout;
 	_slide_y_scale_label = new QLabel("y");
-	QSlider *slide_y = new QSlider(Qt::Orientation::Horizontal);
-	slide_y->setMinimum(-100);
-	slide_y->setMaximum(100);
-	slide_y_layout->addWidget(slide_y);
+	_slide_y_scale = new QSlider(Qt::Orientation::Horizontal);
+	_slide_y_scale->setMinimumWidth(180);
+	_slide_y_scale->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	_slide_y_scale->setMinimum(0);
+	_slide_y_scale->setMaximum(50);
+	slide_y_layout->addWidget(_slide_y_scale);
 	slide_y_layout->addWidget(_slide_y_scale_label);
 	slide_y_box->setLayout(slide_y_layout);
 	box_layout->addWidget(slide_y_box);
-	connect(slide_y, &QSlider::valueChanged, this, &MainWindow::change_slide_y_scale);
+	connect(_slide_y_scale, &QSlider::sliderMoved, this, &MainWindow::change_slide_y_scale);
 
 	QGroupBox *slide_z_box = new QGroupBox();
 	QHBoxLayout *slide_z_layout = new QHBoxLayout;
 	_slide_z_scale_label = new QLabel("z");
-	QSlider *slide_z = new QSlider(Qt::Orientation::Horizontal);
-	slide_z->setMinimum(-100);
-	slide_z->setMaximum(100);
-	slide_z_layout->addWidget(slide_z);
+	_slide_z_scale = new QSlider(Qt::Orientation::Horizontal);
+	_slide_z_scale->setMinimumWidth(180);
+	_slide_z_scale->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	_slide_z_scale->setMinimum(0);
+	_slide_z_scale->setMaximum(50);
+	slide_z_layout->addWidget(_slide_z_scale);
 	slide_z_layout->addWidget(_slide_z_scale_label);
 	slide_z_box->setLayout(slide_z_layout);
 	box_layout->addWidget(slide_z_box);
-	connect(slide_z, &QSlider::valueChanged, this, &MainWindow::change_slide_z_scale);
+	connect(_slide_z_scale, &QSlider::sliderMoved, this, &MainWindow::change_slide_z_scale);
 	
 	box->setLayout(box_layout);
 	return box;

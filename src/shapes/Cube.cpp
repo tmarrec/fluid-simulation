@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-Cube::Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+Cube::Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window)
 		: Shape(
 			position,
 			rotation,
@@ -87,7 +87,8 @@ Cube::Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 			{
 				"shaders/vert.vert",
 				"shaders/frag.frag"
-			}
+			},
+			main_window
 		)
 {
 	set_geometry();

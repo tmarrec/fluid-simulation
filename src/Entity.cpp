@@ -1,14 +1,18 @@
 #include "Entity.h"
 #include <iostream>
 
+#include "MainWindow.h"
+
 unsigned long Entity::_next_id = 0;
 
-Entity::Entity(std::string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+Entity::Entity(std::string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
+		MainWindow * main_window)
 	: _position {position}
 	, _rotation {rotation}
 	, _scale {scale}
 	, _id{_next_id}
 	, _name{name + " " + std::to_string(_id)}
+	, _main_window{main_window}
 {
 	_next_id++;	
 	std::cout << "New Entity : " << _id << std::endl;
@@ -20,14 +24,33 @@ Entity::~Entity(void) {
 
 void Entity::set_position(glm::vec3 position) {
 	_position = position;
+	_main_window->update_slide_position(_position, _id);
 }
 
 void Entity::set_rotation(glm::vec3 rotation) {
 	_rotation = rotation;
+
+	_rotation.x = std::fmod(rotation.x, 360.0f);
+	if (_rotation.x < 0.0f) {
+		_rotation.x += 360.0f;
+	}
+	
+	_rotation.y = std::fmod(rotation.y, 360.0f);
+	if (_rotation.y < 0.0f) {
+		_rotation.y += 360.0f;
+	}
+
+	_rotation.z = std::fmod(rotation.z, 360.0f);
+	if (_rotation.z < 0.0f) {
+		_rotation.z += 360.0f;
+	}
+
+	_main_window->update_slide_rotation(_rotation, _id);
 }
 
 void Entity::set_scale(glm::vec3 scale) {
 	_scale = scale;
+	_main_window->update_slide_scale(_scale, _id);
 }
 
 glm::vec3 Entity::position() const {
@@ -43,12 +66,8 @@ glm::vec3 Entity::scale() const {
 }
 
 void Entity::rotate_test(float delta_time) {
-	glm::vec3 temp = {-20*delta_time, 40*delta_time, 50*delta_time};
+	glm::vec3 temp = {-30*delta_time, 50*delta_time, 70*delta_time};
 	set_rotation(rotation()+temp);
-
-	auto pos = position();
-	temp = {pos.x, sin(_rotation.z/35), pos.z};
-	set_position(temp);
 }
 
 unsigned long Entity::id() const {
