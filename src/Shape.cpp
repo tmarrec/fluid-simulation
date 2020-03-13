@@ -16,7 +16,7 @@ Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 }
 
 Shape::~Shape(void) {
-
+	// TODO FREE LES BUFFERS
 }
 
 void Shape::set_geometry() {

@@ -3,10 +3,8 @@
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QPushButton>
 #include <QMenu>
 #include <QMenuBar>
-#include <QSlider>
 #include <QKeyEvent>
 #include <QMouseEvent>
 
@@ -87,9 +85,8 @@ MainWindow::MainWindow()
 	side_panel_l->addWidget(scale_box());
 
 	// Delete button
-	QPushButton *delete_button = new QPushButton("Delete");
-	connect(delete_button, &QPushButton::clicked, this, &MainWindow::delete_item_entities_tree_view);
-    side_panel_l->addWidget(delete_button);
+	_delete_button = new QPushButton("Delete");
+    side_panel_l->addWidget(_delete_button);
 
     properties_box->setLayout(side_panel_l);
 	container->addWidget(properties_box);
@@ -102,6 +99,8 @@ MainWindow::MainWindow()
 
 	_glw->init();
 	_openGL = _glw->openGL();
+
+	connect(_delete_button, &QPushButton::clicked, this, &MainWindow::delete_item_entities_tree_view);
 
 	connect(add_triangle, &QAction::triggered, _openGL, &OpenGL::add_triangle);
 	connect(add_cube, &QAction::triggered, _openGL, &OpenGL::add_cube);
@@ -181,7 +180,13 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
 }
 
 void MainWindow::delete_item_entities_tree_view() {
-	std::cout << "kek" << std::endl;
+	_openGL->remove_entity(_selected_entity->shape_ptr());
+	_list->takeItem(_list->currentRow());
+
+	_list->setCurrentRow(_list->count()-1);
+	auto new_item = _list->item(_list->count()-1);
+	auto s = new_item->data(100).value<Entity_Item*>();
+	change_selected_entity(s);
 }	
 
 // TRANSLATION
@@ -303,6 +308,11 @@ void MainWindow::change_selected_entity(Entity_Item* e) {
 	update_slide_position(s->position(), s->id());
 	update_slide_rotation(s->rotation(), s->id());
 	update_slide_scale(s->scale(), s->id());
+	if (s->name() == "Camera 0") {
+		_delete_button->setEnabled(false);
+	} else {
+		_delete_button->setEnabled(true);
+	}
 }
 
 Q_DECLARE_METATYPE(Entity_Item*)
@@ -317,6 +327,7 @@ void MainWindow::add_item_to_QListW(std::shared_ptr<Entity> shape_ptr) {
 	QListWidgetItem *item = new QListWidgetItem(s->name().c_str());
 	item->setData(100, QVariant::fromValue(s));
 	_list->addItem(item);
+	_list->setCurrentRow(_list->count()-1);
 }
 
 QGroupBox* MainWindow::position_box() {

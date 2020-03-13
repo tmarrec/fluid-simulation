@@ -67,7 +67,6 @@ void OpenGL::add_model() {
 	float scale = 0.7f;
 	auto m = std::shared_ptr<Model>(new Model(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{scale, scale, scale}, _main_window));
 	_main_window->add_item_to_QListW(m);
-	//m->test();
 	_ecs.add(m);
 	_glw->done_current();
 }
@@ -84,6 +83,10 @@ void OpenGL::draw(void) {
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	_ecs.render_all(_camera->view(), projection(), delta_time());
+}
+
+void OpenGL::remove_entity(std::shared_ptr<Entity> entity) {
+	_ecs.remove(entity);
 }
 
 unsigned short OpenGL::width() const {

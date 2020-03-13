@@ -1,5 +1,6 @@
 #include "ECS.h"
 #include <iostream>
+#include <algorithm>
 
 ECS::ECS() {
 
@@ -16,6 +17,14 @@ void ECS::add(std::shared_ptr<Entity> entity) {
 		_lights.push_back(entity);
 	}
 	_entities.push_back(entity);
+}
+
+void ECS::remove(std::shared_ptr<Entity> entity) {
+	// cf le TODO au dessus
+	if (entity->name().find("Light") != std::string::npos) {
+		_lights.erase(std::remove(_lights.begin(), _lights.end(), entity), _lights.end());
+	}
+	_entities.erase(std::remove(_entities.begin(), _entities.end(), entity), _entities.end());
 }
 
 

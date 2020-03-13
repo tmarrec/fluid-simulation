@@ -8,6 +8,7 @@ class Entity;
 #include <QLabel>
 #include <QGroupBox>
 #include <QSlider>
+#include <QPushButton>
 
 #include "GLWidget.h"
 #include "Entity_Item.h"
@@ -81,5 +82,7 @@ private:
 	QGroupBox* position_box();
 	QGroupBox* rotation_box();
 	QGroupBox* scale_box();
+
+	QPushButton *_delete_button;
 
 };

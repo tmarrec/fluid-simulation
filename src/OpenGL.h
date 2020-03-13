@@ -30,6 +30,7 @@ public:
 	glm::mat4 projection() const;
 	void set_delta_time(float delta_time);
 	float delta_time() const;
+	void remove_entity(std::shared_ptr<Entity> entity);
 
 public slots:
 	void add_triangle();
