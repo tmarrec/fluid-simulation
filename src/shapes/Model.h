@@ -1,12 +1,12 @@
 #pragma once
 
-
 #include "../Shape.h"
+#include "../MainWindow.h"
 
 class Model : public Shape {
 
 public:
-	Model(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+	Model(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window);
 	~Model();
 
 private:

@@ -234,6 +234,10 @@ void MainWindow::on_item_clicked(QListWidgetItem *item) {
 
 void MainWindow::change_selected_entity(Entity_Item* e) {
 	_selected_entity = e;
+	auto s = e->shape_ptr();
+	update_slide_position(s->position(), s->id());
+	update_slide_rotation(s->rotation(), s->id());
+	update_slide_scale(s->scale(), s->id());
 }
 
 Q_DECLARE_METATYPE(Entity_Item*)

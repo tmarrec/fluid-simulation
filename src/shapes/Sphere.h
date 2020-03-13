@@ -1,11 +1,12 @@
 #pragma once
 
 #include "../Shape.h"
+#include "../MainWindow.h"
 
 class Sphere : public Shape {
 
 public:
-	Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec2 faces);
+	Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec2 faces, MainWindow * main_window);
 	~Sphere();
 
 private:

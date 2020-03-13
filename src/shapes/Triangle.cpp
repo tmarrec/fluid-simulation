@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window)
 		: Shape(
 			position,
 			rotation,
@@ -28,7 +28,7 @@ Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 				"shaders/vert.vert",
 				"shaders/frag.frag"
 			},
-			nullptr
+			main_window
 		)
 {
 	set_geometry();

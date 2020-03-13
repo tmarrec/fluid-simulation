@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-Model::Model(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+Model::Model(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window)
 		: Shape(
 			position,
 			rotation,
@@ -17,7 +17,7 @@ Model::Model(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 				"shaders/vert.vert",
 				"shaders/frag.frag"
 			},
-			nullptr
+			main_window
 		)
 {
 	set_geometry();

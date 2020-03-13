@@ -17,7 +17,6 @@ OpenGL::OpenGL(unsigned int w, unsigned int h, MainWindow * main_window, GLWidge
 		, _glw{glw}
 {
 
-	//auto c = std::shared_ptr<Camera>(&_camera);
 	_camera = std::shared_ptr<Camera>(new Camera(glm::vec3{0.0f, -50.0f, -100.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, "Camera", 70.0f, main_window));
 
 	_projection = glm::perspective(glm::radians(_camera->FOV()), (float)width()/(float)height(), 0.1f, 1000.0f);
@@ -31,7 +30,7 @@ OpenGL::~OpenGL(void) {
 
 void OpenGL::add_triangle() {
 	_glw->make_current();
-	auto s = std::shared_ptr<Triangle>(new Triangle(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}));
+	auto s = std::shared_ptr<Triangle>(new Triangle(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, _main_window));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 	_glw->done_current();
@@ -47,7 +46,7 @@ void OpenGL::add_cube() {
 
 void OpenGL::add_sphere() {
 	_glw->make_current();
-	auto s = std::shared_ptr<Sphere>(new Sphere(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, glm::vec2{16, 16}));
+	auto s = std::shared_ptr<Sphere>(new Sphere(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, glm::vec2{16, 16}, _main_window));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 	_glw->done_current();
@@ -67,7 +66,7 @@ void OpenGL::add_light() {
 void OpenGL::add_model() {
 	_glw->make_current();
 	float scale = 0.7f;
-	auto m = std::shared_ptr<Model>(new Model(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{scale, scale, scale}));
+	auto m = std::shared_ptr<Model>(new Model(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{scale, scale, scale}, _main_window));
 	_main_window->add_item_to_QListW(m);
 	//m->test();
 	_ecs.add(m);

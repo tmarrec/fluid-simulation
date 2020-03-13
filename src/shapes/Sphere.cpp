@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec2 faces)
+Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec2 faces, MainWindow * main_window)
 		: Shape(
 			position,
 			rotation,
@@ -14,7 +14,7 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec
 				"shaders/error.vert",
 				"shaders/frag.frag"
 			},
-			{}
+			main_window
 		)
 {
 	set_geometry();
