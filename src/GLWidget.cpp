@@ -13,12 +13,15 @@ GLWidget::GLWidget(MainWindow *parent)
 			, _start_timer_frame{0}
 			, _main_window{parent}
 {
-	setFixedSize(1280, 720);
-	_openGL = new OpenGL{1280, 720, _main_window, this};
 }
 
 GLWidget::~GLWidget() {
 
+}
+
+void GLWidget::init() {
+	setFixedSize(1280, 720);
+	_openGL = new OpenGL{1280, 720, _main_window, this};
 }
 
 OpenGL * GLWidget::openGL() {
@@ -38,11 +41,9 @@ MessageCallback( GLenum source,
                  const GLchar* message,
                  const void* userParam )
 {
-/*
-  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+	fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
             type, severity, message );
-			*/
 }
 
 void GLWidget::initializeGL() {

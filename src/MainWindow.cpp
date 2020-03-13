@@ -11,7 +11,7 @@
 #include <iostream>
 
 MainWindow::MainWindow()
-	: _selected_entity{NULL}
+	: _selected_entity{nullptr}
 {
 	setWindowTitle(TITLE);
 	
@@ -26,7 +26,6 @@ MainWindow::MainWindow()
 	
 	// Widget OpenGL
 	_glw = new GLWidget(this);
-	_openGL = _glw->openGL();
 
     // Layout QT
     QHBoxLayout *container = new QHBoxLayout;
@@ -44,25 +43,19 @@ MainWindow::MainWindow()
 	
 	// Menu Actions
 	QAction *add_triangle = new QAction("Triangle", this);
-	connect(add_triangle, &QAction::triggered, _openGL, &OpenGL::add_triangle);
 	add_menu->addAction(add_triangle);
 
 	QAction *add_cube = new QAction("Cube", this);
-	connect(add_cube, &QAction::triggered, _openGL, &OpenGL::add_cube);
 	add_menu->addAction(add_cube);
 
 	QAction *add_sphere = new QAction("Sphere", this);
-	connect(add_sphere, &QAction::triggered, _openGL, &OpenGL::add_sphere);
 	add_menu->addAction(add_sphere);
 
 	QAction *add_light = new QAction("Light", this);
-	connect(add_light, &QAction::triggered, _openGL, &OpenGL::add_light);
 	add_menu->addAction(add_light);
 	
 	QAction *add_model = new QAction("Model", this);
-	connect(add_model, &QAction::triggered, _openGL, &OpenGL::add_model);
 	add_menu->addAction(add_model);
-
 
 
 	// Left Panel, with TreeView
@@ -100,6 +93,15 @@ MainWindow::MainWindow()
     w->setLayout(container);
 
 	setCentralWidget(w);
+
+	_glw->init();
+	_openGL = _glw->openGL();
+
+	connect(add_triangle, &QAction::triggered, _openGL, &OpenGL::add_triangle);
+	connect(add_cube, &QAction::triggered, _openGL, &OpenGL::add_cube);
+	connect(add_sphere, &QAction::triggered, _openGL, &OpenGL::add_sphere);
+	connect(add_light, &QAction::triggered, _openGL, &OpenGL::add_light);
+	connect(add_model, &QAction::triggered, _openGL, &OpenGL::add_model);
 }
 
 MainWindow::~MainWindow() {
@@ -112,7 +114,7 @@ void MainWindow::delete_item_entities_tree_view() {
 
 // TRANSLATION
 void MainWindow::change_slide_x_position(int value) {
-	if (_selected_entity != NULL) {
+	if (_selected_entity != nullptr) {
 		auto s = _selected_entity->shape_ptr();
 		auto p = s->position();
 		s->set_position(glm::vec3{value, p.y, p.z});
@@ -121,7 +123,7 @@ void MainWindow::change_slide_x_position(int value) {
 }
 
 void MainWindow::change_slide_y_position(int value) {
-	if (_selected_entity != NULL) {
+	if (_selected_entity != nullptr) {
 		auto s = _selected_entity->shape_ptr();
 		auto p = s->position();
 		s->set_position(glm::vec3{p.x, value, p.z});
@@ -130,7 +132,7 @@ void MainWindow::change_slide_y_position(int value) {
 }
 
 void MainWindow::change_slide_z_position(int value) {
-	if (_selected_entity != NULL) {
+	if (_selected_entity != nullptr) {
 		auto s = _selected_entity->shape_ptr();
 		auto p = s->position();
 		s->set_position(glm::vec3{p.x, p.y, value});
@@ -140,7 +142,7 @@ void MainWindow::change_slide_z_position(int value) {
 
 // ROTATIONS
 void MainWindow::change_slide_x_rotation(int value) {
-	if (_selected_entity != NULL) {
+	if (_selected_entity != nullptr) {
 		auto s = _selected_entity->shape_ptr();
 		auto r = s->rotation();
 		s->set_rotation(glm::vec3{value, r.y, r.z});
@@ -149,7 +151,7 @@ void MainWindow::change_slide_x_rotation(int value) {
 }
 
 void MainWindow::change_slide_y_rotation(int value) {
-	if (_selected_entity != NULL) {
+	if (_selected_entity != nullptr) {
 		auto s = _selected_entity->shape_ptr();
 		auto r = s->rotation();
 		s->set_rotation(glm::vec3{r.x, value, r.z});
@@ -158,7 +160,7 @@ void MainWindow::change_slide_y_rotation(int value) {
 }
 
 void MainWindow::change_slide_z_rotation(int value) {
-	if (_selected_entity != NULL) {
+	if (_selected_entity != nullptr) {
 		auto s = _selected_entity->shape_ptr();
 		auto r = s->rotation();
 		s->set_rotation(glm::vec3{r.x, r.y, value});
@@ -168,7 +170,7 @@ void MainWindow::change_slide_z_rotation(int value) {
 
 // SCALE
 void MainWindow::change_slide_x_scale(int value) {
-	if (_selected_entity != NULL) {
+	if (_selected_entity != nullptr) {
 		auto s = _selected_entity->shape_ptr();
 		auto r = s->scale();
 		s->set_scale(glm::vec3{value, r.y, r.z});
@@ -177,7 +179,7 @@ void MainWindow::change_slide_x_scale(int value) {
 }
 
 void MainWindow::change_slide_y_scale(int value) {
-	if (_selected_entity != NULL) {
+	if (_selected_entity != nullptr) {
 		auto s = _selected_entity->shape_ptr();
 		auto r = s->scale();
 		s->set_scale(glm::vec3{r.x, value, r.z});
@@ -186,7 +188,7 @@ void MainWindow::change_slide_y_scale(int value) {
 }
 
 void MainWindow::change_slide_z_scale(int value) {
-	if (_selected_entity != NULL) {
+	if (_selected_entity != nullptr) {
 		auto s = _selected_entity->shape_ptr();
 		auto r = s->scale();
 		s->set_scale(glm::vec3{r.x, r.y, value});
@@ -195,7 +197,7 @@ void MainWindow::change_slide_z_scale(int value) {
 }
 
 void MainWindow::update_slide_position(glm::vec3 pos, const unsigned long id) {
-	if (_selected_entity != NULL && _selected_entity->shape_ptr()->id() == id) {
+	if (_selected_entity != nullptr && _selected_entity->shape_ptr()->id() == id) {
 		_slide_x_position->setValue(pos.x);
 		_slide_x_position_label->setText(std::to_string(int(pos.x)).c_str());
 		_slide_y_position->setValue(pos.y);
@@ -206,7 +208,7 @@ void MainWindow::update_slide_position(glm::vec3 pos, const unsigned long id) {
 }
 
 void MainWindow::update_slide_rotation(glm::vec3 pos, const unsigned long id) {
-	if (_selected_entity != NULL && _selected_entity->shape_ptr()->id() == id) {
+	if (_selected_entity != nullptr && _selected_entity->shape_ptr()->id() == id) {
 		_slide_x_rotation->setValue(pos.x);
 		_slide_x_rotation_label->setText(std::to_string(int(pos.x)).c_str());
 		_slide_y_rotation->setValue(pos.y);
@@ -217,7 +219,7 @@ void MainWindow::update_slide_rotation(glm::vec3 pos, const unsigned long id) {
 }
 
 void MainWindow::update_slide_scale(glm::vec3 pos, const unsigned long id) {
-	if (_selected_entity != NULL && _selected_entity->shape_ptr()->id() == id) {
+	if (_selected_entity != nullptr && _selected_entity->shape_ptr()->id() == id) {
 		_slide_x_scale->setValue(pos.x);
 		_slide_x_scale_label->setText(std::to_string(int(pos.x)).c_str());
 		_slide_y_scale->setValue(pos.y);

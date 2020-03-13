@@ -20,6 +20,7 @@ public:
 	explicit GLWidget(MainWindow *parent = nullptr);	
 	~GLWidget();
 
+	void init();
 	void cleanup();
 	void make_current();
 	void done_current();
