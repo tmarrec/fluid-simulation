@@ -14,10 +14,10 @@ public:
 	
 	std::vector<GLuint> indices() const;
 
-	void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
+	void draw(glm::mat4 view, glm::mat4 projection, float delta_time,
 			std::vector<std::shared_ptr<Entity>> lights) override;
 	void draw_vertex();
-	void use_shader(glm::vec3 view_position, glm::mat4 projection,
+	void use_shader(glm::mat4 view, glm::mat4 projection,
 				std::vector<std::shared_ptr<Entity>> lights);
 
 	void set_geometry();

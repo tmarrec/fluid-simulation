@@ -15,7 +15,7 @@ public:
 	ECS();
 	~ECS(void);
 	void add(std::shared_ptr<Entity> entity);
-	void render_all(glm::vec3 view_position, glm::mat4 projection, float delta_time);
+	void render_all(glm::mat4 view_position, glm::mat4 projection, float delta_time);
 
 	std::vector<std::shared_ptr<Entity>> lights() const;
 

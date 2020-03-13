@@ -22,7 +22,7 @@ const glm::vec3 Light::color() const {
 	return _color;
 }
 
-void Light::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
+void Light::draw(glm::mat4 view_position, glm::mat4 projection, float delta_time,
 				std::vector<std::shared_ptr<Entity>> lights) {
 
 }

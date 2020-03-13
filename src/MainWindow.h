@@ -40,11 +40,18 @@ private slots:
 	void change_slide_y_scale(int value);
 	void change_slide_z_scale(int value);
 
+	void keyPressEvent(QKeyEvent *event) override;
+	void mouseMoveEvent(QMouseEvent *event) override;
+	void mousePressEvent(QMouseEvent *event) override;
+
 
 private:
 	QListWidget* _list;
 	GLWidget* _glw;
 	OpenGL* _openGL;
+
+	int _last_mouse_x;
+	int _last_mouse_y;
 
 	QSlider *_slide_x_position;
 	QSlider *_slide_y_position;
@@ -69,8 +76,10 @@ private:
 	QLabel *_slide_z_scale_label;
 
 	Entity_Item* _selected_entity;
+	std::shared_ptr<Entity> _camera;
 
 	QGroupBox* position_box();
 	QGroupBox* rotation_box();
 	QGroupBox* scale_box();
+
 };

@@ -37,7 +37,7 @@ void OpenGL::add_triangle() {
 
 void OpenGL::add_cube() {
 	_glw->make_current();
-	auto s = std::shared_ptr<Cube>(new Cube(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, _main_window));
+	auto s = std::shared_ptr<Cube>(new Cube(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{3.0f, 3.0f, 3.0f}, _main_window));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 	_glw->done_current();
@@ -83,7 +83,7 @@ void OpenGL::draw(void) {
 	}
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	_ecs.render_all(_camera->position(), projection(), delta_time());
+	_ecs.render_all(_camera->view(), projection(), delta_time());
 }
 
 unsigned short OpenGL::width() const {

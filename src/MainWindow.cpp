@@ -7,13 +7,19 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QSlider>
+#include <QKeyEvent>
+#include <QMouseEvent>
 
 #include <iostream>
 
 MainWindow::MainWindow()
 	: _selected_entity{nullptr}
+	, _last_mouse_x{0}
+	, _last_mouse_y{0}
 {
 	setWindowTitle(TITLE);
+
+	setFocusPolicy(Qt::ClickFocus);
 	
 	// Parametres OpenGL 
 	QSurfaceFormat format;
@@ -102,10 +108,76 @@ MainWindow::MainWindow()
 	connect(add_sphere, &QAction::triggered, _openGL, &OpenGL::add_sphere);
 	connect(add_light, &QAction::triggered, _openGL, &OpenGL::add_light);
 	connect(add_model, &QAction::triggered, _openGL, &OpenGL::add_model);
+
 }
 
 MainWindow::~MainWindow() {
 
+}
+
+void MainWindow::mousePressEvent(QMouseEvent *event) {
+	_last_mouse_x = event->x();
+	_last_mouse_y = event->y();
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *event) {
+	int x = event->x();
+	int y = event->y();
+
+	auto camera = std::static_pointer_cast<Camera>(_camera);
+	float yaw = camera->yaw();
+	float pitch = camera->pitch();
+
+	float sensitivity = 0.3f;
+	float offset_x = (x-_last_mouse_x)*sensitivity;
+	float offset_y = (y-_last_mouse_y)*sensitivity;
+
+	yaw += offset_x;
+	pitch -= offset_y;
+	pitch = glm::clamp(pitch, -89.9f, 89.9f);
+
+	camera->set_yaw(yaw);
+	camera->set_pitch(pitch);
+
+	glm::vec3 dir;
+	dir.x = cos(glm::radians(yaw))*cos(glm::radians(pitch));
+	dir.y = sin(glm::radians(pitch));
+	dir.z = sin(glm::radians(yaw))*cos(glm::radians(pitch));
+	dir = glm::normalize(dir);
+
+	camera->set_front(dir);
+
+	_last_mouse_x = x;
+	_last_mouse_y = y;
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event) {
+	auto key = event->key();
+	auto p = _camera->position();
+	auto camera = std::static_pointer_cast<Camera>(_camera);
+	auto front = camera->front();
+	auto up = camera->up();
+	float speed = 2.5f;
+	switch(key) {
+		case Qt::Key_Z:
+			_camera->set_position(p+(front*speed));
+			break;
+		case Qt::Key_Q:
+			_camera->set_position(p-(glm::normalize(glm::cross(front, up))*speed));
+			break;
+		case Qt::Key_S:
+			_camera->set_position(p-(front*speed));
+			break;
+		case Qt::Key_D:
+			_camera->set_position(p+(glm::normalize(glm::cross(front, up))*speed));
+			break;
+		case Qt::Key_Shift:
+			_camera->set_position(glm::vec3{p.x, p.y-speed, p.z});
+			break;
+		case Qt::Key_Control:
+			_camera->set_position(glm::vec3{p.x, p.y+speed, p.z});
+			break;
+	}
 }
 
 void MainWindow::delete_item_entities_tree_view() {
@@ -118,7 +190,6 @@ void MainWindow::change_slide_x_position(int value) {
 		auto s = _selected_entity->shape_ptr();
 		auto p = s->position();
 		s->set_position(glm::vec3{value, p.y, p.z});
-		_slide_x_position_label->setText(std::to_string(value).c_str());
 	}
 }
 
@@ -127,7 +198,6 @@ void MainWindow::change_slide_y_position(int value) {
 		auto s = _selected_entity->shape_ptr();
 		auto p = s->position();
 		s->set_position(glm::vec3{p.x, value, p.z});
-		_slide_y_position_label->setText(std::to_string(value).c_str());
 	}
 }
 
@@ -136,7 +206,6 @@ void MainWindow::change_slide_z_position(int value) {
 		auto s = _selected_entity->shape_ptr();
 		auto p = s->position();
 		s->set_position(glm::vec3{p.x, p.y, value});
-		_slide_z_position_label->setText(std::to_string(value).c_str());
 	}
 }
 
@@ -146,7 +215,6 @@ void MainWindow::change_slide_x_rotation(int value) {
 		auto s = _selected_entity->shape_ptr();
 		auto r = s->rotation();
 		s->set_rotation(glm::vec3{value, r.y, r.z});
-		_slide_x_rotation_label->setText(std::to_string(value).c_str());
 	}
 }
 
@@ -155,7 +223,6 @@ void MainWindow::change_slide_y_rotation(int value) {
 		auto s = _selected_entity->shape_ptr();
 		auto r = s->rotation();
 		s->set_rotation(glm::vec3{r.x, value, r.z});
-		_slide_y_rotation_label->setText(std::to_string(value).c_str());
 	}
 }
 
@@ -164,7 +231,6 @@ void MainWindow::change_slide_z_rotation(int value) {
 		auto s = _selected_entity->shape_ptr();
 		auto r = s->rotation();
 		s->set_rotation(glm::vec3{r.x, r.y, value});
-		_slide_z_rotation_label->setText(std::to_string(value).c_str());
 	}
 }
 
@@ -174,7 +240,6 @@ void MainWindow::change_slide_x_scale(int value) {
 		auto s = _selected_entity->shape_ptr();
 		auto r = s->scale();
 		s->set_scale(glm::vec3{value, r.y, r.z});
-		_slide_x_scale_label->setText(std::to_string(value).c_str());
 	}
 }
 
@@ -183,7 +248,6 @@ void MainWindow::change_slide_y_scale(int value) {
 		auto s = _selected_entity->shape_ptr();
 		auto r = s->scale();
 		s->set_scale(glm::vec3{r.x, value, r.z});
-		_slide_y_scale_label->setText(std::to_string(value).c_str());
 	}
 }
 
@@ -192,7 +256,6 @@ void MainWindow::change_slide_z_scale(int value) {
 		auto s = _selected_entity->shape_ptr();
 		auto r = s->scale();
 		s->set_scale(glm::vec3{r.x, r.y, value});
-		_slide_z_scale_label->setText(std::to_string(value).c_str());
 	}
 }
 
@@ -247,6 +310,10 @@ Q_DECLARE_METATYPE(Entity_Item*)
 void MainWindow::add_item_to_QListW(std::shared_ptr<Entity> shape_ptr) {
 	auto s = new Entity_Item(shape_ptr);
 	change_selected_entity(s);
+	// Moche
+	if (s->name() == "Camera 0") {
+		_camera = s->shape_ptr();
+	}
 	QListWidgetItem *item = new QListWidgetItem(s->name().c_str());
 	item->setData(100, QVariant::fromValue(s));
 	_list->addItem(item);

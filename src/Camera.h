@@ -13,13 +13,25 @@ public:
 		std::string type, float FOV, MainWindow * main_window);
 	~Camera(void);
 	
-	void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
+	void draw(glm::mat4 view, glm::mat4 projection, float delta_time,
 				std::vector<std::shared_ptr<Entity>> lights) override;
 	
 	const std::string type() const;
 	float FOV() const;
+	float yaw() const;
+	float pitch() const;
+	glm::vec3 front() const;
+	glm::vec3 up() const;
+	glm::mat4 view() const;
+	void set_front(glm::vec3 front);
+	void set_yaw(float yaw);
+	void set_pitch(float pitch);
 
 private:
 	const std::string _type;
 	float _FOV;
+	glm::vec3 _front;
+	glm::vec3 _up;
+	float _yaw;
+	float _pitch;
 };

@@ -23,7 +23,7 @@ std::vector<std::shared_ptr<Entity>> ECS::lights() const {
 	return _lights;
 }
 
-void ECS::render_all(glm::vec3 view_position, glm::mat4 projection, float delta_time) {
+void ECS::render_all(glm::mat4 view_position, glm::mat4 projection, float delta_time) {
 	for (const auto & e : _entities) {
 		e->draw(view_position, projection, delta_time, lights());
 	}

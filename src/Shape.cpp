@@ -86,16 +86,16 @@ void Shape::draw_vertex() {
 	glBindVertexArray(0);
 }
 
-void Shape::use_shader(glm::vec3 view_position, glm::mat4 projection,
+void Shape::use_shader(glm::mat4 view, glm::mat4 projection,
 				std::vector<std::shared_ptr<Entity>> lights) {
 	shader().use();
 	shader().set_3f("_object_color", color());
 
 	shader().set_mat4("model", get_model());
-	shader().set_mat4("view", get_view(view_position));
+	shader().set_mat4("view", view);
 	shader().set_mat4("projection", projection);
 
-	shader().set_3f("_view_pos", view_position);
+	shader().set_3f("_view_pos", view[3]);
 	shader().set_1i("_light_nb", lights.size());
 
 	for (size_t i = 0; i < lights.size(); ++i) {
@@ -107,10 +107,10 @@ void Shape::use_shader(glm::vec3 view_position, glm::mat4 projection,
 	}
 }
 
-void Shape::draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
+void Shape::draw(glm::mat4 view, glm::mat4 projection, float delta_time,
 				std::vector<std::shared_ptr<Entity>> lights) {
-	rotate_test(delta_time); 
-	use_shader(view_position, projection, lights);
+	//rotate_test(delta_time); 
+	use_shader(view, projection, lights);
 	draw_vertex();
 }
 

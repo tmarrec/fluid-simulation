@@ -13,7 +13,7 @@ public:
 		std::string type, glm::vec3 color, MainWindow * main_window);
 	~Light(void);
 	
-	void draw(glm::vec3 view_position, glm::mat4 projection, float delta_time,
+	void draw(glm::mat4 view_position, glm::mat4 projection, float delta_time,
 				std::vector<std::shared_ptr<Entity>> lights) override;
 
 	const std::string type() const;

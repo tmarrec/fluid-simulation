@@ -41,9 +41,10 @@ MessageCallback( GLenum source,
                  const GLchar* message,
                  const void* userParam )
 {
-	fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+/*	fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
             type, severity, message );
+			*/
 }
 
 void GLWidget::initializeGL() {
@@ -61,6 +62,12 @@ void GLWidget::initializeGL() {
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
 
+	std::cout << "QT version   : " << qVersion() << std::endl;
+	std::cout << "Renderer     : " << glGetString(GL_RENDERER) << std::endl;
+	std::cout << "Vendor       : " << glGetString(GL_VENDOR) << std::endl;
+	std::cout << "Version      : " << glGetString(GL_VERSION) << std::endl;
+	std::cout << "GLSL Version : " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+	std::cout << std::endl;
 
 	_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
