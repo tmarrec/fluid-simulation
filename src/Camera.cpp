@@ -63,3 +63,11 @@ void Camera::draw(glm::mat4 view, glm::mat4 projection, float delta_time,
 
 }
 
+void Camera::set_shader(Shader shader) {
+
+}
+
+Shader & Camera::shader() {
+
+}
+

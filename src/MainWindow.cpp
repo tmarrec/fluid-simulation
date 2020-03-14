@@ -8,6 +8,7 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QFileDialog>
+#include <QtGlobal>
 
 #include <iostream>
 
@@ -75,6 +76,9 @@ MainWindow::MainWindow()
 
 	// Side Panel
 	QVBoxLayout *side_panel_l = new QVBoxLayout;	
+
+	// Shaders
+	side_panel_l->addWidget(shaders_box());
 
 	// Position
 	side_panel_l->addWidget(position_box());
@@ -329,10 +333,32 @@ void MainWindow::change_selected_entity(Entity_Item* e) {
 	update_slide_position(s->position(), s->id());
 	update_slide_rotation(s->rotation(), s->id());
 	update_slide_scale(s->scale(), s->id());
+
+	// TODO c'est moche le camera/light find str :(
 	if (s->name() == "Camera 0") {
 		_delete_button->setEnabled(false);
 	} else {
 		_delete_button->setEnabled(true);
+	}
+
+	if (s->name() == "Camera 0" || s->name().find("Light") != std::string::npos) {
+		_combo_box_shaders_frag->setEnabled(false);
+		_combo_box_shaders_vert->setEnabled(false);
+		_slide_x_rotation->setEnabled(false);
+		_slide_y_rotation->setEnabled(false);
+		_slide_z_rotation->setEnabled(false);
+		_slide_x_scale->setEnabled(false);
+		_slide_y_scale->setEnabled(false);
+		_slide_z_scale->setEnabled(false);
+	} else {
+		_combo_box_shaders_frag->setEnabled(true);
+		_combo_box_shaders_vert->setEnabled(true);
+		_slide_x_rotation->setEnabled(true);
+		_slide_y_rotation->setEnabled(true);
+		_slide_z_rotation->setEnabled(true);
+		_slide_x_scale->setEnabled(true);
+		_slide_y_scale->setEnabled(true);
+		_slide_z_scale->setEnabled(true);
 	}
 }
 
@@ -350,6 +376,63 @@ void MainWindow::add_item_to_QListW(std::shared_ptr<Entity> shape_ptr) {
 	_list->addItem(item);
 	_list->setCurrentRow(_list->count()-1);
 }
+
+void MainWindow::change_vert_shader(int i) {
+	auto s = _selected_entity->shape_ptr();
+	std::string file = _combo_box_shaders_vert->itemText(i).toUtf8().constData();
+	std::string dir = "shaders/";
+	std::string file_path = dir+file;
+
+	auto frag_path = s->shader().frag_path();
+	Shader shader {file_path.c_str(), frag_path.c_str()};
+	s->set_shader(shader);
+}
+
+void MainWindow::change_frag_shader(int i) {
+	auto s = _selected_entity->shape_ptr();
+	std::string file = _combo_box_shaders_frag->itemText(i).toUtf8().constData();
+	std::string dir = "shaders/";
+	std::string file_path = dir+file;
+
+	auto vert_path = s->shader().vert_path();
+	Shader shader {vert_path.c_str(), file_path.c_str()};
+	s->set_shader(shader);
+}
+
+QGroupBox* MainWindow::shaders_box() {
+	QGroupBox *box = new QGroupBox("Shaders");
+	QVBoxLayout *box_layout = new QVBoxLayout;	
+
+	QGroupBox *shaders_box = new QGroupBox();
+	QHBoxLayout *shaders_layout = new QHBoxLayout;
+
+	box->setMaximumHeight(80);
+	QDir dir{"shaders"};
+
+	_combo_box_shaders_vert = new QComboBox();
+	QStringList verts = dir.entryList(QStringList() << "*.vert", QDir::Files);
+	foreach(QString filename, verts) {
+		_combo_box_shaders_vert->addItem(filename.toUtf8().constData());
+	}
+	shaders_layout->addWidget(_combo_box_shaders_vert);
+
+	_combo_box_shaders_frag = new QComboBox();
+	QStringList frags = dir.entryList(QStringList() << "*.frag", QDir::Files);
+	foreach(QString filename, frags) {
+		_combo_box_shaders_frag->addItem(filename.toUtf8().constData());
+	}
+	shaders_layout->addWidget(_combo_box_shaders_frag);
+	shaders_box->setLayout(shaders_layout);
+
+	box_layout->addWidget(shaders_box);
+
+	connect(_combo_box_shaders_vert, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::change_vert_shader);
+	connect(_combo_box_shaders_frag, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::change_frag_shader);
+	
+	box->setLayout(box_layout);
+	return box;
+}
+
 
 QGroupBox* MainWindow::position_box() {
 	QGroupBox *box = new QGroupBox("Position");

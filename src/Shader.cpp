@@ -6,7 +6,10 @@
 #include <fstream>
 #include <sstream>
 
-Shader::Shader(const char* vert_path, const char* frag_path) {
+Shader::Shader(const char* vert_path, const char* frag_path)
+	: _vert_path{vert_path}
+	, _frag_path{frag_path}
+{
 	// 1. retrieve the vertex/fragment source code from filePath
 	std::string vertexCode;
 	std::string fragmentCode;
@@ -76,12 +79,24 @@ int Shader::get_location(const std::string &name) const {
 	return location;
 }
 
+std::string Shader::vert_path() const {
+	return _vert_path;
+}
+
+std::string Shader::frag_path() const {
+	return _frag_path;
+}
+
 void Shader::set_1b(const std::string &name, bool value) const {
 	glUniform1i(get_location(name), (int)value);
 }
 
 void Shader::set_1i(const std::string &name, int value) const {
 	glUniform1i(get_location(name), value);
+}
+
+void Shader::set_1u(const std::string &name, uint32_t value) const {
+	glUniform1ui(get_location(name), value);
 }
 
 void Shader::set_1f(const std::string &name, float value) const {

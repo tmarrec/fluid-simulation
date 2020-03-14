@@ -21,10 +21,11 @@ public:
 				std::vector<std::shared_ptr<Entity>> lights);
 
 	void set_geometry();
-	
+	void set_shader(Shader shader) override;
+
 	const std::string type() const;
 	const glm::vec3 color() const;
-	const Shader shader() const;
+	Shader & shader() override;
 	
 private:
 	std::vector<GLfloat> 	_vertices;

@@ -27,3 +27,11 @@ void Light::draw(glm::mat4 view_position, glm::mat4 projection, float delta_time
 
 }
 
+void Light::set_shader(Shader shader) {
+
+}
+
+Shader & Light::shader() {
+
+}
+

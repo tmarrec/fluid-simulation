@@ -6,6 +6,7 @@ class MainWindow;
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Shader.h"
 #include <string>
 #include <vector>
 #include <memory>
@@ -19,6 +20,9 @@ public:
 
 	virtual void draw(glm::mat4 view_position, glm::mat4 projection, float delta_time,
 					std::vector<std::shared_ptr<Entity>> lights) = 0;
+
+	virtual void set_shader(Shader shader) = 0; 
+	virtual Shader & shader() = 0;
 
 	void set_position(glm::vec3 position);
 	void set_rotation(glm::vec3 rotation);

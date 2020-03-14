@@ -9,9 +9,11 @@ class Entity;
 #include <QGroupBox>
 #include <QSlider>
 #include <QPushButton>
+#include <QComboBox>
 
 #include "GLWidget.h"
 #include "Entity_Item.h"
+#include "Shader.h"
 
 class MainWindow : public QMainWindow {
 	Q_OBJECT
@@ -47,6 +49,9 @@ private slots:
 	void keyPressEvent(QKeyEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
+
+	void change_vert_shader(int i);
+	void change_frag_shader(int i);
 
 
 private:
@@ -85,7 +90,11 @@ private:
 	QGroupBox* position_box();
 	QGroupBox* rotation_box();
 	QGroupBox* scale_box();
+	QGroupBox* shaders_box();
 
 	QPushButton *_delete_button;
+
+	QComboBox *_combo_box_shaders_vert;
+	QComboBox *_combo_box_shaders_frag;
 
 };

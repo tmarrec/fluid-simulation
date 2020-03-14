@@ -26,6 +26,8 @@ public:
 	void set_front(glm::vec3 front);
 	void set_yaw(float yaw);
 	void set_pitch(float pitch);
+	void set_shader(Shader shader) override;
+	Shader & shader() override;
 
 private:
 	const std::string _type;

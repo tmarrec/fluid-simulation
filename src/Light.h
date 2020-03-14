@@ -18,6 +18,8 @@ public:
 
 	const std::string type() const;
 	const glm::vec3 color() const;
+	void set_shader(Shader shader) override;
+	Shader & shader() override;
 
 private:
 	glm::vec3 _color;

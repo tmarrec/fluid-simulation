@@ -1,6 +1,8 @@
 #include "Shape.h"
 #include <iostream>
 
+#include <chrono>
+
 Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> geometry, 
 	std::string type, glm::vec3 color, Shader shader, MainWindow * main_window)
@@ -17,6 +19,10 @@ Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 
 Shape::~Shape(void) {
 	// TODO FREE LES BUFFERS
+}
+
+void Shape::set_shader(Shader shader) {
+	_shader = shader;
 }
 
 void Shape::set_geometry() {
@@ -76,10 +82,6 @@ const glm::vec3 Shape::color() const {
 	return _color;
 }
 
-const Shader Shape::shader() const {
-	return _shader;
-}
-
 void Shape::draw_vertex() {
 	glBindVertexArray(_VAO);
 	glDrawElements(GL_TRIANGLES, indices().size(), GL_UNSIGNED_INT, nullptr);
@@ -94,6 +96,9 @@ void Shape::use_shader(glm::mat4 view, glm::mat4 projection,
 	shader().set_mat4("model", get_model());
 	shader().set_mat4("view", view);
 	shader().set_mat4("projection", projection);
+	
+	uint32_t time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	shader().set_1u("time", time);
 
 	shader().set_3f("_view_pos", view[3]);
 	shader().set_1i("_light_nb", lights.size());
@@ -112,5 +117,9 @@ void Shape::draw(glm::mat4 view, glm::mat4 projection, float delta_time,
 	//rotate_test(delta_time); 
 	use_shader(view, projection, lights);
 	draw_vertex();
+}
+
+Shader & Shape::shader() {
+	return _shader;
 }
 
