@@ -40,7 +40,7 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Mode
 	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, model_path.c_str());
 
 	if (!err.empty()) {
-		std::cout << err << std::endl;
+		//std::cerr << err << std::endl;
 	}
 	if (!ret) {
 		return {};

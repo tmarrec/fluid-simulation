@@ -87,7 +87,7 @@ void GLWidget::paintGL() {
 	// Compte les FPS chaque secondes
 	std::uint64_t end_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	if (end_timer_fps-_start_timer_fps > 1000) {
-		std::cout << "FPS: " << _frame_count << std::endl;
+		_main_window->update_title_infos("FPS: " + std::to_string(_frame_count));
 		_frame_count = 0;
 		_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	}

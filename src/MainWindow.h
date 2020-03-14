@@ -24,6 +24,7 @@ public:
 	void update_slide_position(glm::vec3 pos, const unsigned long id);
 	void update_slide_rotation(glm::vec3 pos, const unsigned long id);
 	void update_slide_scale(glm::vec3 pos, const unsigned long id);
+	void update_title_infos(std::string infos);
 
 private slots:
 	void on_item_clicked(QListWidgetItem *item);

@@ -15,7 +15,6 @@ Entity::Entity(std::string name, glm::vec3 position, glm::vec3 rotation, glm::ve
 	, _main_window{main_window}
 {
 	_next_id++;	
-	std::cout << "New Entity : " << _id << std::endl;
 }
 
 Entity::~Entity(void) {

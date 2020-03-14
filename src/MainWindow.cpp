@@ -115,6 +115,12 @@ MainWindow::~MainWindow() {
 
 }
 
+void MainWindow::update_title_infos(std::string infos) {
+	std::string name = TITLE;
+	std::string new_title = name + " | " + infos;
+	setWindowTitle(new_title.c_str());
+}
+
 void MainWindow::search_model_file() {
 	QFileDialog dialog(this);
 	dialog.setOption(QFileDialog::DontUseNativeDialog);
