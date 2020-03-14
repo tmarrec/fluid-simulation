@@ -156,7 +156,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
 	auto camera = std::static_pointer_cast<Camera>(_camera);
 	auto front = camera->front();
 	auto up = camera->up();
-	float speed = 2.5f;
+	float speed = 5.0f;
 	switch(key) {
 		case Qt::Key_Z:
 			_camera->set_position(p+(front*speed));
