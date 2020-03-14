@@ -5,12 +5,13 @@
 
 #include <iostream>
 
-Model::Model(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window)
+Model::Model(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window,
+			std::string model_path)
 		: Shape(
 			position,
 			rotation,
 			scale,
-			get_geometry(),
+			get_geometry(model_path),
 			"Model",
 			{1.0f, 1.0f, 1.0f},
 			{
@@ -28,15 +29,15 @@ Model::~Model() {
 }
 
 
-std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Model::get_geometry() {
-	std::string inputfile = "models/091_W_Aya_100K.obj";
+std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Model::get_geometry(
+		std::string model_path) {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 
 	std::string err;
 
-	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, inputfile.c_str());
+	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, model_path.c_str());
 
 	if (!err.empty()) {
 		std::cout << err << std::endl;

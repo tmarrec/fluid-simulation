@@ -62,10 +62,10 @@ void OpenGL::add_light() {
 	_glw->done_current();
 }
 
-void OpenGL::add_model() {
+void OpenGL::add_model(std::string model_path) {
 	_glw->make_current();
-	float scale = 0.7f;
-	auto m = std::shared_ptr<Model>(new Model(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{scale, scale, scale}, _main_window));
+	float scale = 1.0f;
+	auto m = std::shared_ptr<Model>(new Model(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{scale, scale, scale}, _main_window, model_path));
 	_main_window->add_item_to_QListW(m);
 	_ecs.add(m);
 	_glw->done_current();

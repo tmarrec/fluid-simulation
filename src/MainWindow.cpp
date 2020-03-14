@@ -7,6 +7,7 @@
 #include <QMenuBar>
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QFileDialog>
 
 #include <iostream>
 
@@ -106,12 +107,26 @@ MainWindow::MainWindow()
 	connect(add_cube, &QAction::triggered, _openGL, &OpenGL::add_cube);
 	connect(add_sphere, &QAction::triggered, _openGL, &OpenGL::add_sphere);
 	connect(add_light, &QAction::triggered, _openGL, &OpenGL::add_light);
-	connect(add_model, &QAction::triggered, _openGL, &OpenGL::add_model);
+	connect(add_model, &QAction::triggered, this, &MainWindow::search_model_file);
 
 }
 
 MainWindow::~MainWindow() {
 
+}
+
+void MainWindow::search_model_file() {
+	QFileDialog dialog(this);
+	dialog.setOption(QFileDialog::DontUseNativeDialog);
+	dialog.setFileMode(QFileDialog::ExistingFiles);
+	dialog.setViewMode(QFileDialog::Detail);
+	dialog.setDirectory("models");
+	dialog.setNameFilter("*.obj");
+	QStringList file_names;
+	if (dialog.exec()) {
+		file_names = dialog.selectedFiles();
+	}
+	_openGL->add_model(file_names.at(0).toUtf8().constData());
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event) {

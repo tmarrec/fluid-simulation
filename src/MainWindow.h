@@ -41,6 +41,8 @@ private slots:
 	void change_slide_y_scale(int value);
 	void change_slide_z_scale(int value);
 
+	void search_model_file();
+
 	void keyPressEvent(QKeyEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
