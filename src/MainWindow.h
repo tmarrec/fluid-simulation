@@ -14,6 +14,7 @@ class Entity;
 #include <QComboBox>
 #include <QCheckBox>
 #include <QLineEdit>
+#include <QMessageBox>
 
 #include "GLWidget.h"
 #include "Entity_Item.h"
@@ -57,6 +58,8 @@ private slots:
 	void change_vert_shader(int i);
 	void change_frag_shader(int i);
 	void change_camera_speed(const QString &);
+
+	void show_help_box() const;
 
 
 private:
@@ -112,5 +115,6 @@ private:
 	QLineEdit *_input_dialog_camera_speed;
 
 	std::string last_split(std::string s, char c) const;
+	QMessageBox *_help_box;
 
 };

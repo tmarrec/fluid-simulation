@@ -9,6 +9,7 @@
 #include <QMouseEvent>
 #include <QFileDialog>
 #include <QtGlobal>
+#include <QPixmap>
 
 #include <iostream>
 #include <sstream>
@@ -20,11 +21,10 @@ MainWindow::MainWindow()
 {
 	setWindowTitle(TITLE);
 
-	setFocusPolicy(Qt::ClickFocus);
 	
 	// Parametres OpenGL 
 	QSurfaceFormat format;
-	format.setVersion(4, 5);
+	format.setVersion(4, 1);
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	format.setDepthBufferSize(24);
 	format.setSwapInterval(0);
@@ -33,6 +33,7 @@ MainWindow::MainWindow()
 	
 	// Widget OpenGL
 	_glw = new GLWidget(this);
+	_glw->setFocusPolicy(Qt::ClickFocus);
 
     // Layout QT
     QHBoxLayout *container = new QHBoxLayout;
@@ -47,6 +48,17 @@ MainWindow::MainWindow()
     topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	container->addWidget(topFiller);
 	QMenu *add_menu = menuBar()->addMenu("Add");
+	QAction *help = new QAction("Help", this);
+	menuBar()->addAction(help);
+	connect(help, &QAction::triggered, this, &MainWindow::show_help_box);
+
+	// QMessageBox d'aide
+	_help_box = new QMessageBox();
+	_help_box->setWindowTitle(TITLE_HELP);
+	_help_box->setFixedSize(500, 500);
+	_help_box->setIconPixmap(QPixmap("images/works.png"));
+	_help_box->setText("--- Tristan Marrec @ Paul Sabatier University @ 2020 ---");
+	_help_box->setInformativeText("ZQSD : Camera movements\nShift/Ctrl : Camera UP/DOWN Y-axis\nMouse Click + Movements : Camera Yaw/Pitch\n\nSelect entity on the left panel for parameters");
 	
 	// Menu Actions
 	QAction *add_triangle = new QAction("Triangle", this);
@@ -125,12 +137,18 @@ MainWindow::~MainWindow() {
 
 }
 
+void MainWindow::show_help_box() const {
+	_help_box->exec();
+}
+
+// Change le titre avec des infos (fps actuellement)
 void MainWindow::update_title_infos(std::string infos) {
 	std::string name = TITLE;
 	std::string new_title = name + " | " + infos;
 	setWindowTitle(new_title.c_str());
 }
 
+// Ouvre une fenetre pour selectionner un .obj et l'ajoute a la scene
 void MainWindow::search_model_file() {
 	QFileDialog dialog(this);
 	dialog.setOption(QFileDialog::DontUseNativeDialog);
@@ -147,11 +165,14 @@ void MainWindow::search_model_file() {
 	}
 }
 
+// Sauvegarde les anciennes positions de la souris
 void MainWindow::mousePressEvent(QMouseEvent *event) {
 	_last_mouse_x = event->x();
 	_last_mouse_y = event->y();
 }
 
+// Calcule le yaw et pitch de la camera en fonction
+// des mouvements de la souris
 void MainWindow::mouseMoveEvent(QMouseEvent *event) {
 	int x = event->x();
 	int y = event->y();
@@ -182,6 +203,7 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event) {
 	_last_mouse_y = y;
 }
 
+// Deplace la caméra
 void MainWindow::keyPressEvent(QKeyEvent *event) {
 	auto key = event->key();
 	auto p = _camera->position();
@@ -211,6 +233,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
 	}
 }
 
+// Enleve une entité du tree view a gauche
 void MainWindow::delete_item_entities_tree_view() {
 	_openGL->remove_entity(_selected_entity->entity_ptr());
 	_list->takeItem(_list->currentRow());
@@ -221,7 +244,7 @@ void MainWindow::delete_item_entities_tree_view() {
 	change_selected_entity(s);
 }	
 
-// TRANSLATION
+///////////////// SLIDE TRANSLATION /////////////////
 void MainWindow::change_slide_x_position(int value) {
 	if (_selected_entity != nullptr) {
 		auto s = _selected_entity->entity_ptr();
@@ -229,7 +252,6 @@ void MainWindow::change_slide_x_position(int value) {
 		s->set_position(glm::vec3{value, p.y, p.z});
 	}
 }
-
 void MainWindow::change_slide_y_position(int value) {
 	if (_selected_entity != nullptr) {
 		auto s = _selected_entity->entity_ptr();
@@ -237,7 +259,6 @@ void MainWindow::change_slide_y_position(int value) {
 		s->set_position(glm::vec3{p.x, value, p.z});
 	}
 }
-
 void MainWindow::change_slide_z_position(int value) {
 	if (_selected_entity != nullptr) {
 		auto s = _selected_entity->entity_ptr();
@@ -245,57 +266,6 @@ void MainWindow::change_slide_z_position(int value) {
 		s->set_position(glm::vec3{p.x, p.y, value});
 	}
 }
-
-// ROTATIONS
-void MainWindow::change_slide_x_rotation(int value) {
-	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->entity_ptr();
-		auto r = s->rotation();
-		s->set_rotation(glm::vec3{value, r.y, r.z});
-	}
-}
-
-void MainWindow::change_slide_y_rotation(int value) {
-	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->entity_ptr();
-		auto r = s->rotation();
-		s->set_rotation(glm::vec3{r.x, value, r.z});
-	}
-}
-
-void MainWindow::change_slide_z_rotation(int value) {
-	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->entity_ptr();
-		auto r = s->rotation();
-		s->set_rotation(glm::vec3{r.x, r.y, value});
-	}
-}
-
-// SCALE
-void MainWindow::change_slide_x_scale(int value) {
-	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->entity_ptr();
-		auto r = s->scale();
-		s->set_scale(glm::vec3{value, r.y, r.z});
-	}
-}
-
-void MainWindow::change_slide_y_scale(int value) {
-	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->entity_ptr();
-		auto r = s->scale();
-		s->set_scale(glm::vec3{r.x, value, r.z});
-	}
-}
-
-void MainWindow::change_slide_z_scale(int value) {
-	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->entity_ptr();
-		auto r = s->scale();
-		s->set_scale(glm::vec3{r.x, r.y, value});
-	}
-}
-
 void MainWindow::update_slide_position(glm::vec3 pos, const unsigned long id) {
 	if (_selected_entity != nullptr && _selected_entity->entity_ptr()->id() == id) {
 		_slide_x_position->setValue(pos.x);
@@ -306,7 +276,30 @@ void MainWindow::update_slide_position(glm::vec3 pos, const unsigned long id) {
 		_slide_z_position_label->setText(std::to_string(int(pos.z)).c_str());
 	}
 }
+/////////////// FIN SLIDE TRANSLATION ///////////////
 
+////////////////// SLIDE ROTATIONS //////////////////
+void MainWindow::change_slide_x_rotation(int value) {
+	if (_selected_entity != nullptr) {
+		auto s = _selected_entity->entity_ptr();
+		auto r = s->rotation();
+		s->set_rotation(glm::vec3{value, r.y, r.z});
+	}
+}
+void MainWindow::change_slide_y_rotation(int value) {
+	if (_selected_entity != nullptr) {
+		auto s = _selected_entity->entity_ptr();
+		auto r = s->rotation();
+		s->set_rotation(glm::vec3{r.x, value, r.z});
+	}
+}
+void MainWindow::change_slide_z_rotation(int value) {
+	if (_selected_entity != nullptr) {
+		auto s = _selected_entity->entity_ptr();
+		auto r = s->rotation();
+		s->set_rotation(glm::vec3{r.x, r.y, value});
+	}
+}
 void MainWindow::update_slide_rotation(glm::vec3 pos, const unsigned long id) {
 	if (_selected_entity != nullptr && _selected_entity->entity_ptr()->id() == id) {
 		_slide_x_rotation->setValue(pos.x);
@@ -317,7 +310,30 @@ void MainWindow::update_slide_rotation(glm::vec3 pos, const unsigned long id) {
 		_slide_z_rotation_label->setText(std::to_string(int(pos.z)).c_str());
 	}
 }
+//////////////// FIN SLIDE ROTATIONS ////////////////
 
+////////////////// SLIDE SCALE ///////////////////
+void MainWindow::change_slide_x_scale(int value) {
+	if (_selected_entity != nullptr) {
+		auto s = _selected_entity->entity_ptr();
+		auto r = s->scale();
+		s->set_scale(glm::vec3{value, r.y, r.z});
+	}
+}
+void MainWindow::change_slide_y_scale(int value) {
+	if (_selected_entity != nullptr) {
+		auto s = _selected_entity->entity_ptr();
+		auto r = s->scale();
+		s->set_scale(glm::vec3{r.x, value, r.z});
+	}
+}
+void MainWindow::change_slide_z_scale(int value) {
+	if (_selected_entity != nullptr) {
+		auto s = _selected_entity->entity_ptr();
+		auto r = s->scale();
+		s->set_scale(glm::vec3{r.x, r.y, value});
+	}
+}
 void MainWindow::update_slide_scale(glm::vec3 pos, const unsigned long id) {
 	if (_selected_entity != nullptr && _selected_entity->entity_ptr()->id() == id) {
 		_slide_x_scale->setValue(pos.x);
@@ -328,12 +344,15 @@ void MainWindow::update_slide_scale(glm::vec3 pos, const unsigned long id) {
 		_slide_z_scale_label->setText(std::to_string(int(pos.z)).c_str());
 	}
 }
+//////////////// FIN SLIDE SCALE /////////////////
 
+// Change l'entité séléctionnée au clique sur un tree view
 void MainWindow::on_item_clicked(QListWidgetItem *item) {
 	auto s = item->data(100).value<Entity_Item*>();
 	change_selected_entity(s);
 }
 
+// Récupère le dernier string d'un split de string avec un delim c
 std::string MainWindow::last_split(std::string s, char c) const {
 	std::vector<std::string> tokens;
 	std::string token;
@@ -345,6 +364,9 @@ std::string MainWindow::last_split(std::string s, char c) const {
 	return tokens.back();
 }
 
+// Au changement d'entité selectionné :
+// Mets a jours les sliders
+// Active/Desactives les buttons de propriétées
 void MainWindow::change_selected_entity(Entity_Item* e) {
 	_selected_entity = e;
 	auto s = e->entity_ptr();
@@ -386,8 +408,9 @@ void MainWindow::change_selected_entity(Entity_Item* e) {
 	}
 }
 
+// Ajoute un item au tree view avec une Entity_Item qui stocke
+// le pointeur de l'entitée
 Q_DECLARE_METATYPE(Entity_Item*)
-
 void MainWindow::add_item_to_QListW(std::shared_ptr<Entity> entity_ptr) {
 	auto s = new Entity_Item(entity_ptr);
 	change_selected_entity(s);
@@ -400,6 +423,7 @@ void MainWindow::add_item_to_QListW(std::shared_ptr<Entity> entity_ptr) {
 	_list->setCurrentRow(_list->count()-1);
 }
 
+// Change le vert shader de l'entitée séléctionnée
 void MainWindow::change_vert_shader(int i) {
 	auto s = _selected_entity->entity_ptr();
 	std::string file = _combo_box_shaders_vert->itemText(i).toUtf8().constData();
@@ -411,6 +435,7 @@ void MainWindow::change_vert_shader(int i) {
 	s->set_shader(shader);
 }
 
+// Change le frag shader de l'entitée séléctionnée
 void MainWindow::change_frag_shader(int i) {
 	auto s = _selected_entity->entity_ptr();
 	std::string file = _combo_box_shaders_frag->itemText(i).toUtf8().constData();
@@ -422,11 +447,13 @@ void MainWindow::change_frag_shader(int i) {
 	s->set_shader(shader);
 }
 
+// Change la vitesse de la camera
 void MainWindow::change_camera_speed(const QString & speed) {
 	auto camera = std::static_pointer_cast<Camera>(_camera);
 	camera->set_speed(speed.toFloat());
 }
 
+// Creer la box de propriétées de la camera
 QGroupBox* MainWindow::camera_box() {
 	QGroupBox *box = new QGroupBox("Camera options");
 	QVBoxLayout *box_layout = new QVBoxLayout;	
@@ -459,6 +486,7 @@ QGroupBox* MainWindow::camera_box() {
 }
 
 
+// Creer la box de propriétées des shaders
 QGroupBox* MainWindow::shaders_box() {
 	QGroupBox *box = new QGroupBox("Shaders");
 	QVBoxLayout *box_layout = new QVBoxLayout;	
@@ -485,7 +513,7 @@ QGroupBox* MainWindow::shaders_box() {
 	shaders_box->setLayout(shaders_layout);
 
 	box_layout->addWidget(shaders_box);
-
+	
 	connect(_combo_box_shaders_vert, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::change_vert_shader);
 	connect(_combo_box_shaders_frag, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::change_frag_shader);
 	
@@ -494,6 +522,7 @@ QGroupBox* MainWindow::shaders_box() {
 }
 
 
+// Creer la box de propriétées de la position
 QGroupBox* MainWindow::position_box() {
 	QGroupBox *box = new QGroupBox("Position");
 	QVBoxLayout *box_layout = new QVBoxLayout;	
@@ -544,6 +573,7 @@ QGroupBox* MainWindow::position_box() {
 	return box;
 }
 
+// Creer la box de propriétées de la rotation
 QGroupBox* MainWindow::rotation_box() {
 	QGroupBox *box = new QGroupBox("Rotation");
 	QVBoxLayout *box_layout = new QVBoxLayout;	
@@ -594,6 +624,7 @@ QGroupBox* MainWindow::rotation_box() {
 	return box;
 }
 
+// Creer la box de propriétées de la scale
 QGroupBox* MainWindow::scale_box() {
 	QGroupBox *box = new QGroupBox("Scale");
 	QVBoxLayout *box_layout = new QVBoxLayout;	
@@ -605,7 +636,7 @@ QGroupBox* MainWindow::scale_box() {
 	_slide_x_scale->setMinimumWidth(180);
 	_slide_x_scale->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	_slide_x_scale->setMinimum(0);
-	_slide_x_scale->setMaximum(1000);
+	_slide_x_scale->setMaximum(100);
 	slide_x_layout->addWidget(_slide_x_scale);
 	slide_x_layout->addWidget(_slide_x_scale_label);
 	slide_x_box->setLayout(slide_x_layout);
@@ -619,7 +650,7 @@ QGroupBox* MainWindow::scale_box() {
 	_slide_y_scale->setMinimumWidth(180);
 	_slide_y_scale->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	_slide_y_scale->setMinimum(0);
-	_slide_y_scale->setMaximum(1000);
+	_slide_y_scale->setMaximum(100);
 	slide_y_layout->addWidget(_slide_y_scale);
 	slide_y_layout->addWidget(_slide_y_scale_label);
 	slide_y_box->setLayout(slide_y_layout);
@@ -633,7 +664,7 @@ QGroupBox* MainWindow::scale_box() {
 	_slide_z_scale->setMinimumWidth(180);
 	_slide_z_scale->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	_slide_z_scale->setMinimum(0);
-	_slide_z_scale->setMaximum(1000);
+	_slide_z_scale->setMaximum(100);
 	slide_z_layout->addWidget(_slide_z_scale);
 	slide_z_layout->addWidget(_slide_z_scale_label);
 	slide_z_box->setLayout(slide_z_layout);

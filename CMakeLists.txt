@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(cowboy-engine VERSION "0.0.3")
 
+string(TIMESTAMP COMPILATION_DATE "%d/%m/%Y")
+
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_AUTOUIC ON)
@@ -17,8 +20,11 @@ cmake_policy(SET CMP0072 NEW)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -pedantic -Wextra -DGL_GLEXT_PROTOTYPES")
-#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
+if (APPLE)
+	set(APPLE_FLAGS "-DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.*/")
+endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -Wall -pedantic -Wextra -DGL_GLEXT_PROTOTYPES ${APPLE_FLAGS}")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 
@@ -26,7 +32,7 @@ find_package(Qt5 COMPONENTS OpenGL REQUIRED)
 if (Qt5OpenGL_FOUND)
 	message(STATUS "Found Qt ${Qt5OpenGL_VERSION}")
 else (Qt5OpenGL_FOUND)
-	message(EROR "Unable to find QTOpenGL library")
+	message(EROR "Unable to find QTOpenGL library, you should probably change line 24 of CMakeLists.txt")
 endif(Qt5OpenGL_FOUND)
 find_package(OpenGL REQUIRED)
 
@@ -84,3 +90,4 @@ target_link_libraries(${PROJECT_NAME} ${EXT_LIBS})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 file(COPY ${CMAKE_SOURCE_DIR}/src/shaders DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 file(COPY ${CMAKE_SOURCE_DIR}/src/models DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+file(COPY ${CMAKE_SOURCE_DIR}/src/images DESTINATION ${EXECUTABLE_OUTPUT_PATH})

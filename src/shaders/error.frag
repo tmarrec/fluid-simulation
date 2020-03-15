@@ -1,4 +1,4 @@
-#version 450 core
+#version 410 core
 
 in vec3 i_normal;
 in vec3 pos_error;

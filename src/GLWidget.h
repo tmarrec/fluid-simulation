@@ -10,10 +10,10 @@ class OpenGL;
 #include <memory>
 
 #include <QOpenGLWidget>
-#include <QOpenGLFunctions_4_5_Core>
+#include <QOpenGLFunctions_4_1_Core>
 
 
-class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Core {
+class GLWidget : public QOpenGLWidget, protected QOpenGLFunctions_4_1_Core {
 	Q_OBJECT
 
 public:

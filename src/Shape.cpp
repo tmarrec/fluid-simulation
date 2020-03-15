@@ -98,7 +98,7 @@ void Shape::use_shader(glm::mat4 view, glm::mat4 projection,
 	shader().set_mat4("projection", projection);
 	
 	uint64_t time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	float time_sin = sin(time/70000);
+	float time_sin = sin(time/50000);
 	shader().set_1f("time", time_sin);
 
 	shader().set_3f("_view_pos", view[3]);

@@ -10,9 +10,7 @@ public:
 	Shader(const char* vert_path, const char* frag_path);
 	~Shader();
 	void use() const;
-	void set_1b(const std::string &name, bool value) const;	
 	void set_1i(const std::string &name, int value) const;	
-	void set_1u(const std::string &name, uint32_t value) const;	
 	void set_1f(const std::string &name, float value) const;	
 	void set_3f(const std::string &name, glm::vec3 values) const;
 	void set_4f(const std::string &name, glm::vec4 values) const;
