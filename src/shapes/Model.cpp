@@ -12,7 +12,7 @@ Model::Model(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow
 			rotation,
 			scale,
 			get_geometry(model_path),
-			{RND(), RND(), RND()},
+			{1.0f, 1.0f, 1.0f},
 			{
 				"shaders/vert.vert",
 				"shaders/frag.frag"

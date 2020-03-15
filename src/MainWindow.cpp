@@ -116,6 +116,8 @@ MainWindow::MainWindow()
 	connect(add_model, &QAction::triggered, this, &MainWindow::search_model_file);
 
 	connect(_check_box_camera_face, &QCheckBox::toggled, _openGL, &OpenGL::set_draw_fill);
+
+
 }
 
 MainWindow::~MainWindow() {
@@ -475,8 +477,8 @@ QGroupBox* MainWindow::position_box() {
 	_slide_x_position = new QSlider(Qt::Orientation::Horizontal);
 	_slide_x_position->setMinimumWidth(180);
 	_slide_x_position->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	_slide_x_position->setMinimum(-100);
-	_slide_x_position->setMaximum(100);
+	_slide_x_position->setMinimum(-2000);
+	_slide_x_position->setMaximum(2000);
 	slide_x_layout->addWidget(_slide_x_position);
 	slide_x_layout->addWidget(_slide_x_position_label);
 	slide_x_box->setLayout(slide_x_layout);
@@ -489,8 +491,8 @@ QGroupBox* MainWindow::position_box() {
 	_slide_y_position = new QSlider(Qt::Orientation::Horizontal);
 	_slide_y_position->setMinimumWidth(180);
 	_slide_y_position->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	_slide_y_position->setMinimum(-100);
-	_slide_y_position->setMaximum(100);
+	_slide_y_position->setMinimum(-2000);
+	_slide_y_position->setMaximum(2000);
 	slide_y_layout->addWidget(_slide_y_position);
 	slide_y_layout->addWidget(_slide_y_position_label);
 	slide_y_box->setLayout(slide_y_layout);
@@ -503,8 +505,8 @@ QGroupBox* MainWindow::position_box() {
 	_slide_z_position = new QSlider(Qt::Orientation::Horizontal);
 	_slide_z_position->setMinimumWidth(180);
 	_slide_z_position->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-	_slide_z_position->setMinimum(-100);
-	_slide_z_position->setMaximum(100);
+	_slide_z_position->setMinimum(-2000);
+	_slide_z_position->setMaximum(2000);
 	slide_z_layout->addWidget(_slide_z_position);
 	slide_z_layout->addWidget(_slide_z_position_label);
 	slide_z_box->setLayout(slide_z_layout);
@@ -576,7 +578,7 @@ QGroupBox* MainWindow::scale_box() {
 	_slide_x_scale->setMinimumWidth(180);
 	_slide_x_scale->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	_slide_x_scale->setMinimum(0);
-	_slide_x_scale->setMaximum(50);
+	_slide_x_scale->setMaximum(1000);
 	slide_x_layout->addWidget(_slide_x_scale);
 	slide_x_layout->addWidget(_slide_x_scale_label);
 	slide_x_box->setLayout(slide_x_layout);
@@ -590,7 +592,7 @@ QGroupBox* MainWindow::scale_box() {
 	_slide_y_scale->setMinimumWidth(180);
 	_slide_y_scale->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	_slide_y_scale->setMinimum(0);
-	_slide_y_scale->setMaximum(50);
+	_slide_y_scale->setMaximum(1000);
 	slide_y_layout->addWidget(_slide_y_scale);
 	slide_y_layout->addWidget(_slide_y_scale_label);
 	slide_y_box->setLayout(slide_y_layout);
@@ -604,7 +606,7 @@ QGroupBox* MainWindow::scale_box() {
 	_slide_z_scale->setMinimumWidth(180);
 	_slide_z_scale->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	_slide_z_scale->setMinimum(0);
-	_slide_z_scale->setMaximum(50);
+	_slide_z_scale->setMaximum(1000);
 	slide_z_layout->addWidget(_slide_z_scale);
 	slide_z_layout->addWidget(_slide_z_scale_label);
 	slide_z_box->setLayout(slide_z_layout);

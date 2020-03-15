@@ -5,7 +5,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	float FOV, MainWindow * main_window)
 	: Entity(position, rotation, scale, main_window)
 	, _FOV{FOV}
-	, _front{glm::vec3{0.0f, 0.0f, 1.0f}}
+	, _front{glm::vec3{0.1302680f, 0.0627905f, -0.989489f}}
 	, _up{glm::vec3{0.0f, 1.0f, 0.0f}}
 	, _yaw{0}
 	, _pitch{0}

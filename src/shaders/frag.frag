@@ -54,7 +54,7 @@ vec3 calc_point_light(Point_Light light, vec3 normal, vec3 frag_pos, vec3 view_d
 	// specular
 	float specular_strength = 0.5;
 	vec3 reflect_dir = reflect(-light_dir, normal);
-	float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 16);
+	float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 8);
 	vec3 specular = specular_strength * spec * light.color;
 
 	return (ambient + diffuse + specular);
