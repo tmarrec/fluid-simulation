@@ -1,6 +1,6 @@
 <h1 align="center">Cowboy Engine</h1>
 <div align="center">
-  <strong>Computer Graphics student project @ Paul Sabatier University - :fr:</strong>
+  <strong>Computer Graphics student OpenGL engine project @ Paul Sabatier University - :fr:</strong>
 </div>
 <br />
 <div align="center" margin="12px">
