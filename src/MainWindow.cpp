@@ -77,17 +77,19 @@ MainWindow::MainWindow()
 	// Side Panel
 	QVBoxLayout *side_panel_l = new QVBoxLayout;	
 
+	// Camera option
+	_camera_box_group = camera_box();
+	side_panel_l->addWidget(_camera_box_group);
 	// Shaders
-	side_panel_l->addWidget(shaders_box());
+	_shaders_box_group = shaders_box();
+	_position_box_group = position_box();
+	_rotation_box_group = rotation_box();
+	_scale_box_group = scale_box();
 
-	// Position
-	side_panel_l->addWidget(position_box());
-
-	// Rotation
-	side_panel_l->addWidget(rotation_box());
-
-	// Scale
-	side_panel_l->addWidget(scale_box());
+	side_panel_l->addWidget(_shaders_box_group);
+	side_panel_l->addWidget(_position_box_group);
+	side_panel_l->addWidget(_rotation_box_group);
+	side_panel_l->addWidget(_scale_box_group);
 
 	// Delete button
 	_delete_button = new QPushButton("Delete");
@@ -113,6 +115,7 @@ MainWindow::MainWindow()
 	connect(add_light, &QAction::triggered, _openGL, &OpenGL::add_light);
 	connect(add_model, &QAction::triggered, this, &MainWindow::search_model_file);
 
+	connect(_check_box_camera_face, &QCheckBox::toggled, _openGL, &OpenGL::set_draw_fill);
 }
 
 MainWindow::~MainWindow() {
@@ -180,7 +183,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
 	auto camera = std::static_pointer_cast<Camera>(_camera);
 	auto front = camera->front();
 	auto up = camera->up();
-	float speed = 5.0f;
+	float speed = camera->speed();
 	switch(key) {
 		case Qt::Key_Z:
 			_camera->set_position(p+(front*speed));
@@ -195,10 +198,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
 			_camera->set_position(p+(glm::normalize(glm::cross(front, up))*speed));
 			break;
 		case Qt::Key_Shift:
-			_camera->set_position(glm::vec3{p.x, p.y-speed, p.z});
+			_camera->set_position(glm::vec3{p.x, p.y+speed, p.z});
 			break;
 		case Qt::Key_Control:
-			_camera->set_position(glm::vec3{p.x, p.y+speed, p.z});
+			_camera->set_position(glm::vec3{p.x, p.y-speed, p.z});
 			break;
 	}
 }
@@ -335,28 +338,22 @@ void MainWindow::change_selected_entity(Entity_Item* e) {
 
 	if (s->type() == CAMERA) {
 		_delete_button->setEnabled(false);
+		_camera_box_group->setVisible(true);
 	} else {
 		_delete_button->setEnabled(true);
+		_camera_box_group->setVisible(false);
 	}
 
 	if (s->type() == CAMERA || s->type() == LIGHT) {
 		_combo_box_shaders_frag->setEnabled(false);
 		_combo_box_shaders_vert->setEnabled(false);
-		_slide_x_rotation->setEnabled(false);
-		_slide_y_rotation->setEnabled(false);
-		_slide_z_rotation->setEnabled(false);
-		_slide_x_scale->setEnabled(false);
-		_slide_y_scale->setEnabled(false);
-		_slide_z_scale->setEnabled(false);
+		_rotation_box_group->setEnabled(false);
+		_scale_box_group->setEnabled(false);
 	} else {
 		_combo_box_shaders_frag->setEnabled(true);
 		_combo_box_shaders_vert->setEnabled(true);
-		_slide_x_rotation->setEnabled(true);
-		_slide_y_rotation->setEnabled(true);
-		_slide_z_rotation->setEnabled(true);
-		_slide_x_scale->setEnabled(true);
-		_slide_y_scale->setEnabled(true);
-		_slide_z_scale->setEnabled(true);
+		_rotation_box_group->setEnabled(true);
+		_scale_box_group->setEnabled(true);
 	}
 }
 
@@ -395,6 +392,43 @@ void MainWindow::change_frag_shader(int i) {
 	Shader shader {vert_path.c_str(), file_path.c_str()};
 	s->set_shader(shader);
 }
+
+void MainWindow::change_camera_speed(const QString & speed) {
+	auto camera = std::static_pointer_cast<Camera>(_camera);
+	camera->set_speed(speed.toFloat());
+}
+
+QGroupBox* MainWindow::camera_box() {
+	QGroupBox *box = new QGroupBox("Camera options");
+	QVBoxLayout *box_layout = new QVBoxLayout;	
+
+	QGroupBox *camera_g_box = new QGroupBox();
+	QVBoxLayout *camera_g_layout = new QVBoxLayout;
+
+	_check_box_camera_face = new QCheckBox("Render faces");
+	_check_box_camera_face->setChecked(true);
+	camera_g_layout->addWidget(_check_box_camera_face);
+
+	QGroupBox *camera_speed_box = new QGroupBox();
+	QHBoxLayout *camera_speed_layout = new QHBoxLayout;
+	auto title_label = new QLabel("Speed");
+	camera_speed_layout->addWidget(title_label);
+	_input_dialog_camera_speed = new QLineEdit("5");
+	_input_dialog_camera_speed->setValidator(new QDoubleValidator(0, 100, 2, this));
+	camera_speed_layout->addWidget(_input_dialog_camera_speed);
+	camera_speed_box->setLayout(camera_speed_layout);
+
+
+	camera_g_layout->addWidget(camera_speed_box);
+
+	camera_g_box->setLayout(camera_g_layout);
+	box_layout->addWidget(camera_g_box);
+	box->setLayout(box_layout);
+
+	connect(_input_dialog_camera_speed, QOverload<const QString &>::of(&QLineEdit::textChanged), this, &MainWindow::change_camera_speed);
+	return box;
+}
+
 
 QGroupBox* MainWindow::shaders_box() {
 	QGroupBox *box = new QGroupBox("Shaders");

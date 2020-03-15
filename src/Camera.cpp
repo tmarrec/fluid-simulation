@@ -9,6 +9,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	, _up{glm::vec3{0.0f, 1.0f, 0.0f}}
 	, _yaw{0}
 	, _pitch{0}
+	, _speed{5}
 {
 
 }
@@ -19,6 +20,14 @@ Camera::~Camera(void) {
 
 Entity_Type Camera::type() {
 	return CAMERA;
+}
+
+float Camera::speed() const {
+	return _speed;
+}
+
+void Camera::set_speed(float speed) {
+	_speed = speed;
 }
 
 float Camera::FOV() const {

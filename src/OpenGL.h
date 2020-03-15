@@ -38,6 +38,7 @@ public slots:
 	void add_sphere();
 	void add_light();
 	void add_model(std::string model_path);
+	void set_draw_fill(bool state);
 
 private:
 	unsigned int _width;

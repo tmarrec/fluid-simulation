@@ -39,7 +39,6 @@ public:
 	glm::mat4 get_view(glm::vec3 view_position) const;
 
 	unsigned long id() const;
-	const std::string name() const;
 
 private:
 	glm::vec3 _position;
@@ -48,7 +47,6 @@ private:
 	
 	const unsigned long _id;
 	static unsigned long _next_id;
-	std::string _name;
 	MainWindow * _main_window;
 };
 

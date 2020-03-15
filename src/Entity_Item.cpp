@@ -3,16 +3,26 @@
 
 Entity_Item::Entity_Item(std::shared_ptr<Entity> entity_ptr)
 	: _entity_ptr{entity_ptr}
-	, _name{entity_ptr->name()}
 {
-	
+	switch(entity_ptr->type()) {
+		case CAMERA:
+			_name = "Camera";
+			break;
+		case LIGHT:
+			_name = "Light";
+			break;
+		case SHAPE:
+			_name = "Shape";
+			break;
+	}
+	_name += " "+std::to_string(entity_ptr->id());
 }
 
 Entity_Item::~Entity_Item(void) {
 
 }
 
-const std::string Entity_Item::name() const {
+std::string Entity_Item::name() const {
 	return _name;
 }
 

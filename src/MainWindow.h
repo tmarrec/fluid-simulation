@@ -12,6 +12,8 @@ class Entity;
 #include <QSlider>
 #include <QPushButton>
 #include <QComboBox>
+#include <QCheckBox>
+#include <QLineEdit>
 
 #include "GLWidget.h"
 #include "Entity_Item.h"
@@ -54,6 +56,7 @@ private slots:
 
 	void change_vert_shader(int i);
 	void change_frag_shader(int i);
+	void change_camera_speed(const QString &);
 
 
 private:
@@ -93,10 +96,19 @@ private:
 	QGroupBox* rotation_box();
 	QGroupBox* scale_box();
 	QGroupBox* shaders_box();
+	QGroupBox* camera_box();
+	QGroupBox* _position_box_group;
+	QGroupBox* _rotation_box_group;
+	QGroupBox* _scale_box_group;
+	QGroupBox* _shaders_box_group;
+	QGroupBox* _camera_box_group;
 
 	QPushButton *_delete_button;
 
 	QComboBox *_combo_box_shaders_vert;
 	QComboBox *_combo_box_shaders_frag;
+
+	QCheckBox *_check_box_camera_face;
+	QLineEdit *_input_dialog_camera_speed;
 
 };

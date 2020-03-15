@@ -28,6 +28,8 @@ public:
 	void set_shader(Shader shader) override;
 	Shader & shader() override;
 	Entity_Type type() override;
+	float speed() const;
+	void set_speed(float speed);
 
 private:
 	float _FOV;
@@ -35,4 +37,5 @@ private:
 	glm::vec3 _up;
 	float _yaw;
 	float _pitch;
+	float _speed;
 };
