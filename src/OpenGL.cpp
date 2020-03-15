@@ -56,7 +56,7 @@ void OpenGL::add_light() {
 	float r = 1.0f;
 	float g = 1.0f;
 	float b = 1.0f;
-	auto l = std::shared_ptr<Light>(new Light(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, {r, g, b}, _main_window));
+	auto l = std::shared_ptr<Light>(new Light(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, {r, g, b}, _main_window, 1.0f));
 	_main_window->add_item_to_QListW(l);
 	_ecs.add(l);
 	_glw->done_current();
@@ -112,9 +112,9 @@ void OpenGL::set_delta_time(float delta_time) {
 	_delta_time = delta_time;
 }
 
-void OpenGL::add_light_placed(glm::vec3 position, glm::vec3 color) {
+void OpenGL::add_light_placed(glm::vec3 position, glm::vec3 color, float intensity) {
 	_glw->make_current();
-	auto l = std::shared_ptr<Light>(new Light(position, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, color, _main_window));
+	auto l = std::shared_ptr<Light>(new Light(position, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{2.0f, 2.0f, 2.0f}, color, _main_window, intensity));
 	_main_window->add_item_to_QListW(l);
 	_ecs.add(l);
 	_glw->done_current();

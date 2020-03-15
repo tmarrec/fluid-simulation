@@ -2,9 +2,10 @@
 #include <iostream>
 
 Light::Light(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
-	glm::vec3 color, MainWindow * main_window)
+	glm::vec3 color, MainWindow * main_window, float intensity)
 	: Entity(position, rotation, scale, main_window)
 	, _color{color}
+	, _intensity{intensity}
 {
 
 }
@@ -39,3 +40,6 @@ Entity_Type Light::type() {
 	return LIGHT;
 }
 
+float Light::intensity() const {
+	return _intensity;
+}

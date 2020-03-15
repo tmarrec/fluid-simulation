@@ -108,6 +108,14 @@ void Shape::use_shader(glm::mat4 view, glm::mat4 projection,
 		shader().set_3f(temp.c_str(), light->position());
 		temp = std::string("_point_lights[") + std::to_string(i) + "].color";
 		shader().set_3f(temp.c_str(), light->color());
+		temp = std::string("_point_lights[") + std::to_string(i) + "].intensity";
+		shader().set_1f(temp.c_str(), light->intensity());
+		temp = std::string("_point_lights[") + std::to_string(i) + "].constant";
+		shader().set_1f(temp.c_str(), 1.0f);
+		temp = std::string("_point_lights[") + std::to_string(i) + "].linear";
+		shader().set_1f(temp.c_str(), 0.000014f);
+		temp = std::string("_point_lights[") + std::to_string(i) + "].quadratic";
+		shader().set_1f(temp.c_str(), 0.00000007f);
 	}
 }
 

@@ -74,10 +74,10 @@ void GLWidget::initializeGL() {
 
 	_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-	_openGL->add_model("models/femme_100K.obj");
-	_openGL->add_light_placed({-686.0f, 1465.0f, 1259.0f}, {1.0f, 0.0f, 0.0f});
-	_openGL->add_light_placed({1172.0f, 1465.0f, 631.0f}, {0.0f, 1.0f, 0.0f});
-	_openGL->add_light_placed({-912.0f, 1465.0f, -794.0f}, {0.0f, 0.0f, 1.0f});
+	_openGL->add_model("models/femme_cool_edition.obj");
+	_openGL->add_light_placed({-686.0f, 1465.0f, 1259.0f}, {1.0f, 1.0f, 1.0f}, 0.86f);
+	_openGL->add_light_placed({1172.0f, 1465.0f, 631.0f}, {1.0f, 1.0f, 1.0f}, 0.3f);
+	_openGL->add_light_placed({-912.0f, 1465.0f, -794.0f}, {1.0f, 1.0f, 1.0f}, 0.15f);
 }
 
 void GLWidget::make_current() {

@@ -5,6 +5,11 @@
 struct Point_Light {
     vec3 position;
     vec3 color;
+
+	float intensity;
+	float constant;
+	float linear;
+	float quadratic;
 };
 
 
@@ -42,20 +47,29 @@ void main(void) {
 }
 
 vec3 calc_point_light(Point_Light light, vec3 normal, vec3 frag_pos, vec3 view_dir) {
+	// attenuation
+	float distance    = length(light.position - frag_pos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
+
 	// ambient
 	float ambient_amp = 0.1;
-	vec3 ambient = ambient_amp * light.color;
+	vec3 ambient = ambient_amp * light.color * light.intensity;
 
 	// diffuse
 	vec3 light_dir = normalize(light.position - frag_pos);
 	float diff = max(dot(normal, light_dir), 0.0);
-	vec3 diffuse = diff * light.color;
+	vec3 diffuse = diff * light.color * light.intensity;
 
 	// specular
 	float specular_strength = 0.5;
 	vec3 reflect_dir = reflect(-light_dir, normal);
 	float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 8);
-	vec3 specular = specular_strength * spec * light.color;
+	vec3 specular = specular_strength * spec * light.color * light.intensity;
+
+	ambient *= attenuation;
+	diffuse *= attenuation;
+	specular *= attenuation;
+	
 
 	return (ambient + diffuse + specular);
 }
