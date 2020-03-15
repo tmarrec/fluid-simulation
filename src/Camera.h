@@ -10,13 +10,12 @@ class Camera : public Entity {
 
 public:
 	Camera(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
-		std::string type, float FOV, MainWindow * main_window);
+		float FOV, MainWindow * main_window);
 	~Camera(void);
 	
 	void draw(glm::mat4 view, glm::mat4 projection, float delta_time,
 				std::vector<std::shared_ptr<Entity>> lights) override;
 	
-	const std::string type() const;
 	float FOV() const;
 	float yaw() const;
 	float pitch() const;
@@ -28,9 +27,9 @@ public:
 	void set_pitch(float pitch);
 	void set_shader(Shader shader) override;
 	Shader & shader() override;
+	Entity_Type type() override;
 
 private:
-	const std::string _type;
 	float _FOV;
 	glm::vec3 _front;
 	glm::vec3 _up;

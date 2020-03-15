@@ -1,5 +1,7 @@
 #pragma once
 
+#define RND() static_cast<float>(rand())/static_cast<float>(RAND_MAX)
+
 class GLWidget;
 class Entity;
 

@@ -2,9 +2,8 @@
 #include <iostream>
 
 Camera::Camera(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
-	std::string type, float FOV, MainWindow * main_window)
-	: Entity(type, position, rotation, scale, main_window)
-	, _type{type}
+	float FOV, MainWindow * main_window)
+	: Entity(position, rotation, scale, main_window)
 	, _FOV{FOV}
 	, _front{glm::vec3{0.0f, 0.0f, 1.0f}}
 	, _up{glm::vec3{0.0f, 1.0f, 0.0f}}
@@ -18,8 +17,8 @@ Camera::~Camera(void) {
 
 }
 
-const std::string Camera::type() const {
-	return _type;
+Entity_Type Camera::type() {
+	return CAMERA;
 }
 
 float Camera::FOV() const {

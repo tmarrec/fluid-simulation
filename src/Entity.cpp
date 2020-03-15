@@ -5,13 +5,13 @@
 
 unsigned long Entity::_next_id = 0;
 
-Entity::Entity(std::string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
+Entity::Entity(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 		MainWindow * main_window)
 	: _position {position}
 	, _rotation {rotation}
 	, _scale {scale}
 	, _id{_next_id}
-	, _name{name + " " + std::to_string(_id)}
+	, _name{std::to_string(_id)}
 	, _main_window{main_window}
 {
 	_next_id++;	

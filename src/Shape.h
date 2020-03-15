@@ -9,7 +9,7 @@ class Shape : public Entity {
 public:
 	Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 		std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> geometry,
-		std::string type, glm::vec3 color, Shader shader, MainWindow * main_window);
+		glm::vec3 color, Shader shader, MainWindow * main_window);
 	~Shape(void);
 	
 	std::vector<GLuint> indices() const;
@@ -23,7 +23,8 @@ public:
 	void set_geometry();
 	void set_shader(Shader shader) override;
 
-	const std::string type() const;
+	Entity_Type type() override;
+
 	const glm::vec3 color() const;
 	Shader & shader() override;
 	
@@ -36,5 +37,4 @@ private:
 	glm::vec3 _color;
 	Shader _shader;
 
-	const std::string _type;
 };

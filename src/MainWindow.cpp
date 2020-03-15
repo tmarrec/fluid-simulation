@@ -168,7 +168,6 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event) {
 	dir.y = sin(glm::radians(pitch));
 	dir.z = sin(glm::radians(yaw))*cos(glm::radians(pitch));
 	dir = glm::normalize(dir);
-
 	camera->set_front(dir);
 
 	_last_mouse_x = x;
@@ -205,7 +204,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
 }
 
 void MainWindow::delete_item_entities_tree_view() {
-	_openGL->remove_entity(_selected_entity->shape_ptr());
+	_openGL->remove_entity(_selected_entity->entity_ptr());
 	_list->takeItem(_list->currentRow());
 
 	_list->setCurrentRow(_list->count()-1);
@@ -217,7 +216,7 @@ void MainWindow::delete_item_entities_tree_view() {
 // TRANSLATION
 void MainWindow::change_slide_x_position(int value) {
 	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->shape_ptr();
+		auto s = _selected_entity->entity_ptr();
 		auto p = s->position();
 		s->set_position(glm::vec3{value, p.y, p.z});
 	}
@@ -225,7 +224,7 @@ void MainWindow::change_slide_x_position(int value) {
 
 void MainWindow::change_slide_y_position(int value) {
 	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->shape_ptr();
+		auto s = _selected_entity->entity_ptr();
 		auto p = s->position();
 		s->set_position(glm::vec3{p.x, value, p.z});
 	}
@@ -233,7 +232,7 @@ void MainWindow::change_slide_y_position(int value) {
 
 void MainWindow::change_slide_z_position(int value) {
 	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->shape_ptr();
+		auto s = _selected_entity->entity_ptr();
 		auto p = s->position();
 		s->set_position(glm::vec3{p.x, p.y, value});
 	}
@@ -242,7 +241,7 @@ void MainWindow::change_slide_z_position(int value) {
 // ROTATIONS
 void MainWindow::change_slide_x_rotation(int value) {
 	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->shape_ptr();
+		auto s = _selected_entity->entity_ptr();
 		auto r = s->rotation();
 		s->set_rotation(glm::vec3{value, r.y, r.z});
 	}
@@ -250,7 +249,7 @@ void MainWindow::change_slide_x_rotation(int value) {
 
 void MainWindow::change_slide_y_rotation(int value) {
 	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->shape_ptr();
+		auto s = _selected_entity->entity_ptr();
 		auto r = s->rotation();
 		s->set_rotation(glm::vec3{r.x, value, r.z});
 	}
@@ -258,7 +257,7 @@ void MainWindow::change_slide_y_rotation(int value) {
 
 void MainWindow::change_slide_z_rotation(int value) {
 	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->shape_ptr();
+		auto s = _selected_entity->entity_ptr();
 		auto r = s->rotation();
 		s->set_rotation(glm::vec3{r.x, r.y, value});
 	}
@@ -267,7 +266,7 @@ void MainWindow::change_slide_z_rotation(int value) {
 // SCALE
 void MainWindow::change_slide_x_scale(int value) {
 	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->shape_ptr();
+		auto s = _selected_entity->entity_ptr();
 		auto r = s->scale();
 		s->set_scale(glm::vec3{value, r.y, r.z});
 	}
@@ -275,7 +274,7 @@ void MainWindow::change_slide_x_scale(int value) {
 
 void MainWindow::change_slide_y_scale(int value) {
 	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->shape_ptr();
+		auto s = _selected_entity->entity_ptr();
 		auto r = s->scale();
 		s->set_scale(glm::vec3{r.x, value, r.z});
 	}
@@ -283,14 +282,14 @@ void MainWindow::change_slide_y_scale(int value) {
 
 void MainWindow::change_slide_z_scale(int value) {
 	if (_selected_entity != nullptr) {
-		auto s = _selected_entity->shape_ptr();
+		auto s = _selected_entity->entity_ptr();
 		auto r = s->scale();
 		s->set_scale(glm::vec3{r.x, r.y, value});
 	}
 }
 
 void MainWindow::update_slide_position(glm::vec3 pos, const unsigned long id) {
-	if (_selected_entity != nullptr && _selected_entity->shape_ptr()->id() == id) {
+	if (_selected_entity != nullptr && _selected_entity->entity_ptr()->id() == id) {
 		_slide_x_position->setValue(pos.x);
 		_slide_x_position_label->setText(std::to_string(int(pos.x)).c_str());
 		_slide_y_position->setValue(pos.y);
@@ -301,7 +300,7 @@ void MainWindow::update_slide_position(glm::vec3 pos, const unsigned long id) {
 }
 
 void MainWindow::update_slide_rotation(glm::vec3 pos, const unsigned long id) {
-	if (_selected_entity != nullptr && _selected_entity->shape_ptr()->id() == id) {
+	if (_selected_entity != nullptr && _selected_entity->entity_ptr()->id() == id) {
 		_slide_x_rotation->setValue(pos.x);
 		_slide_x_rotation_label->setText(std::to_string(int(pos.x)).c_str());
 		_slide_y_rotation->setValue(pos.y);
@@ -312,7 +311,7 @@ void MainWindow::update_slide_rotation(glm::vec3 pos, const unsigned long id) {
 }
 
 void MainWindow::update_slide_scale(glm::vec3 pos, const unsigned long id) {
-	if (_selected_entity != nullptr && _selected_entity->shape_ptr()->id() == id) {
+	if (_selected_entity != nullptr && _selected_entity->entity_ptr()->id() == id) {
 		_slide_x_scale->setValue(pos.x);
 		_slide_x_scale_label->setText(std::to_string(int(pos.x)).c_str());
 		_slide_y_scale->setValue(pos.y);
@@ -329,19 +328,18 @@ void MainWindow::on_item_clicked(QListWidgetItem *item) {
 
 void MainWindow::change_selected_entity(Entity_Item* e) {
 	_selected_entity = e;
-	auto s = e->shape_ptr();
+	auto s = e->entity_ptr();
 	update_slide_position(s->position(), s->id());
 	update_slide_rotation(s->rotation(), s->id());
 	update_slide_scale(s->scale(), s->id());
 
-	// TODO c'est moche le camera/light find str :(
-	if (s->name() == "Camera 0") {
+	if (s->type() == CAMERA) {
 		_delete_button->setEnabled(false);
 	} else {
 		_delete_button->setEnabled(true);
 	}
 
-	if (s->name() == "Camera 0" || s->name().find("Light") != std::string::npos) {
+	if (s->type() == CAMERA || s->type() == LIGHT) {
 		_combo_box_shaders_frag->setEnabled(false);
 		_combo_box_shaders_vert->setEnabled(false);
 		_slide_x_rotation->setEnabled(false);
@@ -364,12 +362,11 @@ void MainWindow::change_selected_entity(Entity_Item* e) {
 
 Q_DECLARE_METATYPE(Entity_Item*)
 
-void MainWindow::add_item_to_QListW(std::shared_ptr<Entity> shape_ptr) {
-	auto s = new Entity_Item(shape_ptr);
+void MainWindow::add_item_to_QListW(std::shared_ptr<Entity> entity_ptr) {
+	auto s = new Entity_Item(entity_ptr);
 	change_selected_entity(s);
-	// Moche
-	if (s->name() == "Camera 0") {
-		_camera = s->shape_ptr();
+	if (s->entity_ptr()->type() == CAMERA) {
+		_camera = s->entity_ptr();
 	}
 	QListWidgetItem *item = new QListWidgetItem(s->name().c_str());
 	item->setData(100, QVariant::fromValue(s));
@@ -378,7 +375,7 @@ void MainWindow::add_item_to_QListW(std::shared_ptr<Entity> shape_ptr) {
 }
 
 void MainWindow::change_vert_shader(int i) {
-	auto s = _selected_entity->shape_ptr();
+	auto s = _selected_entity->entity_ptr();
 	std::string file = _combo_box_shaders_vert->itemText(i).toUtf8().constData();
 	std::string dir = "shaders/";
 	std::string file_path = dir+file;
@@ -389,7 +386,7 @@ void MainWindow::change_vert_shader(int i) {
 }
 
 void MainWindow::change_frag_shader(int i) {
-	auto s = _selected_entity->shape_ptr();
+	auto s = _selected_entity->entity_ptr();
 	std::string file = _combo_box_shaders_frag->itemText(i).toUtf8().constData();
 	std::string dir = "shaders/";
 	std::string file_path = dir+file;

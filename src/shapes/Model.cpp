@@ -12,8 +12,7 @@ Model::Model(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow
 			rotation,
 			scale,
 			get_geometry(model_path),
-			"Model",
-			{1.0f, 1.0f, 1.0f},
+			{RND(), RND(), RND()},
 			{
 				"shaders/vert.vert",
 				"shaders/frag.frag"
@@ -37,6 +36,7 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Mode
 
 	std::string err;
 
+	// Lecture du .obj
 	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, model_path.c_str());
 
 	if (!err.empty()) {
@@ -51,7 +51,7 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Mode
 	std::vector<GLuint> indices;
 
 	for (size_t s = 0; s < shapes.size(); s++) {
-  		// Loop over faces(polygon)
+  		// Loop over faces
   		size_t index_offset = 0;
 		unsigned long indice = 0;
   		for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
@@ -64,6 +64,7 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Mode
 			  	tinyobj::real_t nx = attrib.normals[3*idx.normal_index+0];
 			  	tinyobj::real_t ny = attrib.normals[3*idx.normal_index+1];
 			  	tinyobj::real_t nz = attrib.normals[3*idx.normal_index+2];
+				// Unused right now
 			  	//tinyobj::real_t tx = attrib.texcoords[2*idx.texcoord_index+0];
       			//tinyobj::real_t ty = attrib.texcoords[2*idx.texcoord_index+1];
 				vertices.push_back(vx);

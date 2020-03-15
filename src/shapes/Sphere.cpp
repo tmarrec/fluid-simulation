@@ -8,8 +8,7 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec
 			rotation,
 			scale,
 			get_geometry(faces),
-			"Sphere",
-			{0.0f, 0.0f, 1.0f},
+			{RND(), RND(), RND()},
 			{
 				"shaders/vert.vert",
 				"shaders/error.frag"
@@ -32,12 +31,12 @@ std::vector<GLfloat> Sphere::generate_vertices(glm::vec2 faces) {
 	unsigned int longitude_count = faces[0];
 	unsigned int latitude_count = faces[1];
 
-	float longitude_step = 2*glm::pi<float>() / longitude_count;
-	float latitude_step = glm::pi<float>() / latitude_count;
+	float longitude_step = 2*glm::pi<float>()/longitude_count;
+	float latitude_step = glm::pi<float>()/latitude_count;
 	float longitude_angle, latitude_angle;
 
 	for (unsigned int i = 0; i <= latitude_count; ++i) {
-		latitude_angle = glm::pi<float>() / 2 - i * latitude_step;
+		latitude_angle = glm::pi<float>()/2-i*latitude_step;
 		xy = cosf(latitude_angle); 
 		z = sinf(latitude_angle); 
 		for (unsigned int j = 0; j <= longitude_count; ++j) {
@@ -61,8 +60,8 @@ std::vector<GLuint> Sphere::generate_indices(glm::vec2 faces) {
 	unsigned int latitude_count = faces[1];
 
 	for (unsigned int i = 0; i < latitude_count; ++i) {
-		k1 = i * (longitude_count+1);
-		k2 = k1 + longitude_count + 1;
+		k1 = i*(longitude_count+1);
+		k2 = k1+longitude_count+1;
 
 		for (unsigned int j = 0; j < longitude_count; ++j, ++k1, ++k2) {
 			if (i != 0) {

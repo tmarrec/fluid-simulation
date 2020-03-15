@@ -1,6 +1,5 @@
 #include "Cube.h"
 
-
 #include <iostream>
 
 Cube::Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window)
@@ -82,8 +81,7 @@ Cube::Cube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow *
 					20, 21, 22, 20, 22, 23 	 //bottom
 				}
 			},
-			"Cube",
-			{1.0f, 1.0f, 0.0f},
+			{RND(), RND(), RND()}, // Random color
 			{
 				"shaders/vert.vert",
 				"shaders/frag.frag"

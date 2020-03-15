@@ -5,20 +5,23 @@
 
 Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> geometry, 
-	std::string type, glm::vec3 color, Shader shader, MainWindow * main_window)
-	: Entity(type, position, rotation, scale, main_window)
+	glm::vec3 color, Shader shader, MainWindow * main_window)
+	: Entity(position, rotation, scale, main_window)
 	, _vertices{std::get<0>(geometry)}
 	, _normals{std::get<1>(geometry)}
 	, _indices{std::get<2>(geometry)}
 	, _color{color}
 	, _shader{shader}
-	, _type{type}
 {
 
 }
 
 Shape::~Shape(void) {
 	// TODO FREE LES BUFFERS
+}
+
+Entity_Type Shape::type() {
+	return SHAPE;
 }
 
 void Shape::set_shader(Shader shader) {
@@ -72,10 +75,6 @@ void Shape::set_geometry() {
 
 std::vector<GLuint> Shape::indices() const {
 	return _indices;
-}
-
-const std::string Shape::type() const {
-	return _type;
 }
 
 const glm::vec3 Shape::color() const {

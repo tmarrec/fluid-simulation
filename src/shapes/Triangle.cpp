@@ -22,8 +22,7 @@ Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Main
 					0, 2, 1, // Triangle
 				},
 			},
-			"Triangle",
-			{1.0f, 1.0f, 1.0f},
+			{RND(), RND(), RND()},
 			{
 				"shaders/vert.vert",
 				"shaders/frag.frag"

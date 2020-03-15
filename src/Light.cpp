@@ -2,20 +2,15 @@
 #include <iostream>
 
 Light::Light(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
-	std::string type, glm::vec3 color, MainWindow * main_window)
-	: Entity(type, position, rotation, scale, main_window)
+	glm::vec3 color, MainWindow * main_window)
+	: Entity(position, rotation, scale, main_window)
 	, _color{color}
-	, _type{type}
 {
 
 }
 
 Light::~Light(void) {
 
-}
-
-const std::string Light::type() const {
-	return _type;
 }
 
 const glm::vec3 Light::color() const {
@@ -38,5 +33,9 @@ void Light::set_shader(Shader shader) {
 Shader & Light::shader() {
 	std::cout << "Shouldn't ask for Light shader" << std::endl;
 	exit(0);
+}
+
+Entity_Type Light::type() {
+	return LIGHT;
 }
 

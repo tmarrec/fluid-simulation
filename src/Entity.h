@@ -11,11 +11,13 @@ class MainWindow;
 #include <vector>
 #include <memory>
 
+enum Entity_Type { SHAPE, CAMERA, LIGHT };
+
 
 class Entity {
 
 public:
-	Entity(std::string name, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window);
+	Entity(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window);
 	~Entity(void);
 
 	virtual void draw(glm::mat4 view_position, glm::mat4 projection, float delta_time,
@@ -23,6 +25,7 @@ public:
 
 	virtual void set_shader(Shader shader) = 0; 
 	virtual Shader & shader() = 0;
+	virtual Entity_Type type() = 0;
 
 	void set_position(glm::vec3 position);
 	void set_rotation(glm::vec3 rotation);
