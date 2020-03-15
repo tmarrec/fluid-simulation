@@ -59,6 +59,7 @@ private:
 	GLWidget* _glw;
 	OpenGL* _openGL;
 
+	Entity_Item* _selected_entity;
 	int _last_mouse_x;
 	int _last_mouse_y;
 
@@ -84,7 +85,6 @@ private:
 	QLabel *_slide_y_scale_label;
 	QLabel *_slide_z_scale_label;
 
-	Entity_Item* _selected_entity;
 	std::shared_ptr<Entity> _camera;
 
 	QGroupBox* position_box();

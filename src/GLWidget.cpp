@@ -32,6 +32,7 @@ void GLWidget::cleanup() {
 
 }
 
+/*
 void GLAPIENTRY
 MessageCallback( GLenum source,
                  GLenum type,
@@ -41,11 +42,11 @@ MessageCallback( GLenum source,
                  const GLchar* message,
                  const void* userParam )
 {
-/*	fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+	fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
             type, severity, message );
-			*/
 }
+*/
 
 void GLWidget::initializeGL() {
 	connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GLWidget::cleanup);
@@ -59,8 +60,8 @@ void GLWidget::initializeGL() {
 
 	glEnable(GL_DEPTH_TEST);
 	glViewport(0, 0, 1280, 720);
-	glEnable(GL_DEBUG_OUTPUT);
-	glDebugMessageCallback(MessageCallback, 0);
+	//glEnable(GL_DEBUG_OUTPUT);
+	//glDebugMessageCallback(MessageCallback, 0);
 
 	std::cout << "QT version   : " << qVersion() << std::endl;
 	std::cout << "Renderer     : " << glGetString(GL_RENDERER) << std::endl;

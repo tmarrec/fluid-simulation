@@ -55,7 +55,7 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Mode
   		size_t index_offset = 0;
 		unsigned long indice = 0;
   		for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-    		int fv = shapes[s].mesh.num_face_vertices[f];
+    		size_t fv = shapes[s].mesh.num_face_vertices[f];
 			for (size_t v = 0; v < fv; v++) {
 				tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
 				tinyobj::real_t vx = attrib.vertices[3*idx.vertex_index+0];
@@ -72,11 +72,6 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Mode
 				normals.push_back(nx);
 				normals.push_back(ny);
 				normals.push_back(nz);
-				/*
-				indices.push_back(3*idx.vertex_index+0);
-				indices.push_back(3*idx.vertex_index+1);
-				indices.push_back(3*idx.vertex_index+2);
-				*/
 			}
 			indices.push_back(indice++);
 			indices.push_back(indice++);

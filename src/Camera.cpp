@@ -60,14 +60,19 @@ void Camera::set_front(glm::vec3 front) {
 
 void Camera::draw(glm::mat4 view, glm::mat4 projection, float delta_time,
 				std::vector<std::shared_ptr<Entity>> lights) {
-
+	std::ignore = view;
+	std::ignore = projection;
+	std::ignore = delta_time;
+	std::ignore = lights;
 }
 
 void Camera::set_shader(Shader shader) {
-
+	std::cout << "Shader shouldn't be set to a camera" << std::endl;
+	std::ignore = shader;
 }
 
 Shader & Camera::shader() {
-
+	std::cout << "Shouldn't ask for Camera shader" << std::endl;
+	exit(0);
 }
 

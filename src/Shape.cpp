@@ -10,9 +10,9 @@ Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	, _vertices{std::get<0>(geometry)}
 	, _normals{std::get<1>(geometry)}
 	, _indices{std::get<2>(geometry)}
-	, _type{type}
 	, _color{color}
 	, _shader{shader}
+	, _type{type}
 {
 
 }
@@ -115,6 +115,7 @@ void Shape::use_shader(glm::mat4 view, glm::mat4 projection,
 void Shape::draw(glm::mat4 view, glm::mat4 projection, float delta_time,
 				std::vector<std::shared_ptr<Entity>> lights) {
 	//rotate_test(delta_time); 
+	std::ignore = delta_time;
 	use_shader(view, projection, lights);
 	draw_vertex();
 }
