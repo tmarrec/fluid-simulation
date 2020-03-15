@@ -113,9 +113,9 @@ void Shape::use_shader(glm::mat4 view, glm::mat4 projection,
 		temp = std::string("_point_lights[") + std::to_string(i) + "].constant";
 		shader().set_1f(temp.c_str(), 1.0f);
 		temp = std::string("_point_lights[") + std::to_string(i) + "].linear";
-		shader().set_1f(temp.c_str(), 0.000014f);
+		shader().set_1f(temp.c_str(), 0.0014f);
 		temp = std::string("_point_lights[") + std::to_string(i) + "].quadratic";
-		shader().set_1f(temp.c_str(), 0.00000007f);
+		shader().set_1f(temp.c_str(), 0.000007f);
 	}
 }
 

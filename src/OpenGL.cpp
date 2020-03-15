@@ -16,7 +16,7 @@ OpenGL::OpenGL(unsigned int w, unsigned int h, MainWindow * main_window, GLWidge
 		, _ecs{}
 		, _glw{glw}
 {
-	_camera = std::shared_ptr<Camera>(new Camera(glm::vec3{-86.0f, 947.0f, 388.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, 90.0f, main_window));
+	_camera = std::shared_ptr<Camera>(new Camera(glm::vec3{-50.0f, 108.0f, 50.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f}, 90.0f, main_window));
 
 	_projection = glm::perspective(glm::radians(_camera->FOV()), (float)width()/(float)height(), 0.1f, 1000000.0f);
 	_main_window->add_item_to_QListW(_camera);
