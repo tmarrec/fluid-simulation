@@ -11,6 +11,7 @@
 #include <QtGlobal>
 
 #include <iostream>
+#include <sstream>
 
 MainWindow::MainWindow()
 	: _selected_entity{nullptr}
@@ -141,7 +142,9 @@ void MainWindow::search_model_file() {
 	if (dialog.exec()) {
 		file_names = dialog.selectedFiles();
 	}
-	_openGL->add_model(file_names.at(0).toUtf8().constData());
+	if (file_names.size() > 0) {
+		_openGL->add_model(file_names.at(0).toUtf8().constData());
+	}
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event) {
@@ -331,6 +334,17 @@ void MainWindow::on_item_clicked(QListWidgetItem *item) {
 	change_selected_entity(s);
 }
 
+std::string MainWindow::last_split(std::string s, char c) const {
+	std::vector<std::string> tokens;
+	std::string token;
+	std::istringstream tokenStream(s);
+	while (std::getline(tokenStream, token, c))
+	{
+		tokens.push_back(token);
+	}
+	return tokens.back();
+}
+
 void MainWindow::change_selected_entity(Entity_Item* e) {
 	_selected_entity = e;
 	auto s = e->entity_ptr();
@@ -344,6 +358,19 @@ void MainWindow::change_selected_entity(Entity_Item* e) {
 	} else {
 		_delete_button->setEnabled(true);
 		_camera_box_group->setVisible(false);
+	}
+
+	if (s->type() == SHAPE) {
+		auto vert = last_split(s->shader().vert_path(), '/');
+		auto i = _combo_box_shaders_vert->findText(QString::fromStdString(vert));
+		if (i != -1) {
+			_combo_box_shaders_vert->setCurrentIndex(i);
+		}
+		auto frag = last_split(s->shader().frag_path(), '/');
+		auto j = _combo_box_shaders_frag->findText(QString::fromStdString(frag));
+		if (i != -1) {
+			_combo_box_shaders_frag->setCurrentIndex(j);
+		}
 	}
 
 	if (s->type() == CAMERA || s->type() == LIGHT) {

@@ -47,20 +47,20 @@ void main(void) {
 }
 
 vec3 calc_point_light(Point_Light light, vec3 normal, vec3 frag_pos, vec3 view_dir) {
-	// attenuation
+	// Attenuation
 	float distance    = length(light.position - frag_pos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
 
-	// ambient
+	// Ambient
 	float ambient_amp = 0.1;
 	vec3 ambient = ambient_amp * light.color * light.intensity;
 
-	// diffuse
+	// Diffuse
 	vec3 light_dir = normalize(light.position - frag_pos);
 	float diff = max(dot(normal, light_dir), 0.0);
 	vec3 diffuse = diff * light.color * light.intensity;
 
-	// specular
+	// Specular
 	float specular_strength = 0.5;
 	vec3 reflect_dir = reflect(-light_dir, normal);
 	float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 8);

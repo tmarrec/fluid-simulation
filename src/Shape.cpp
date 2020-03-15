@@ -87,6 +87,7 @@ void Shape::draw_vertex() {
 	glBindVertexArray(0);
 }
 
+// Utilise le shader et envoie les uniforms 
 void Shape::use_shader(glm::mat4 view, glm::mat4 projection,
 				std::vector<std::shared_ptr<Entity>> lights) {
 	shader().use();
@@ -96,12 +97,14 @@ void Shape::use_shader(glm::mat4 view, glm::mat4 projection,
 	shader().set_mat4("view", view);
 	shader().set_mat4("projection", projection);
 	
-	uint32_t time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	shader().set_1u("time", time);
+	uint64_t time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	float time_sin = sin(time/70000);
+	shader().set_1f("time", time_sin);
 
 	shader().set_3f("_view_pos", view[3]);
 	shader().set_1i("_light_nb", lights.size());
 
+	// Envoie les uniforms pour toutes les lumieres
 	for (size_t i = 0; i < lights.size(); ++i) {
 		auto light = std::static_pointer_cast<Light>(lights[i]);
 		auto temp = std::string("_point_lights[") + std::to_string(i) + "].position";

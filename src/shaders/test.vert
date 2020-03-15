@@ -6,7 +6,7 @@ layout (location = 1) in vec3 i_normal;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform uint time;
+uniform float time;
 
 out vec3 normal;
 out vec3 pos;
@@ -16,5 +16,9 @@ void main(void) {
 	normal = mat3(transpose(inverse(model)))*i_normal;
 	pos = vec3(model*vec4(position, 1.0));
 	pos_error = position;
-	gl_Position = projection * view * model * vec4(position, 1.0f) + 20*sin(position.y) + 50*sin(time);
+	if (gl_VertexID%2 == 0) {
+		gl_Position = projection * view * model * vec4(position + time*2, 1.0f);
+	} else {
+		gl_Position = projection * view * model * vec4(position, 1.0f);
+	}	
 }

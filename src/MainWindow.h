@@ -111,4 +111,6 @@ private:
 	QCheckBox *_check_box_camera_face;
 	QLineEdit *_input_dialog_camera_speed;
 
+	std::string last_split(std::string s, char c) const;
+
 };
