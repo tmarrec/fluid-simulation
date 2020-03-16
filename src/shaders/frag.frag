@@ -1,6 +1,6 @@
 #version 410 core
 
-#define N_MAX_LIGHT 256
+#define N_MAX_LIGHT 128
 
 struct Point_Light {
     vec3 position;

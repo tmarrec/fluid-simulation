@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef __APPLE__ 
-	#include <OpenGL/gl/h>
+	#include <OpenGL/gl.h>
 #else
 	#include <GL/gl.h>
 #endif
@@ -39,7 +39,8 @@ public:
 public slots:
 	void add_triangle();
 	void add_cube();
-	void add_sphere();
+	void add_uv_sphere();
+	void add_ico_sphere();
 	void add_light();
 	void add_model(std::string model_path);
 	void set_draw_fill(bool state);

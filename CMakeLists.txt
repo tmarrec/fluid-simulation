@@ -80,8 +80,10 @@ add_executable(${PROJECT_NAME}
 	src/shapes/Triangle.h
 	src/shapes/Cube.cpp
 	src/shapes/Cube.h
-	src/shapes/Sphere.cpp
-	src/shapes/Sphere.h
+	src/shapes/UV_Sphere.cpp
+	src/shapes/UV_Sphere.h
+	src/shapes/Ico_Sphere.cpp
+	src/shapes/Ico_Sphere.h
 )
 
 set(EXT_LIBS Qt5::OpenGL ${OPENGL_LIBRARIES})

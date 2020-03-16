@@ -1,8 +1,8 @@
-#include "Sphere.h"
+#include "UV_Sphere.h"
 
 #include <iostream>
 
-Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec2 faces, MainWindow * main_window)
+UV_Sphere::UV_Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec2 faces, MainWindow * main_window)
 		: Shape(
 			position,
 			rotation,
@@ -19,12 +19,12 @@ Sphere::Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec
 	set_geometry();
 }
 
-std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Sphere::get_geometry(glm::vec2 faces) {
+std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> UV_Sphere::get_geometry(glm::vec2 faces) {
 	auto vertices = generate_vertices(faces);
 	return {vertices, vertices, generate_indices(faces)};
 }
 
-std::vector<GLfloat> Sphere::generate_vertices(glm::vec2 faces) {
+std::vector<GLfloat> UV_Sphere::generate_vertices(glm::vec2 faces) {
 	std::vector<GLfloat> vertices;
 	float x, y, z, xy;
 
@@ -53,7 +53,7 @@ std::vector<GLfloat> Sphere::generate_vertices(glm::vec2 faces) {
 	return vertices;
 }
 
-std::vector<GLuint> Sphere::generate_indices(glm::vec2 faces) {
+std::vector<GLuint> UV_Sphere::generate_indices(glm::vec2 faces) {
 	std::vector<GLuint> indices;
 	int k1, k2;
 	unsigned int longitude_count = faces[0];
@@ -79,6 +79,6 @@ std::vector<GLuint> Sphere::generate_indices(glm::vec2 faces) {
 	return indices;
 }
 
-Sphere::~Sphere() {
+UV_Sphere::~UV_Sphere() {
 	
 }

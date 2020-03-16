@@ -48,8 +48,11 @@ MainWindow::MainWindow()
     topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	container->addWidget(topFiller);
 	QMenu *add_menu = menuBar()->addMenu("Add");
+
+
+	QMenu *more_menu = menuBar()->addMenu("More");
 	QAction *help = new QAction("Help", this);
-	menuBar()->addAction(help);
+	more_menu->addAction(help);
 	connect(help, &QAction::triggered, this, &MainWindow::show_help_box);
 
 	// QMessageBox d'aide
@@ -57,7 +60,7 @@ MainWindow::MainWindow()
 	_help_box->setWindowTitle(TITLE_HELP);
 	_help_box->setFixedSize(500, 500);
 	_help_box->setIconPixmap(QPixmap("images/works.png"));
-	_help_box->setText("--- Tristan Marrec @ Paul Sabatier University @ 2020 ---");
+	_help_box->setText("Tristan Marrec @ Paul Sabatier University");
 	_help_box->setInformativeText("ZQSD : Camera movements\nShift/Ctrl : Camera UP/DOWN Y-axis\nMouse Click + Movements : Camera Yaw/Pitch\n\nSelect entity on the left panel for parameters");
 	
 	// Menu Actions
@@ -67,8 +70,11 @@ MainWindow::MainWindow()
 	QAction *add_cube = new QAction("Cube", this);
 	add_menu->addAction(add_cube);
 
-	QAction *add_sphere = new QAction("Sphere", this);
-	add_menu->addAction(add_sphere);
+	QAction *add_uv_sphere = new QAction("UV Sphere", this);
+	add_menu->addAction(add_uv_sphere);
+
+	QAction *add_ico_sphere = new QAction("Ico Sphere", this);
+	add_menu->addAction(add_ico_sphere);
 
 	QAction *add_light = new QAction("Light", this);
 	add_menu->addAction(add_light);
@@ -124,11 +130,14 @@ MainWindow::MainWindow()
 
 	connect(add_triangle, &QAction::triggered, _openGL, &OpenGL::add_triangle);
 	connect(add_cube, &QAction::triggered, _openGL, &OpenGL::add_cube);
-	connect(add_sphere, &QAction::triggered, _openGL, &OpenGL::add_sphere);
+	connect(add_uv_sphere, &QAction::triggered, _openGL, &OpenGL::add_uv_sphere);
+	connect(add_ico_sphere, &QAction::triggered, _openGL, &OpenGL::add_ico_sphere);
 	connect(add_light, &QAction::triggered, _openGL, &OpenGL::add_light);
 	connect(add_model, &QAction::triggered, this, &MainWindow::search_model_file);
 
 	connect(_check_box_camera_face, &QCheckBox::toggled, _openGL, &OpenGL::set_draw_fill);
+
+	_help_box->exec();
 
 
 }
@@ -494,7 +503,7 @@ QGroupBox* MainWindow::shaders_box() {
 	QGroupBox *shaders_box = new QGroupBox();
 	QHBoxLayout *shaders_layout = new QHBoxLayout;
 
-	box->setMaximumHeight(80);
+	box->setMaximumHeight(110);
 	QDir dir{"shaders"};
 
 	_combo_box_shaders_vert = new QComboBox();

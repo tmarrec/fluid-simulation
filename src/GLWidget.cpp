@@ -73,11 +73,15 @@ void GLWidget::initializeGL() {
 	std::cout << std::endl;
 
 	_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	
+	_openGL->add_ico_sphere();
 
+	/*
 	_openGL->add_model("models/2b.obj");
 	_openGL->add_light_placed({-94.0f, 175.0f, 12.0f}, {1.0f, 1.0f, 1.0f}, 0.8f);
 	_openGL->add_light_placed({171.0f, 175.0f, 61.0f}, {1.0f, 1.0f, 1.0f}, 0.375f);
 	_openGL->add_light_placed({-76.0f, 175.0f, -61.0f}, {1.0f, 1.0f, 1.0f}, 0.16f);
+	*/
 }
 
 void GLWidget::make_current() {
