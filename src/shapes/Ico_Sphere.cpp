@@ -2,12 +2,12 @@
 
 #include <iostream>
 
-Ico_Sphere::Ico_Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec2 faces, MainWindow * main_window)
+Ico_Sphere::Ico_Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, unsigned n, MainWindow * main_window)
 		: Shape(
 			position,
 			rotation,
 			scale,
-			get_geometry(faces),
+			get_geometry(n),
 			{RND(), RND(), RND()},
 			{
 				"shaders/vert.vert",
@@ -19,19 +19,93 @@ Ico_Sphere::Ico_Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, 
 	set_geometry();
 }
 
-std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Ico_Sphere::get_geometry(glm::vec2 faces) {
-	auto vertices = generate_vertices(faces);
-	return {vertices, vertices, generate_indices(faces)};
+Ico_Sphere::~Ico_Sphere() {
+	
 }
 
-std::vector<GLfloat> Ico_Sphere::subdivide() {
-
+std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Ico_Sphere::get_geometry(unsigned n) {
+	std::tuple<std::vector<GLfloat>, std::vector<GLuint>> subdivided = {generate_base_vertices(), generate_base_indices()};
+	// Applique n subdivisions
+	for (unsigned i = 0; i < n; ++i) {
+		subdivided = subdivide(std::get<0>(subdivided), std::get<1>(subdivided));
+	}
+	return {std::get<0>(subdivided), std::get<0>(subdivided), std::get<1>(subdivided)};
 }
 
-std::vector<GLfloat> Ico_Sphere::generate_vertices(glm::vec2 faces) {
+// Récupere le vertex sur la moitié du sommet entre v0 et v1
+glm::vec3 Ico_Sphere::half_vertex(glm::vec3 v0, glm::vec3 v1) {
+	glm::vec3 new_v = {v0[0]+v1[0], v0[1]+v1[1], v0[2]+v1[2]};
+	float scale = 1.0f / sqrtf(new_v[0]*new_v[0] + new_v[1]*new_v[1] + new_v[2]*new_v[2]);
+	new_v *= scale;
+	return new_v;
+}
+
+// Ajoute le triangle aux vertices de la sphere
+void Ico_Sphere::add_vertices(glm::vec3 v0, glm::vec3 v1, glm::vec3 v2, std::vector<GLfloat> &vertices) {
+	vertices.push_back(v0[0]);
+	vertices.push_back(v0[1]);
+	vertices.push_back(v0[2]);
+	vertices.push_back(v1[0]);
+	vertices.push_back(v1[1]);
+	vertices.push_back(v1[2]);
+	vertices.push_back(v2[0]);
+	vertices.push_back(v2[1]);
+	vertices.push_back(v2[2]);
+}
+
+void Ico_Sphere::add_indices(uint64_t i, std::vector<GLuint> &indices) {
+	indices.push_back(i);
+	indices.push_back(i+1);
+	indices.push_back(i+2);
+}
+
+std::tuple<std::vector<GLfloat>, std::vector<GLuint>> Ico_Sphere::subdivide(std::vector<GLfloat> vertices, std::vector<GLuint> indices) {
+	std::vector<GLfloat> temp_vertices = vertices;
+	std::vector<GLuint> temp_indices = indices;
+	vertices.clear();
+	indices.clear();
+	glm::vec3 new_v0, new_v1, new_v2;
+	uint64_t index = 0;
+	
+	for (uint64_t i = 0; i < temp_indices.size(); i += 3) {
+		// Récupere les 3 points du triangle
+		glm::vec3 v0 = glm::vec3(temp_vertices[temp_indices[i]*3], temp_vertices[temp_indices[i]*3+1], temp_vertices[temp_indices[i]*3+2]);
+		glm::vec3 v1 = glm::vec3(temp_vertices[temp_indices[i+1]*3], temp_vertices[temp_indices[i+1]*3+1], temp_vertices[temp_indices[i+1]*3+2]);
+		glm::vec3 v2 = glm::vec3(temp_vertices[temp_indices[i+2]*3], temp_vertices[temp_indices[i+2]*3+1], temp_vertices[temp_indices[i+2]*3+2]);
+
+		// Prend la moitié de chaque coté du triangle trouvé
+		new_v0 = half_vertex(v0, v1);
+		new_v1 = half_vertex(v1, v2);
+		new_v2 = half_vertex(v0, v2);
+
+		/* Ajoute les 4 nouveaux triangles
+		//        v0
+		//       /  \         <- A
+		//      /    \
+		//   new_v0-new_v2
+		//    / \    /  \     <- B, C, D respectivement
+		//   /   \  /    \
+		//  v1---new_v1---v2
+		*/
+		add_vertices(v0, new_v0, new_v2, vertices); // A
+		add_vertices(new_v0, v1, new_v1, vertices); // B
+		add_vertices(new_v0, new_v1, new_v2, vertices); // C
+		add_vertices(new_v2, new_v1, v2, vertices); // D
+
+		add_indices(index, indices);
+		add_indices(index+3, indices);
+		add_indices(index+6, indices);
+		add_indices(index+9, indices);
+		index += 12;
+	}
+	return {vertices, indices};
+}
+
+// Vertex de l'icosaedre
+std::vector<GLfloat> Ico_Sphere::generate_base_vertices() {
 	std::vector<GLfloat> vertices(12*3);
-	float a = 0.52573111211;
-	float b = 0.85065080835;
+	float a = 0.52573111211f;
+	float b = 0.85065080835f;
 
 	vertices[0] = a; vertices[1] = b; vertices[2] = 0;
 	vertices[3] = b; vertices[4] = 0; vertices[5] = a;
@@ -52,7 +126,8 @@ std::vector<GLfloat> Ico_Sphere::generate_vertices(glm::vec2 faces) {
 	return vertices;
 }
 
-std::vector<GLuint> Ico_Sphere::generate_indices(glm::vec2 faces) {
+// Indices de l'icosaedre
+std::vector<GLuint> Ico_Sphere::generate_base_indices() {
 	std::vector<GLuint> indices(20*3);
 	indices[0] = 0; 	indices[1] = 2; 	indices[2] = 1;
 	indices[3] = 0; 	indices[4] = 1; 	indices[5] = 5;
@@ -80,6 +155,3 @@ std::vector<GLuint> Ico_Sphere::generate_indices(glm::vec2 faces) {
 	return indices;
 }
 
-Ico_Sphere::~Ico_Sphere() {
-	
-}
