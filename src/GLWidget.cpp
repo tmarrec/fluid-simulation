@@ -32,7 +32,6 @@ void GLWidget::cleanup() {
 
 }
 
-/*
 void GLAPIENTRY
 MessageCallback( GLenum source,
                  GLenum type,
@@ -46,7 +45,6 @@ MessageCallback( GLenum source,
            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
             type, severity, message );
 }
-*/
 
 void GLWidget::initializeGL() {
 	connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GLWidget::cleanup);

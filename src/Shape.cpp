@@ -17,7 +17,10 @@ Shape::Shape(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 }
 
 Shape::~Shape(void) {
-	// TODO FREE LES BUFFERS
+	glDeleteVertexArrays(1, &_VAO);
+	glDeleteBuffers(1, &_VBO);
+	glDeleteBuffers(1, &_NBO);
+	glDeleteBuffers(1, &_EBO);
 }
 
 Entity_Type Shape::type() {
@@ -29,20 +32,16 @@ void Shape::set_shader(Shader shader) {
 }
 
 void Shape::set_geometry() {
-	GLuint VBO;
-	GLuint NBO;
-	GLuint EBO;
-
 	// Initialize the geometry
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &NBO);
-	glGenBuffers(1, &EBO);
+	glGenBuffers(1, &_VBO);
+	glGenBuffers(1, &_NBO);
+	glGenBuffers(1, &_EBO);
 
 	glGenVertexArrays(1, &_VAO);
 
 	glBindVertexArray(_VAO);
 		
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, _VBO);
 		glBufferData(
 			GL_ARRAY_BUFFER,
 			_vertices.size()*sizeof(GLfloat),
@@ -52,7 +51,7 @@ void Shape::set_geometry() {
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
 		glEnableVertexAttribArray(0);
 
-		glBindBuffer(GL_ARRAY_BUFFER, NBO);
+		glBindBuffer(GL_ARRAY_BUFFER, _NBO);
 		glBufferData(
 			GL_ARRAY_BUFFER,
 			_normals.size()*sizeof(GLfloat),
@@ -62,7 +61,7 @@ void Shape::set_geometry() {
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
 		glEnableVertexAttribArray(1);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _EBO);
 		glBufferData(
 			GL_ELEMENT_ARRAY_BUFFER,
 			_indices.size()*sizeof(GLuint),
