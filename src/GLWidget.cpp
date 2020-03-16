@@ -75,6 +75,8 @@ void GLWidget::initializeGL() {
 
 	_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	
+	std::cout << "[IMPORTANT] Pour changer le nombre de faces de l'UV_Sphere ou le nombre de subdivision de l'Ico_Sphere, il faut modifier les variables prévues a cela dans le fichier src/OpenGL.cpp ligne 52 et 62 respectivement. Désolé" << std::endl;
+
 }
 
 void GLWidget::make_current() {

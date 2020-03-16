@@ -11,7 +11,7 @@ Ico_Sphere::Ico_Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, 
 			{RND(), RND(), RND()},
 			{
 				"shaders/vert.vert",
-				"shaders/frag.frag"
+				"shaders/error.frag"
 			},
 			main_window
 		)
@@ -29,7 +29,26 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> Ico_
 	for (unsigned i = 0; i < n; ++i) {
 		subdivided = subdivide(std::get<0>(subdivided), std::get<1>(subdivided));
 	}
-	return {std::get<0>(subdivided), std::get<0>(subdivided), std::get<1>(subdivided)};
+	auto vertices = std::get<0>(subdivided);
+	auto indices = std::get<1>(subdivided);
+	// CALCUL DE L\'ERREUR D\'APPROXIMATION
+	float real_vol = ((4.0f/3.0f)*3.1415926535f);
+	float vol = 0;
+
+	// Pour chaque triangles
+	for (uint64_t i = 0; i < indices.size(); i += 3) {
+		// Récupere les 3 points du triangle
+		glm::vec3 v0 = glm::vec3(vertices[indices[i]*3], vertices[indices[i]*3+1], vertices[indices[i]*3+2]);
+		glm::vec3 v1 = glm::vec3(vertices[indices[i+1]*3], vertices[indices[i+1]*3+1], vertices[indices[i+1]*3+2]);
+		glm::vec3 v2 = glm::vec3(vertices[indices[i+2]*3], vertices[indices[i+2]*3+1], vertices[indices[i+2]*3+2]);
+
+		auto local_vol = v0.x*v1.y*v2.z + v1.x*v2.y*v0.z + v2.x*v0.y*v1.z - v0.x*v2.y*v1.z - v1.x*v0.y*v2.z - v2.x*v1.y*v0.z;
+		vol += local_vol;
+	}
+	std::cout << "Nombre de triangles: " <<indices.size()/3 << " | Volume réel : " << real_vol << " | Volume actuel : " << vol/6 << std::endl;
+	// FIN DU CALCUL DE L\'ERREUR D\'APPROXIMATION
+
+	return {vertices, vertices, indices};
 }
 
 // Récupere le vertex sur la moitié du sommet entre v0 et v1
