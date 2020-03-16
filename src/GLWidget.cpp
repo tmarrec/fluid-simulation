@@ -20,8 +20,8 @@ GLWidget::~GLWidget() {
 }
 
 void GLWidget::init() {
-	setFixedSize(1280, 720);
-	_openGL = new OpenGL{1280, 720, _main_window, this};
+	setFixedSize(1280, 790);
+	_openGL = new OpenGL{1280, 790, _main_window, this};
 }
 
 OpenGL * GLWidget::openGL() {
@@ -32,6 +32,7 @@ void GLWidget::cleanup() {
 
 }
 
+// Callback des messages d'erreurs d'OpenGL
 void GLAPIENTRY
 MessageCallback( GLenum source,
                  GLenum type,
@@ -44,6 +45,10 @@ MessageCallback( GLenum source,
 	fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
            ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
             type, severity, message );
+	std::ignore = source;
+	std::ignore = id;
+	std::ignore = length;
+	std::ignore = userParam;
 }
 
 void GLWidget::initializeGL() {
@@ -61,8 +66,6 @@ void GLWidget::initializeGL() {
 	//glEnable(GL_DEBUG_OUTPUT);
 	//glDebugMessageCallback(MessageCallback, 0);
 	
-	
-
 	std::cout << "QT version   : " << qVersion() << std::endl;
 	std::cout << "Renderer     : " << glGetString(GL_RENDERER) << std::endl;
 	std::cout << "Vendor       : " << glGetString(GL_VENDOR) << std::endl;
@@ -72,14 +75,6 @@ void GLWidget::initializeGL() {
 
 	_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	
-	_openGL->add_ico_sphere();
-
-	/*
-	_openGL->add_model("models/2b.obj");
-	_openGL->add_light_placed({-94.0f, 175.0f, 12.0f}, {1.0f, 1.0f, 1.0f}, 0.8f);
-	_openGL->add_light_placed({171.0f, 175.0f, 61.0f}, {1.0f, 1.0f, 1.0f}, 0.375f);
-	_openGL->add_light_placed({-76.0f, 175.0f, -61.0f}, {1.0f, 1.0f, 1.0f}, 0.16f);
-	*/
 }
 
 void GLWidget::make_current() {
