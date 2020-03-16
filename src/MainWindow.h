@@ -60,6 +60,7 @@ private slots:
 	void change_camera_speed(const QString &);
 
 	void show_help_box() const;
+	void three_points_scene();
 
 
 private:

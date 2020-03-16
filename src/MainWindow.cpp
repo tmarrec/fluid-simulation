@@ -49,18 +49,23 @@ MainWindow::MainWindow()
 	container->addWidget(topFiller);
 	QMenu *add_menu = menuBar()->addMenu("Add");
 
+	QMenu *scenes_menu = menuBar()->addMenu("Scenes");
+	QAction *three_points = new QAction("3 Points Light", this);
+	scenes_menu->addAction(three_points);
+	connect(three_points, &QAction::triggered, this, &MainWindow::three_points_scene);
 
 	QMenu *more_menu = menuBar()->addMenu("More");
 	QAction *help = new QAction("Help", this);
 	more_menu->addAction(help);
 	connect(help, &QAction::triggered, this, &MainWindow::show_help_box);
 
+
 	// QMessageBox d'aide
 	_help_box = new QMessageBox();
 	_help_box->setWindowTitle(TITLE_HELP);
 	_help_box->setFixedSize(500, 500);
 	_help_box->setIconPixmap(QPixmap("images/works.png"));
-	_help_box->setText("Tristan Marrec @ Paul Sabatier University");
+	_help_box->setText("Tristan Marrec, Paul Sabatier University");
 	_help_box->setInformativeText("ZQSD : Camera movements\nShift/Ctrl : Camera UP/DOWN Y-axis\nMouse Click + Movements : Camera Yaw/Pitch\n\nSelect entity on the left panel for parameters");
 	
 	// Menu Actions
@@ -136,14 +141,23 @@ MainWindow::MainWindow()
 	connect(add_model, &QAction::triggered, this, &MainWindow::search_model_file);
 
 	connect(_check_box_camera_face, &QCheckBox::toggled, _openGL, &OpenGL::set_draw_fill);
-
+	
+	// Help box au démarrage
 	_help_box->exec();
-
-
 }
 
 MainWindow::~MainWindow() {
 
+}
+
+void MainWindow::three_points_scene() {
+	_camera->set_position({-51.0f, 107.0f, 50.0f});
+	auto camera = std::static_pointer_cast<Camera>(_camera);
+	camera->set_front({0.5916160f, 0.0366437f, -0.805387f});
+	_openGL->add_model("models/2b.obj");
+	_openGL->add_light_placed({-94.0f, 175.0f, 12.0f}, {1.0f, 1.0f, 1.0f}, 0.8f);
+	_openGL->add_light_placed({171.0f, 175.0f, 61.0f}, {1.0f, 1.0f, 1.0f}, 0.375f);
+	_openGL->add_light_placed({-76.0f, 175.0f, -61.0f}, {1.0f, 1.0f, 1.0f}, 0.16f);
 }
 
 void MainWindow::show_help_box() const {
@@ -478,7 +492,7 @@ QGroupBox* MainWindow::camera_box() {
 	QHBoxLayout *camera_speed_layout = new QHBoxLayout;
 	auto title_label = new QLabel("Speed");
 	camera_speed_layout->addWidget(title_label);
-	_input_dialog_camera_speed = new QLineEdit("5");
+	_input_dialog_camera_speed = new QLineEdit("15");
 	_input_dialog_camera_speed->setValidator(new QDoubleValidator(0, 100, 2, this));
 	camera_speed_layout->addWidget(_input_dialog_camera_speed);
 	camera_speed_box->setLayout(camera_speed_layout);

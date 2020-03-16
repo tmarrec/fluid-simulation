@@ -25,6 +25,7 @@ void Entity::set_position(glm::vec3 position) {
 	_main_window->update_slide_position(_position, _id);
 }
 
+// Change la rotation de l'entitées en évitant les valeurs < 0.0 et > 360.0
 void Entity::set_rotation(glm::vec3 rotation) {
 	_rotation = rotation;
 
