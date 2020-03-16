@@ -7,3 +7,7 @@
   <img src="https://img.shields.io/badge/stability-experimental-orange.svg"/>
   <img src="https://img.shields.io/github/license/Naereen/StrapDown.js.svg"/>
 </div>
+
+<div align="center" margin="12px">
+  <img src="https://i.imgur.com/ief9gPl.png"/>
+</div>
