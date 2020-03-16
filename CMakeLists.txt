@@ -20,11 +20,7 @@ cmake_policy(SET CMP0072 NEW)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-if (APPLE)
-	set(APPLE_FLAGS "-DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.*/")
-endif()
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -Wall -pedantic -Wextra -DGL_GLEXT_PROTOTYPES ${APPLE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -Wall -pedantic -Wextra -DGL_GLEXT_PROTOTYPES")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 

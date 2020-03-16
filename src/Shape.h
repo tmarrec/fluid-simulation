@@ -33,6 +33,9 @@ private:
 	std::vector<GLfloat> 	_normals;
 	std::vector<GLuint>		_indices;
 	GLuint _VAO;
+	GLuint _VBO;
+	GLuint _NBO;
+	GLuint _EBO;
 
 	glm::vec3 _color;
 	Shader _shader;
