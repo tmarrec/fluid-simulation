@@ -21,7 +21,25 @@ UV_Sphere::UV_Sphere(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, gl
 
 std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> UV_Sphere::get_geometry(glm::vec2 faces) {
 	auto vertices = generate_vertices(faces);
-	return {vertices, vertices, generate_indices(faces)};
+	auto indices = generate_indices(faces);
+	
+	// CALCUL DE L\'ERREUR D\'APPROXIMATION
+	float real_vol = ((4.0f/3.0f)*3.1415926535f);
+	float vol = 0;
+
+	// Pour chaque triangles
+	for (uint64_t i = 0; i < indices.size(); i += 3) {
+		// Récupere les 3 points du triangle
+		glm::vec3 v0 = glm::vec3(vertices[indices[i]*3], vertices[indices[i]*3+1], vertices[indices[i]*3+2]);
+		glm::vec3 v1 = glm::vec3(vertices[indices[i+1]*3], vertices[indices[i+1]*3+1], vertices[indices[i+1]*3+2]);
+		glm::vec3 v2 = glm::vec3(vertices[indices[i+2]*3], vertices[indices[i+2]*3+1], vertices[indices[i+2]*3+2]);
+
+		auto local_vol = v0.x*v1.y*v2.z + v1.x*v2.y*v0.z + v2.x*v0.y*v1.z - v0.x*v2.y*v1.z - v1.x*v0.y*v2.z - v2.x*v1.y*v0.z;
+		vol += local_vol;
+	}
+	std::cout << "Nombre de triangles: " <<indices.size()/3 << " | Volume réel : " << real_vol << " | Volume actuel : " << vol/6 << std::endl;
+	// FIN DU CALCUL DE L\'ERREUR D\'APPROXIMATION
+	return {vertices, vertices, indices};
 }
 
 std::vector<GLfloat> UV_Sphere::generate_vertices(glm::vec2 faces) {
@@ -50,6 +68,7 @@ std::vector<GLfloat> UV_Sphere::generate_vertices(glm::vec2 faces) {
 			vertices.push_back(z);
 		}
 	}
+
 	return vertices;
 }
 
@@ -76,6 +95,7 @@ std::vector<GLuint> UV_Sphere::generate_indices(glm::vec2 faces) {
 			}
 		}
 	}
+
 	return indices;
 }
 

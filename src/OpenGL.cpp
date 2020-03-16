@@ -49,7 +49,8 @@ void OpenGL::add_cube() {
 // Ajoute une UV Sphere a la scene
 void OpenGL::add_uv_sphere() {
 	_glw->make_current();
-	auto s = std::shared_ptr<UV_Sphere>(new UV_Sphere(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, glm::vec2{16, 16}, _main_window));
+	glm::vec2 faces {16, 16};
+	auto s = std::shared_ptr<UV_Sphere>(new UV_Sphere(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, faces, _main_window));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 	_glw->done_current();
@@ -58,7 +59,8 @@ void OpenGL::add_uv_sphere() {
 // Ajoute une ICO Sphere a la scene
 void OpenGL::add_ico_sphere() {
 	_glw->make_current();
-	auto s = std::shared_ptr<Ico_Sphere>(new Ico_Sphere(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, 4, _main_window));
+	unsigned n_subdivide = 2;
+	auto s = std::shared_ptr<Ico_Sphere>(new Ico_Sphere(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, n_subdivide, _main_window));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 	_glw->done_current();
