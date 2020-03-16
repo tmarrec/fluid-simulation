@@ -33,6 +33,7 @@ void GLWidget::cleanup() {
 }
 
 // Callback des messages d'erreurs d'OpenGL
+/*
 void GLAPIENTRY
 MessageCallback( GLenum source,
                  GLenum type,
@@ -50,6 +51,7 @@ MessageCallback( GLenum source,
 	std::ignore = length;
 	std::ignore = userParam;
 }
+*/
 
 void GLWidget::initializeGL() {
 	connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GLWidget::cleanup);
