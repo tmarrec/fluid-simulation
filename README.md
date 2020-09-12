@@ -1,6 +1,7 @@
 <h1 align="center">Cowboy Engine</h1>
 <div align="center">
-  <strong>Computer Graphics student OpenGL engine project @ Paul Sabatier University - :fr:</strong>
+  <strong>OpenGL 4.1 Rendering Engine - Computer Graphics student project @ Paul Sabatier University - :fr:</strong>
+  <p>.obj loading, simple geometry mesh generation, basic model trans-formations, Blinn-Phong lighting 🤠<p>
 </div>
 <br />
 <div align="center" margin="12px">
