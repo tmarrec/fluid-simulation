@@ -143,7 +143,7 @@ MainWindow::MainWindow()
 	connect(_check_box_camera_face, &QCheckBox::toggled, _openGL, &OpenGL::set_draw_fill);
 	
 	// Help box au démarrage
-	_help_box->exec();
+	//_help_box->exec();
 }
 
 MainWindow::~MainWindow() {

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(cowboy-engine VERSION "0.0.3")
+project(cowboy-engine VERSION "0.0.4")
 
 string(TIMESTAMP COMPILATION_DATE "%d/%m/%Y")
 
@@ -69,6 +69,9 @@ add_executable(${PROJECT_NAME}
 
 	src/Camera.cpp
 	src/Camera.h
+
+	src/shapes/BSpline.cpp
+	src/shapes/BSpline.h
 
 	src/shapes/Model.cpp
 	src/shapes/Model.h

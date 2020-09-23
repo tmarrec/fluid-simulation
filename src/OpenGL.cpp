@@ -1,6 +1,7 @@
 #include "OpenGL.h"
 
 #include "shapes/Triangle.h"
+#include "shapes/BSpline.h"
 #include "shapes/Cube.h"
 #include "shapes/UV_Sphere.h"
 #include "shapes/Ico_Sphere.h"
@@ -31,7 +32,8 @@ OpenGL::~OpenGL(void) {
 // Ajoute un Triangle a la scene
 void OpenGL::add_triangle() {
 	_glw->make_current();
-	auto s = std::shared_ptr<Triangle>(new Triangle(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
+	// TODO remettre triangle
+	auto s = std::shared_ptr<BSpline>(new BSpline(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 	_glw->done_current();
@@ -95,7 +97,7 @@ void OpenGL::set_draw_fill(bool state) {
 
 // Clear l'ecran et draw toutes les entitées
 void OpenGL::draw(void) {
-	glClearColor(0.5f, 0.5f, 0.7f, 1.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if (_draw_fill) {
@@ -104,7 +106,7 @@ void OpenGL::draw(void) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	_ecs.render_all(_camera->view(), projection(), delta_time());
 }
