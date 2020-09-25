@@ -82,7 +82,7 @@ const glm::vec3 Shape::color() const {
 
 void Shape::draw_vertex() {
 	glBindVertexArray(_VAO);
-	glDrawElements(GL_LINES, indices().size(), GL_UNSIGNED_INT, nullptr);
+	glDrawElements(GL_LINE_STRIP, indices().size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }
 
