@@ -32,6 +32,9 @@ else (Qt5OpenGL_FOUND)
 endif(Qt5OpenGL_FOUND)
 find_package(OpenGL REQUIRED)
 
+set(CMAKE_AUTOMOC on)
+set(CMAKE_AUTOUIC on)
+
 configure_file("src/config.h.in" "config.h")
 
 add_executable(${PROJECT_NAME}

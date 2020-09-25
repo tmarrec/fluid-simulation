@@ -12,7 +12,7 @@ Triangle::Triangle(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Main
 					0.0f,		0.5f, 		0.0f, 		// Top Center
 					0.5f,		-0.5f, 		0.0f, 		// Bottom Left
 					-0.5f,		-0.5f, 		0.0f, 		// Bottom Right
-						},
+				},
 				{
 					1,		1,		1,
 					1,		1,		1,
