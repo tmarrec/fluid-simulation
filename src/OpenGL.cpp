@@ -106,7 +106,7 @@ void OpenGL::draw(void) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	_ecs.render_all(_camera->view(), projection(), delta_time());
 }

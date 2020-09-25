@@ -15,5 +15,6 @@ private:
 	std::vector<glm::vec3> _controls; 
 
 	glm::vec3 eval(float u);
+	std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> geometry();
 
 };
