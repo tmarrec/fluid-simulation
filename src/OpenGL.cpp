@@ -32,8 +32,25 @@ OpenGL::~OpenGL(void) {
 // Ajoute un Triangle a la scene
 void OpenGL::add_triangle() {
 	_glw->make_current();
-	// TODO remettre triangle
-	auto s = std::shared_ptr<BSpline>(new BSpline(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
+	auto s = std::shared_ptr<Triangle>(new Triangle(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
+	_main_window->add_item_to_QListW(s);
+	_ecs.add(s);
+	_glw->done_current();
+}
+
+// Ajoute une B-Spline a la scene
+void OpenGL::add_bspline() {
+	_glw->make_current();
+	std::vector<glm::vec3> controls = {
+		{0, 0, 0},
+		{1, 1, 0},
+		{2, -1, 0},
+		{3, 0, 0},
+		{4, 1, 0},
+		{5, -1, 0},
+		{6, 0, 0},
+	};
+	auto s = std::shared_ptr<BSpline>(new BSpline(3, {0,0,0,1,2,3,3,3}, controls, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 	_glw->done_current();

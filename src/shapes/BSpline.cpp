@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-BSpline::BSpline(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window)
+BSpline::BSpline(unsigned short order, std::vector<float> knots, std::vector<glm::vec3> controls, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window)
 		: Shape(
 			position,
 			rotation,
@@ -15,13 +15,16 @@ BSpline::BSpline(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWi
 			},
 			main_window
 		)
+		, _order(order)
+		, _knots(knots)
+		, _controls(controls)
 {
 	set_geometry();
 }
 
 std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> BSpline::geometry() {
 		
-	_order = 3;
+	_order = 4;
 	_controls = {
 		{0, 0, 0},
 		{1, 1, 0},
@@ -33,14 +36,14 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> BSpl
 	};
 
 	for (unsigned short i = 0; i < _controls.size()+_order+1; ++i) {
-		_U.push_back(i);
+		_knots.push_back(i);
 	}
 
 	std::vector<GLfloat> vertex;
 	std::vector<GLfloat> normals;
 	std::vector<GLuint> indices;
 	GLuint ind = 0;
-	for (float i = _U[_order-1]; i < _U[_controls.size()+1]; i += 0.1f) {
+	for (float i = _knots[_order-1]; i < _knots[_controls.size()+1]; i += 0.1f) {
 		auto point = eval(i);
 		vertex.push_back(point.x);
 		vertex.push_back(point.y);
@@ -60,7 +63,7 @@ glm::vec3 BSpline::eval(float u) {
 	unsigned short i = _order;
 	unsigned short m = _order-1;
 
-	while (u > _U[i]) {
+	while (u > _knots[i]) {
 		i++;
 		dec++;
 	}
@@ -73,9 +76,9 @@ glm::vec3 BSpline::eval(float u) {
 
 	for (unsigned short l = 0; l < m; ++l) {
 		for (unsigned short j = 0; j < k-1; ++j) {
-			P_temps[j] = ((_U[dec+k+j]-u)/(_U[dec+k+j]-_U[dec+1+j]))*P_temps[j]
+			P_temps[j] = ((_knots[dec+k+j]-u)/(_knots[dec+k+j]-_knots[dec+1+j]))*P_temps[j]
 						 +
-						 ((u-_U[dec+1+j])/(_U[dec+k+j]-_U[dec+1+j]))*P_temps[j+1];
+						 ((u-_knots[dec+1+j])/(_knots[dec+k+j]-_knots[dec+1+j]))*P_temps[j+1];
 		}
 		dec++;
 		k--;

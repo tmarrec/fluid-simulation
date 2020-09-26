@@ -72,6 +72,9 @@ MainWindow::MainWindow()
 	QAction *add_triangle = new QAction("Triangle", this);
 	add_menu->addAction(add_triangle);
 
+	QAction *add_bspline = new QAction("B-Spline", this);
+	add_menu->addAction(add_bspline);
+
 	QAction *add_cube = new QAction("Cube", this);
 	add_menu->addAction(add_cube);
 
@@ -134,6 +137,7 @@ MainWindow::MainWindow()
 	connect(_delete_button, &QPushButton::clicked, this, &MainWindow::delete_item_entities_tree_view);
 
 	connect(add_triangle, &QAction::triggered, _openGL, &OpenGL::add_triangle);
+	connect(add_bspline, &QAction::triggered, _openGL, &OpenGL::add_bspline);
 	connect(add_cube, &QAction::triggered, _openGL, &OpenGL::add_cube);
 	connect(add_uv_sphere, &QAction::triggered, _openGL, &OpenGL::add_uv_sphere);
 	connect(add_ico_sphere, &QAction::triggered, _openGL, &OpenGL::add_ico_sphere);
