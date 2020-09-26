@@ -27,6 +27,12 @@ Entity_Type Shape::type() {
 	return SHAPE;
 }
 
+void Shape::set_vert_norm_indi(std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> geometry) {
+	_vertices = std::get<0>(geometry);
+	_normals = std::get<1>(geometry);
+	_indices = std::get<2>(geometry);
+}
+
 void Shape::set_shader(Shader shader) {
 	_shader = shader;
 }
