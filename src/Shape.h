@@ -22,6 +22,7 @@ public:
 
 	void set_geometry();
 	void set_shader(Shader shader) override;
+	void set_vert_norm_indi(std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> geometry);
 
 	Entity_Type type() override;
 

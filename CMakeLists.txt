@@ -75,6 +75,10 @@ add_executable(${PROJECT_NAME}
 
 	src/shapes/BSpline.cpp
 	src/shapes/BSpline.h
+	src/shapes/BSpline_line.cpp
+	src/shapes/BSpline_line.h
+	src/shapes/BSpline_tensor.cpp
+	src/shapes/BSpline_tensor.h
 
 	src/shapes/Model.cpp
 	src/shapes/Model.h
