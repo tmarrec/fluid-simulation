@@ -38,6 +38,7 @@ public:
 
 public slots:
 	void add_triangle();
+	void add_bspline();
 	void add_cube();
 	void add_uv_sphere();
 	void add_ico_sphere();
