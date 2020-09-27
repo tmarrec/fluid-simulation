@@ -52,7 +52,7 @@ void OpenGL::add_bspline() {
 		{0.75, -0.75, -1.5},
 		{1.5, 0.75, 1.5},
 	};
-	auto s = std::shared_ptr<BSpline_line>(new BSpline_line(4, controls, false, 1.f, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
+	auto s = std::shared_ptr<BSpline_line>(new BSpline_line(4, controls, false, 0.01f, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 	_glw->done_current();
@@ -61,17 +61,24 @@ void OpenGL::add_bspline() {
 // Ajoute une B-Spline tensor a la scene
 void OpenGL::add_bspline_tensor() {
 	_glw->make_current();
-	std::vector<glm::vec3> controls = {
-		{-1.5, 0.75, -1.5},
-		{-0.75, -0.75, 1.5},
-		{0.75, -0.75, -1.5},
-		{1.5, 0.75, 1.5},
-		{-1.5, 0.75, -1.5},
-		{-0.75, -0.75, 1.5},
-		{0.75, -0.75, -1.5},
-		{1.5, 0.75, 1.5},
+	std::vector<std::vector<glm::vec3>> controls = {
+		{
+			{0, 0, 0},
+			{1, 0.2, 0},
+			{2, 0, 0}
+		},
+		{
+			{0, 0, 1},
+			{1, 1, 1},
+			{2, 0, 1}
+		},
+		{
+			{0, 0, 2},
+			{1, 0.2, 2},
+			{2, 0, 2}
+		},
 	};
-	auto s = std::shared_ptr<BSpline_tensor>(new BSpline_tensor(4, controls, false, 1.f, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
+	auto s = std::shared_ptr<BSpline_tensor>(new BSpline_tensor(3, controls, false, 0.01f, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 	_glw->done_current();

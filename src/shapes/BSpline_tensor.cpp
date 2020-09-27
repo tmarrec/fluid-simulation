@@ -2,12 +2,12 @@
 
 #include <iostream>
 
-BSpline_tensor::BSpline_tensor(unsigned short order, std::vector<glm::vec3> controls, bool show_controls, float delta, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window)
+BSpline_tensor::BSpline_tensor(unsigned short order, std::vector<float> knots, std::vector<std::vector<glm::vec3>> controls, bool show_controls, float delta, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window)
 		: Shape(
 			position,
 			rotation,
 			scale,
-			geometry(order, controls, show_controls, delta),
+			{},
 			{RND(), RND(), RND()},
 			{
 				"shaders/vert.vert",
@@ -15,54 +15,85 @@ BSpline_tensor::BSpline_tensor(unsigned short order, std::vector<glm::vec3> cont
 			},
 			main_window
 		)
-		, _order(order)
-		, _controls(controls)
 		, _delta(delta)
 		, _show_controls(show_controls)
+		, _controls(controls)
+		, _range(knots[order-1], knots[controls.size()])
 {
-//	_knots = uniform_vector(controls.size()+order+1);
+	generate_leading_bsplines(controls, order, knots);
+	set_vert_norm_indi(geometry());
 	set_geometry();
 }
 
-std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> BSpline_tensor::geometry(unsigned short order, std::vector<float> knots, std::vector<glm::vec3> controls, bool show_controls, float delta) {
+BSpline_tensor::BSpline_tensor(unsigned short order, std::vector<std::vector<glm::vec3>> controls, bool show_controls, float delta, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, MainWindow * main_window)
+		: Shape(
+			position,
+			rotation,
+			scale,
+			{},
+			{RND(), RND(), RND()},
+			{
+				"shaders/vert.vert",
+				"shaders/frag.frag"
+			},
+			main_window
+		)
+		, _delta(delta)
+		, _show_controls(show_controls)
+		, _controls(controls)
+{
+	auto knots = uniform_vector(controls.size()+order+1);
+	_range = std::tuple<float,float>(knots[order-1], knots[controls.size()]);
+	generate_leading_bsplines(controls, order, knots);
+	set_vert_norm_indi(geometry());
+	set_geometry();
+}
+
+void BSpline_tensor::generate_leading_bsplines(std::vector<std::vector<glm::vec3>> controls, unsigned short order, std::vector<float> knots) {
+	for (auto bs : controls) {
+		_leading_bsplines.push_back(new BSpline(order, knots, bs));
+	}
+}
+
+std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> BSpline_tensor::geometry() {
 
 	std::vector<GLfloat> vertex;
 	std::vector<GLfloat> normals;
 	std::vector<GLuint> indices;
 	GLuint ind = 0;
 	
-	if (show_controls) {
+	/* TODO fix ca pour montrer tout les controls des bsplines
+	if (_show_controls) {
 		std::vector<float> flat;
-		for (auto p : controls) {
+		for (auto p : _controls) {
 			flat.push_back(p.x);
 			flat.push_back(p.y);
 			flat.push_back(p.z);
 		}	
 		vertex = flat;
 		normals.assign(flat.size(), 1);
-		indices.resize(controls.size());
+		indices.resize(_controls.size());
 		std::iota(std::begin(indices), std::end(indices), 0);
 		ind = indices.size()-1;
 	}
+	*/
 
-	for (float i = knots[order-1]; i < knots[controls.size()]; i += delta) {
-		auto point = eval(i, order, knots, controls);
-		vertex.push_back(point.x);
-		vertex.push_back(point.y);
-		vertex.push_back(point.z);
-		normals.push_back(1);
-		normals.push_back(1);
-		normals.push_back(1);
-		indices.push_back(ind++);
+	for (auto bs : _leading_bsplines) {
+		for (float i = std::get<0>(_range); i < std::get<1>(_range); i += _delta) {
+			auto point = bs->eval(i);
+			vertex.push_back(point.x);
+			vertex.push_back(point.y);
+			vertex.push_back(point.z);
+			normals.push_back(1);
+			normals.push_back(1);
+			normals.push_back(1);
+			indices.push_back(ind++);
+		}
+		std::cout << std::endl;
 	}
 
+
 	return {vertex, normals, indices};
-}
-
-std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> BSpline_tensor::geometry(unsigned short order, std::vector<glm::vec3> controls, bool show_controls, float delta) {
-	std::vector<float> knots = uniform_vector(controls.size()+order+1);
-
-	return geometry(order, knots, controls, show_controls, delta);
 }
 
 std::vector<float> BSpline_tensor::uniform_vector(unsigned short size) {
@@ -71,38 +102,6 @@ std::vector<float> BSpline_tensor::uniform_vector(unsigned short size) {
 		vec.push_back(i);
 	}
 	return vec;
-}
-
-glm::vec3 BSpline_tensor::eval(float u) {
-//	return eval(u, _order, _knots, _controls);
-}
-
-glm::vec3 BSpline_tensor::eval(float u, unsigned short order, std::vector<float> knots, std::vector<glm::vec3> controls) {
-	unsigned short dec = 0;
-	unsigned short i = order;
-	unsigned short m = order-1;
-
-	while (u > knots[i]) {
-		i++;
-		dec++;
-	}
-
-	std::vector<glm::vec3> P_temps;
-	unsigned short k = order;
-	
-	for(unsigned a = dec; a < dec + order; ++a)
-		P_temps.emplace_back(controls[a]);
-
-	for (unsigned short l = 0; l < m; ++l) {
-		for (unsigned short j = 0; j < k-1; ++j) {
-			P_temps[j] = ((knots[dec+k+j]-u)/(knots[dec+k+j]-knots[dec+1+j]))*P_temps[j]
-						 +
-						 ((u-knots[dec+1+j])/(knots[dec+k+j]-knots[dec+1+j]))*P_temps[j+1];
-		}
-		dec++;
-		k--;
-	}
-	return P_temps[0];
 }
 
 BSpline_tensor::~BSpline_tensor() {
