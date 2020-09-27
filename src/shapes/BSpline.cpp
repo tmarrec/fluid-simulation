@@ -27,7 +27,7 @@ glm::vec3 BSpline::eval(float u) {
 	std::vector<glm::vec3> P_temps;
 	unsigned short k = _order;
 	
-	for(unsigned a = dec; a < dec + _order; ++a)
+	for(unsigned a = dec; a < dec+_order; ++a)
 		P_temps.push_back(_controls[a]);
 
 	for (unsigned short l = 0; l < m; ++l) {
