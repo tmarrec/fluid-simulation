@@ -65,20 +65,30 @@ void OpenGL::add_bspline_tensor() {
 		{
 			{0, 0, 0},
 			{1, 0, 0},
-			{2, 0, 0}
+			{2, 0, 0},
 		},
 		{
 			{0, 0, 1},
-			{1, 3, 1},
-			{2, 0, 1}
+			{1, 2, 1},
+			{2, 0, 1},
 		},
 		{
 			{0, 0, 2},
 			{1, 0, 2},
-			{2, 0, 2}
+			{2, 0, 2},
+		},
+		{
+			{0, 0, 3},
+			{1, -2, 3},
+			{2, 0, 3},
+		},
+		{
+			{0, 0, 4},
+			{1, 0, 4},
+			{2, 0, 4},
 		},
 	};
-	auto s = std::shared_ptr<BSpline_tensor>(new BSpline_tensor(3, controls, false, 0.01f, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
+	auto s = std::shared_ptr<BSpline_tensor>(new BSpline_tensor(3, controls, false, 0.4f, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 	_glw->done_current();
@@ -151,7 +161,7 @@ void OpenGL::draw(void) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	_ecs.render_all(_camera->view(), projection(), delta_time());
 }
