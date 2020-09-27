@@ -21,6 +21,7 @@ BSpline_tensor::BSpline_tensor(unsigned short order, std::vector<float> knots, s
 		, _range(knots[order-1], knots[controls.size()])
 {
 	generate_leading_bsplines(controls, order, knots);
+	generate_generator_bsplines(order, knots);
 	set_vert_norm_indi(geometry());
 	set_geometry();
 }
@@ -45,6 +46,7 @@ BSpline_tensor::BSpline_tensor(unsigned short order, std::vector<std::vector<glm
 	auto knots = uniform_vector(controls.size()+order+1);
 	_range = std::tuple<float,float>(knots[order-1], knots[controls.size()]);
 	generate_leading_bsplines(controls, order, knots);
+	generate_generator_bsplines(order, knots);
 	set_vert_norm_indi(geometry());
 	set_geometry();
 }
@@ -52,6 +54,18 @@ BSpline_tensor::BSpline_tensor(unsigned short order, std::vector<std::vector<glm
 void BSpline_tensor::generate_leading_bsplines(std::vector<std::vector<glm::vec3>> controls, unsigned short order, std::vector<float> knots) {
 	for (auto bs : controls) {
 		_leading_bsplines.push_back(new BSpline(order, knots, bs));
+	}
+}
+
+void BSpline_tensor::generate_generator_bsplines(unsigned short order, std::vector<float> knots) {
+	for (float i = std::get<0>(_range); i < std::get<1>(_range); i += _delta) {
+		std::vector<glm::vec3> generator_controls;
+		for (auto lbs : _leading_bsplines) {
+			auto point = lbs->eval(i);
+			generator_controls.push_back(point);
+		}
+		auto gbs = new BSpline(order, knots, generator_controls);
+		_generator_bsplines.push_back(gbs);
 	}
 }
 
@@ -78,18 +92,35 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> BSpl
 	}
 	*/
 
-	for (auto bs : _leading_bsplines) {
+	unsigned short nb_point_line = std::ceil((std::get<1>(_range)-std::get<0>(_range))/_delta);
+	unsigned short nb_line = _generator_bsplines.size();
+
+	for (unsigned short i = 0; i < nb_line-1; ++i) {
+		for (unsigned short j = 0; j < nb_point_line-1; ++j) {
+			unsigned short p = j+i*nb_point_line;
+			// First face triangle
+			indices.push_back(p);
+			indices.push_back(p+nb_point_line);
+			indices.push_back(p+1);
+			// Second face triangle
+			indices.push_back(p+nb_point_line);
+			indices.push_back(p+nb_point_line+1);
+			indices.push_back(p+1);
+		}
+	}
+
+	
+
+	for (auto gbs : _generator_bsplines) {
 		for (float i = std::get<0>(_range); i < std::get<1>(_range); i += _delta) {
-			auto point = bs->eval(i);
+			auto point = gbs->eval(i);
 			vertex.push_back(point.x);
 			vertex.push_back(point.y);
 			vertex.push_back(point.z);
 			normals.push_back(1);
 			normals.push_back(1);
 			normals.push_back(1);
-			indices.push_back(ind++);
 		}
-		std::cout << std::endl;
 	}
 
 
