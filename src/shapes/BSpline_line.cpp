@@ -72,6 +72,7 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> BSpl
 
 	for (float i = std::get<0>(_range); i < std::get<1>(_range); i += _delta) {
 		auto point = _bspline->eval(i);
+		std::cout << glm::to_string(point) << std::endl;
 		vertex.push_back(point.x);
 		vertex.push_back(point.y);
 		vertex.push_back(point.z);
