@@ -9,7 +9,13 @@ Camera::Camera(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale,
 	, _up{glm::vec3{0.0f, 1.0f, 0.0f}}
 	, _yaw{0}
 	, _pitch{0}
-	, _speed{15}
+	, _speed{8}
+	, _move_front{false}
+	, _move_back{false}
+	, _move_left{false}
+	, _move_right{false}
+	, _move_up{false}
+	, _move_down{false}
 {
 
 }
@@ -64,6 +70,54 @@ glm::mat4 Camera::view() const {
 
 void Camera::set_front(glm::vec3 front) {
 	_front = front;
+}
+
+void Camera::set_move_front(bool state) {
+	_move_front = state;
+}
+
+void Camera::set_move_back(bool state) {
+	_move_back = state;
+}
+
+void Camera::set_move_left(bool state) {
+	_move_left = state;
+}
+
+void Camera::set_move_right(bool state) {
+	_move_right = state;
+}
+
+void Camera::set_move_up(bool state) {
+	_move_up = state;
+}
+
+void Camera::set_move_down(bool state) {
+	_move_down = state;
+}
+
+bool Camera::move_front() const {
+	return _move_front;
+}
+
+bool Camera::move_back() const {
+	return _move_back;
+}
+
+bool Camera::move_left() const {
+	return _move_left;
+}
+
+bool Camera::move_right() const {
+	return _move_right;
+}
+
+bool Camera::move_up() const {
+	return _move_up;
+}
+
+bool Camera::move_down() const {
+	return _move_down;
 }
 
 void Camera::draw(glm::mat4 view, glm::mat4 projection, float delta_time,

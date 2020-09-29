@@ -10,6 +10,7 @@
 #include <QFileDialog>
 #include <QtGlobal>
 #include <QPixmap>
+#include <QTimer>
 
 #include <iostream>
 #include <sstream>
@@ -30,6 +31,10 @@ MainWindow::MainWindow()
 	format.setSwapInterval(0);
 	format.setSamples(8);
 	QSurfaceFormat::setDefaultFormat(format);
+
+	_input_timer = new QTimer(this);
+	connect(_input_timer, &QTimer::timeout, this, &MainWindow::input_timer_event);
+	_input_timer->start(16);
 	
 	// Widget OpenGL
 	_glw = new GLWidget(this);
@@ -234,34 +239,76 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event) {
 	_last_mouse_y = y;
 }
 
-// Deplace la caméra
+void MainWindow::input_timer_event() {
+	auto camera = std::static_pointer_cast<Camera>(_camera);
+	float speed = camera->speed();
+	auto up = camera->up();
+	auto front = camera->front();
+	auto p = _camera->position();
+	if (camera->move_front()) {
+		camera->set_position(p+(front*speed));
+	} else if (camera->move_left()) {
+		camera->set_position(p-(glm::normalize(glm::cross(front, up))*speed));
+	} else if (camera->move_back()) {
+		camera->set_position(p-(front*speed));
+	} else if (camera->move_right()) {
+		camera->set_position(p+(glm::normalize(glm::cross(front, up))*speed));
+	} else if (camera->move_up()) {
+		camera->set_position(glm::vec3{p.x, p.y+speed, p.z});
+	} else if (camera->move_down()) {
+		camera->set_position(glm::vec3{p.x, p.y-speed, p.z});
+	}
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *event) {
 	auto key = event->key();
-	auto p = _camera->position();
 	auto camera = std::static_pointer_cast<Camera>(_camera);
-	auto front = camera->front();
-	auto up = camera->up();
-	float speed = camera->speed();
 	switch(key) {
 		case Qt::Key_Z:
-			_camera->set_position(p+(front*speed));
+			camera->set_move_front(true);
 			break;
 		case Qt::Key_Q:
-			_camera->set_position(p-(glm::normalize(glm::cross(front, up))*speed));
+			camera->set_move_left(true);
 			break;
 		case Qt::Key_S:
-			_camera->set_position(p-(front*speed));
+			camera->set_move_back(true);
 			break;
 		case Qt::Key_D:
-			_camera->set_position(p+(glm::normalize(glm::cross(front, up))*speed));
+			camera->set_move_right(true);
 			break;
 		case Qt::Key_Shift:
-			_camera->set_position(glm::vec3{p.x, p.y+speed, p.z});
+			camera->set_move_up(true);
 			break;
 		case Qt::Key_Control:
-			_camera->set_position(glm::vec3{p.x, p.y-speed, p.z});
+			camera->set_move_down(true);
 			break;
 	}
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *event) {
+	auto key = event->key();
+	auto camera = std::static_pointer_cast<Camera>(_camera);
+	switch(key) {
+		case Qt::Key_Z:
+			camera->set_move_front(false);
+			break;
+		case Qt::Key_Q:
+			camera->set_move_left(false);
+			break;
+		case Qt::Key_S:
+			camera->set_move_back(false);
+			break;
+		case Qt::Key_D:
+			camera->set_move_right(false);
+			break;
+		case Qt::Key_Shift:
+			camera->set_move_up(false);
+			break;
+		case Qt::Key_Control:
+			camera->set_move_down(false);
+			break;
+	}
+
 }
 
 // Enleve une entité du tree view a gauche
