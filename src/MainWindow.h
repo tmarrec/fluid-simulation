@@ -52,6 +52,7 @@ private slots:
 	void search_model_file();
 
 	void keyPressEvent(QKeyEvent *event) override;
+	void keyReleaseEvent(QKeyEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
 
@@ -62,11 +63,15 @@ private slots:
 	void show_help_box() const;
 	void three_points_scene();
 
+	void input_timer_event();
+
 
 private:
 	QListWidget* _list;
 	GLWidget* _glw;
 	OpenGL* _openGL;
+
+	QTimer *_input_timer;
 
 	Entity_Item* _selected_entity;
 	int _last_mouse_x;

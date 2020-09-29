@@ -31,6 +31,20 @@ public:
 	float speed() const;
 	void set_speed(float speed);
 
+	void set_move_front(bool state);
+	void set_move_back(bool state);
+	void set_move_left(bool state);
+	void set_move_right(bool state);
+	void set_move_up(bool state);
+	void set_move_down(bool state);
+
+	bool move_front() const;
+	bool move_back() const;
+	bool move_left() const;
+	bool move_right() const;
+	bool move_up() const;
+	bool move_down() const;
+
 private:
 	float _FOV;
 	glm::vec3 _front;
@@ -38,4 +52,11 @@ private:
 	float _yaw;
 	float _pitch;
 	float _speed;
+
+	bool _move_front;
+	bool _move_back;
+	bool _move_left;
+	bool _move_right;
+	bool _move_up;
+	bool _move_down;
 };

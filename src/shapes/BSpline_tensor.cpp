@@ -40,8 +40,12 @@ BSpline_tensor::BSpline_tensor(unsigned short order, std::vector<std::vector<glm
 	// TODO
 	// faire un attribut __nb_gene et _nb_point_gene
 	// a la classe tensor
-	_nb_gene = static_cast<float>(std::ceil(std::get<1>(_leading_bsplines.front()->range())-std::get<0>(_leading_bsplines.front()->range())/delta));
+	//_nb_gene = static_cast<float>(std::round(std::get<1>(_leading_bsplines.front()->range())-std::get<0>(_leading_bsplines.front()->range())))/delta;
+	_nb_gene = _generator_bsplines.size();
 	_nb_point_gene = _nb_gene;
+
+	std::cout << "LE DEBUG" << std::endl;
+	std::cout << _nb_gene << std::endl;
 
 	set_vert_norm_indi(geometry());
 	set_geometry();
@@ -102,7 +106,7 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> BSpl
 	*/
 
 	for (auto gbs : _generator_bsplines) {
-		for (float i = std::get<0>(_range); i < std::get<1>(_range); i += _delta) {
+		for (float i = std::get<0>(_generator_bsplines.front()->range()); i < std::get<1>(_generator_bsplines.front()->range()); i += _delta) {
 			auto point = gbs->eval(i);
 
 			std::cout << glm::to_string(point) << std::endl;
@@ -119,15 +123,12 @@ std::tuple<std::vector<GLfloat>, std::vector<GLfloat>, std::vector<GLuint>> BSpl
 
 	//unsigned long _nb_point_gene = std::floor((std::get<1>(_range)-std::get<0>(_range))/_delta);
 			
-	std::cout << "_nb_gene: " << _nb_gene << std::endl;
+	std::cout << "_nb_gene: " << _nb_gene << " " << _generator_bsplines.size() << std::endl;
 	std::cout << "_nb_point_gene: " << _nb_point_gene << std::endl;
 
 	for (unsigned long i = 0; i < _nb_gene-1; ++i) {
 		for (unsigned long j = 0; j < _nb_point_gene-1; ++j) {
 			unsigned long p = j+i*_nb_gene;
-			std::cout << "_nb_gene: " << _nb_gene << std::endl;
-			std::cout << "_nb_point_gene: " << _nb_point_gene << std::endl;
-			std::cout << std::get<0>(_range) << " " << std::get<1>(_range) << std::endl;
 			// First face triangle
 			indices.push_back(p);
 			std::cout << indices.back() << " ";
