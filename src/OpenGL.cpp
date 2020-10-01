@@ -56,46 +56,84 @@ void OpenGL::add_bspline() {
 // Ajoute une B-Spline tensor a la scene
 void OpenGL::add_bspline_tensor() {
 	_glw->make_current();
+	
+	std::vector<std::vector<glm::vec3>> controls;
+	for (int i = 0; i < 50; ++i) {
+		std::vector<glm::vec3> temp;
+		for (int j = 0; j < 50; ++j) {
+			temp.push_back({j, rand()%3, i});
+		}
+		controls.push_back(temp);
+	}
+	/*
 	std::vector<std::vector<glm::vec3>> controls = {
 		{
-			{-1, 0, 0},
-			{0, 0, 0},
-			{1, 0, 0},
-			{2, 0, 0},
-		//	{3, 0, 0},
+			{-2, 0, -1},
+			{-1, -1, -1},
+			{0, 0, -1},
+			{1, 0, -1},
+			{2, -1, -1},
+			{3, 0, -1},
 		},
 		{
-			{-1, 0, 1},
-			{0, 0, 1},
-			{1, 2, 1},
-			{2, 0, 1},
-		//	{3, 0, 1},
+			{-2, -1, 0},
+			{-1, -1, 0},
+			{0, -1, 0},
+			{1, -1, 0},
+			{2, -1, 0},
+			{3, -1, 0},
 		},
 		{
-			{-1, 0, 2},
-			{0, 0, 2},
-			{1, 0, 2},
-			{2, 0, 2},
-		//	{3, 0, 2},
-		},
-		/*
-		{
-			{-1, 0, 3},
-			{0, 0, 3},
-			{1, -2, 3},
-			{2, 0, 3},
-			{3, 0, 3},
+			{-2, 0, 1},
+			{-1, -1, 1},
+			{0, 1.5f, 1},
+			{1, 1.5f, 1},
+			{2, -1, 1},
+			{3, 0, 1},
 		},
 		{
-			{-1, 0, 4},
+			{-2, 0, 2},
+			{-1, -1, 2},
+			{0, 1.5f, 2},
+			{1, 1.5f, 2},
+			{2, -1, 2},
+			{3, 0, 2},
+		},
+		{
+			{-2, -1, 3},
+			{-1, -1, 3},
+			{0, -1, 3},
+			{1, -1, 3},
+			{2, -1, 3},
+			{3, -1, 3},
+		},
+		{
+			{-2, 0, 4},
+			{-1, -1, 4},
 			{0, 0, 4},
 			{1, 0, 4},
-			{2, 0, 4},
+			{2, -1, 4},
 			{3, 0, 4},
 		},
-		*/
+		{
+			{-2, 0, 5},
+			{-1, -1, 5},
+			{0, 0, 5},
+			{1, 0, 5},
+			{2, -1, 5},
+			{3, 0, 5},
+		},
+		{
+			{-2, 0, 6},
+			{-1, 1, 6},
+			{0, 0, 6},
+			{1, 0, 6},
+			{2, 1, 6},
+			{3, 0, 6},
+		},
 	};
-	auto s = std::shared_ptr<BSpline_tensor>(new BSpline_tensor(3, controls, false, 0.3f, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
+	*/
+	auto s = std::shared_ptr<BSpline_tensor>(new BSpline_tensor(3, controls, false, 0.15f, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{100.0f, 100.0f, 100.0f}, _main_window));
 	_main_window->add_item_to_QListW(s);
 	_ecs.add(s);
 	_glw->done_current();
