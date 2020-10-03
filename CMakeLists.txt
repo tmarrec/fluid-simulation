@@ -19,7 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -Wall -pedantic -Wextra -DGL_GLEXT_PROTOTYPES")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -Wall -pedantic -Wextra -pthread -DGL_GLEXT_PROTOTYPES")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 
@@ -33,12 +33,32 @@ find_package(OpenGL REQUIRED)
 
 set(CMAKE_AUTOMOC on)
 set(CMAKE_AUTOUIC on)
+set(CMAKE_AUTORCC on)
 
 configure_file("src/config.h.in" "config.h")
 
 add_executable(${PROJECT_NAME}
 	src/config.h
  	src/main.cpp
+
+	src/System.h
+	src/System.cpp
+
+	src/Message.h
+	src/Message.cpp
+
+	src/MessageBus.h
+	src/MessageBus.cpp
+
+	src/MainWindow.h
+	src/MainWindow.cpp
+	src/ui/MainWindow.ui
+
+	src/Renderer.h
+	src/Renderer.cpp
+
+	src/ui/GlWidget.h
+	src/ui/GlWidget.cpp
 )
 
 set(EXT_LIBS Qt5::OpenGL ${OPENGL_LIBRARIES})
