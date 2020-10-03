@@ -50,8 +50,8 @@ add_executable(${PROJECT_NAME}
 	src/MessageBus.h
 	src/MessageBus.cpp
 
-	src/MainWindow.h
-	src/MainWindow.cpp
+	src/ui/MainWindow.h
+	src/ui/MainWindow.cpp
 	src/ui/MainWindow.ui
 
 	src/Renderer.h

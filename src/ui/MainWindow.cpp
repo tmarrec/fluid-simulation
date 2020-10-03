@@ -26,6 +26,19 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
+void MainWindow::handleMessage(Message & msg) const
+{
+	switch(msg.type())
+	{
+		case HELLO_ACK:
+			cout("Loaded in the \033[45m\033[1m[MessageBus]\033[49m\033[0m");
+			break;
+		
+		default:
+			break;
+	}
+}
+
 void MainWindow::cout(std::string string) const
 {
 	std::cout << "0x" << std::hex << std::this_thread::get_id() << " ";
