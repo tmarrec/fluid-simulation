@@ -14,6 +14,7 @@ void MessageBus::receiveMessage(Message & msg)
 	{
 		case HELLO:
 			{
+				cout("Greetings unknown system !");
 				auto system = msg.system();
 				if (system != nullptr)
 				{
@@ -24,13 +25,20 @@ void MessageBus::receiveMessage(Message & msg)
 			}
 			break;
 
-		default:	
-			cout("message");
-			for (const auto system : _systems)
-			{
-				system->handleMessage(msg);
-			}
+		case DRAW:
+			cout("DRAW");
 			break;
+
+		default:
+			break;
+	}
+	
+	// Broadcasting the message to all systems
+	// Should optimize it to send it only to the right system
+	// (maybe MT this?)
+	for (const auto system : _systems)
+	{
+		system->handleMessage(msg);
 	}
 }
 

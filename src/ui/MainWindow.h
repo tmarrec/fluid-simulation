@@ -2,7 +2,7 @@
 
 #include <QtWidgets/QMainWindow>
 
-#include "System.h"
+#include "../System.h"
 
 namespace Ui {
 	class MainWindow;
@@ -14,7 +14,8 @@ Q_OBJECT
 
 public:
 	explicit MainWindow(MessageBus & messageBus);
-	void cout(std::string string) const;
+	void cout(std::string string) const override;
+	void handleMessage(Message & msg) const override;
 	MessageBus & messageBus() const;
 
 	~MainWindow() final;

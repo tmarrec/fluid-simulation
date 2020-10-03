@@ -4,7 +4,6 @@
 
 Message::Message(Type type)
 	: _type{type}
-	, _system{nullptr}
 {
 
 }
@@ -16,12 +15,30 @@ Message::Message(Type type, System * system)
 
 }
 
+Message::Message(Type type, int width, int height)
+	: _type{type}
+	, _width{width}
+	, _height{height}
+{
+
+}
+
 const Type & Message::type() const
 {
 	return _type;
 }
 
-const System * Message::system() const
+System * Message::system() const
 {
 	return _system;
+}
+
+int Message::width() const
+{
+	return _width;
+}
+
+int Message::height() const
+{
+	return _height;
 }

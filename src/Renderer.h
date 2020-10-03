@@ -6,8 +6,12 @@ class Renderer : public System
 {
 public:
 	Renderer(MessageBus & messageBus);
-	void exec();
 	void cout(std::string string) const override;
+	void handleMessage(Message & msg) const override;
+
+	void draw() const;
+	void initGl(int width, int height) const;
+	void resizeGl(int width, int height) const;
 
 private:
 

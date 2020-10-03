@@ -1,7 +1,5 @@
 #include "GlWidget.h"
 
-#include <iostream>
-#include "../MainWindow.h"
 
 GlWidget::GlWidget(QWidget *parent)
 : QOpenGLWidget{parent}
@@ -18,12 +16,23 @@ void GlWidget::initializeGL()
 	if (!initializeOpenGLFunctions()) {
 		exit(1);
 	}
+
+	cout(std::string("QT Version     : ")+qVersion());
+	Message initGLMsg {INIT_GL, size().width(), size().height()};
+	postMessage(initGLMsg);
+
 }
 
 void GlWidget::paintGL()
 {
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glFinish();
+	Message drawMsg {DRAW};
+	postMessage(drawMsg);
+}
+
+void GlWidget::resizeGL(int w, int h)
+{
+	Message resizeMsg {RESIZE_GL, w, h};
+	postMessage(resizeMsg);
 }
 
 void GlWidget::keyPressEvent(QKeyEvent *event)
@@ -35,6 +44,19 @@ void GlWidget::keyPressEvent(QKeyEvent *event)
 				Message test {TEST};
 				postMessage(test);
 			}
+			break;
+
+		default:
+			break;
+	}
+}
+
+void GlWidget::handleMessage(Message & msg) const
+{
+	switch(msg.type())
+	{
+		case HELLO_ACK:
+			cout("Loaded in the \033[45m\033[1m[MessageBus]\033[49m\033[0m");
 			break;
 
 		default:
