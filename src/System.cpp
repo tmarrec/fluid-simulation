@@ -2,7 +2,7 @@
 
 #include "MessageBus.h"
 
-System::System(MessageBus & messageBus)
+System::System(MsgBus_ptr messageBus)
 : _messageBus{messageBus}
 {
 
@@ -10,10 +10,10 @@ System::System(MessageBus & messageBus)
 
 void System::postMessage(Message & msg) const
 {
-	_messageBus.receiveMessage(msg);
+	_messageBus->receiveMessage(msg);
 }
 
-MessageBus & System::__messageBus()
+MsgBus_ptr System::__messageBus()
 {
 	return _messageBus;
 }

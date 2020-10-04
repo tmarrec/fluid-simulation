@@ -40,15 +40,19 @@ configure_file("src/config.h.in" "config.h")
 add_executable(${PROJECT_NAME}
 	src/config.h
  	src/main.cpp
+	
+	src/structs.h
+
+	src/Shader.h
+	src/Shader.cpp
 
 	src/ECS.h
-	src/Components.h
+	src/DrawableComponent.h
 
 	src/System.h
 	src/System.cpp
 
 	src/Message.h
-	src/Message.cpp
 
 	src/MessageBus.h
 	src/MessageBus.cpp
@@ -69,6 +73,6 @@ target_link_libraries(${PROJECT_NAME} ${EXT_LIBS})
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 
-#file(COPY ${CMAKE_SOURCE_DIR}/src/shaders DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+file(COPY ${CMAKE_SOURCE_DIR}/src/shaders DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 #file(COPY ${CMAKE_SOURCE_DIR}/src/models DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 #file(COPY ${CMAKE_SOURCE_DIR}/src/images DESTINATION ${EXECUTABLE_OUTPUT_PATH})

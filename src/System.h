@@ -10,19 +10,22 @@
 
 #include <iostream>
 #include <thread>
+#include "structs.h"
 
 class MessageBus;
+
+using MsgBus_ptr = std::shared_ptr<MessageBus>;
 
 class System
 {
 public:
-	System(MessageBus & messageBus);
-	virtual void handleMessage(Message & msg) const = 0;
+	System(MsgBus_ptr messageBus);
+	virtual void handleMessage(Message & msg) = 0;
 	void postMessage(Message & msg) const;
-	MessageBus & __messageBus(); // Cannot name it messageBus()
+	MsgBus_ptr __messageBus(); // Cannot name it messageBus()
 	virtual void cout(std::string string) const = 0;
 
 private:
-	MessageBus & _messageBus;
+	MsgBus_ptr _messageBus;
 };
 

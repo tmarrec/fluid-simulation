@@ -1,7 +1,7 @@
 #include "MainWindow.h"
 #include "ui/ui_MainWindow.h"
 
-MainWindow::MainWindow(MessageBus & messageBus)
+MainWindow::MainWindow(MsgBus_ptr messageBus)
 : QMainWindow{nullptr}
 , System{messageBus}
 , ui{new Ui::MainWindow}
@@ -26,9 +26,9 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
-void MainWindow::handleMessage(Message & msg) const
+void MainWindow::handleMessage(Message & msg)
 {
-	switch(msg.type())
+	switch(msg._type)
 	{
 		case HELLO_ACK:
 			cout("Loaded in the \033[45m\033[1m[MessageBus]\033[49m\033[0m");
