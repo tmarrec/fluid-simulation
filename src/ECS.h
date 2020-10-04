@@ -29,28 +29,51 @@ class Component
 {
 public:
 	Entity* entity;
-	
-	virtual void init() {}
-	virtual void update() {}
-	virtual void draw() {}
 
-	virtual ~Component() {}
+	Component()
+	{
+		_id = _counter++;
+	}
+
+	ComponentID getComponentID() const
+	{
+		return _id;
+	}
+
+	virtual void init() = 0;
+	virtual void update() = 0;
+	virtual void draw()
+	{
+
+	}
+
+	virtual ~Component()
+	{
+
+	}
+	static ComponentID _counter;
 
 private:
+	ComponentID _id;
 
 };
+
+ComponentID Component::_counter = 0;
 
 class Entity
 {
 public:
 	void update()
 	{
+		//std::vector<Message> messages;
 		for(const auto & component : _components)
 		{
 			component->update();
 		}
 		for(const auto & component : _components)
 		{
+			//auto msg = component->draw();
+			//messages.emplace_back(msg);
 			component->draw();
 		}
 	}
@@ -107,9 +130,38 @@ private:
 
 };
 
-class Manager
+class Manager : public System
 {
 public:
+	Manager(MsgBus_ptr messageBus)
+	: System{messageBus}
+	{
+		Message helloMsg {HELLO, this};
+		postMessage(helloMsg);
+	}
+
+	void cout(std::string string) const
+	{
+		std::cout << "0x" << std::hex << std::this_thread::get_id() << " ";
+		std::cout << "       \033[42m\033[1m";
+		std::cout << "[ECS]";
+		std::cout << "\033[49m\033[0m";
+		std::cout << " " << string << std::endl;
+	}
+		
+	void handleMessage(Message & msg)
+	{
+		switch(msg._type)
+		{
+			case HELLO_ACK:
+				cout("Loaded in the \033[45m\033[1m[MessageBus]\033[49m\033[0m");
+				break;
+	
+			default:
+				break;
+		}
+	}
+
 	void update()
 	{
 		for (const auto & entity : _entities)

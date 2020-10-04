@@ -18,7 +18,7 @@ public:
 	~GlWidget() final;
 
 	void cout(std::string string) const override;
-	void handleMessage(Message & msg) const override;
+	void handleMessage(Message & msg) override;
 
 public slots:
 	void cleanup();

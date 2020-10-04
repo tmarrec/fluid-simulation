@@ -10,23 +10,26 @@ MessageBus::MessageBus()
 
 void MessageBus::receiveMessage(Message & msg)
 {
-	switch(msg.type())
+	switch(msg._type)
 	{
 		case HELLO:
 			{
-				cout("Greetings unknown system !");
-				auto system = msg.system();
+				auto system = msg._system;
 				if (system != nullptr)
 				{
 					_systems.emplace_back(system);
 					Message helloAck {HELLO_ACK};
 					system->handleMessage(helloAck);
 				}
+				else
+				{
+					cout("Hello from nullptr system");
+					exit(1);
+				}
 			}
 			break;
 
 		case DRAW:
-			cout("DRAW");
 			break;
 
 		default:
@@ -36,7 +39,7 @@ void MessageBus::receiveMessage(Message & msg)
 	// Broadcasting the message to all systems
 	// Should optimize it to send it only to the right system
 	// (maybe MT this?)
-	for (const auto system : _systems)
+	for (auto system : _systems)
 	{
 		system->handleMessage(msg);
 	}

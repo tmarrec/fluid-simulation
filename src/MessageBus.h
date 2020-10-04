@@ -15,7 +15,7 @@ public:
 	void cout(std::string string) const;
 
 private:
-	std::vector<const System *> _systems;
+	std::vector<System *> _systems;
 
 };
 

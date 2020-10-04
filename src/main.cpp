@@ -5,7 +5,7 @@
 #include "ui/MainWindow.h"
 
 #include "ECS.h"
-#include "Components.h"
+#include "DrawableComponent.h"
 
 #include <iostream>
 
@@ -21,7 +21,8 @@ void printTitle()
 int main(int argc, char *argv[])
 {
 	printTitle();
-	MessageBus messageBus = MessageBus();
+	MessageBus * msgBus_ptr = new MessageBus();
+	MsgBus_ptr messageBus {msgBus_ptr};
 	Renderer renderer {messageBus};
 
 	QApplication gui{argc, argv};
@@ -29,11 +30,87 @@ int main(int argc, char *argv[])
 	mainWindow.show();
 
 	// Testings
-	Manager manager;
-	auto & test(manager.addEntity());
-	test.addComponent<PositionComponent>();
+	// ECS Manager
+	Manager manager {messageBus};
+
+	auto & cube(manager.addEntity());
+	std::vector<GLfloat> v = std::vector<GLfloat>{
+					-0.5f, -0.5f, 0.5f,
+					0.5f, -0.5f, 0.5f,
+					0.5f, 0.5f, 0.5f,
+					-0.5f, 0.5f, 0.5f,
+
+					0.5f, 0.5f, 0.5f,
+					0.5f, 0.5f, -0.5f,
+					0.5f, -0.5f, -0.5f,
+					0.5f, -0.5f, 0.5f,
+
+					-0.5f, -0.5f, -0.5f,
+					0.5f, -0.5f, -0.5f,
+					0.5f, 0.5f, -0.5f,
+					-0.5f, 0.5f, -0.5f,
+
+					-0.5f, -0.5f, -0.5f,
+					-0.5f, -0.5f, 0.5f,
+					-0.5f, 0.5f, 0.5f,
+					-0.5f, 0.5f, -0.5f,
+						
+					0.5f, 0.5f, 0.5f,
+					-0.5f, 0.5f, 0.5f,
+					-0.5f, 0.5f, -0.5f,
+					0.5f, 0.5f, -0.5f,
+
+					-0.5f, -0.5f, -0.5f,
+					0.5f, -0.5f, -0.5f,
+					0.5f, -0.5f, 0.5f,
+					-0.5f, -0.5f, 0.5f,
+	};
+	std::vector<GLfloat> n = std::vector<GLfloat>{
+					0.0f, 0.0f, 1.0f,
+					0.0f, 0.0f, 1.0f,
+					0.0f, 0.0f, 1.0f,
+					0.0f, 0.0f, 1.0f,
+
+					1.0f, 0.0f, 0.0f,
+					1.0f, 0.0f, 0.0f,
+					1.0f, 0.0f, 0.0f,
+					1.0f, 0.0f, 0.0f,
+
+					0.0f, 0.0f, -1.0f,
+					0.0f, 0.0f, -1.0f,
+					0.0f, 0.0f, -1.0f,
+					0.0f, 0.0f, -1.0f,
+
+					-1.0f, 0.0f, 0.0f,
+					-1.0f, 0.0f, 0.0f,
+					-1.0f, 0.0f, 0.0f,
+					-1.0f, 0.0f, 0.0f,
+
+					0.0f, 1.0f, 0.0f,
+					0.0f, 1.0f, 0.0f,
+					0.0f, 1.0f, 0.0f,
+					0.0f, 1.0f, 0.0f,
+
+					0.0f, -1.0f, 0.0f,
+					0.0f, -1.0f, 0.0f,
+					0.0f, -1.0f, 0.0f,
+					0.0f, -1.0f, 0.0f,
+				};
+	std::vector<GLuint> i = std::vector<GLuint>{
+					0,  1,  2,  0,  2,  3,   //front
+					4,  5,  6,  4,  6,  7,   //right
+					8,  9,  10, 8,  10, 11,  //back
+					12, 13, 14, 12, 14, 15,  //left
+					16, 17, 18, 16, 18, 19,  //upper
+					20, 21, 22, 20, 22, 23 	 //bottom
+				};
+
+	cube.addComponent<DrawableComponent>("shaders/vert.vert", "shaders/frag.frag", v, n, i, messageBus);
+	cube.addComponent<DrawableComponent>("shaders/vert.vert", "shaders/frag.frag", v, n, i, messageBus);
+	cube.addComponent<DrawableComponent>("shaders/vert.vert", "shaders/frag.frag", v, n, i, messageBus);
+
+	// Update in the game loop
 	manager.update();
-	std::cout << test.getComponent<PositionComponent>().x() << std::endl;
 	
 	QApplication::exec();
 

@@ -25,7 +25,7 @@ void GlWidget::initializeGL()
 
 void GlWidget::paintGL()
 {
-	Message drawMsg {DRAW};
+	Message drawMsg {ASK_ENTITIES_DRAW};
 	postMessage(drawMsg);
 }
 
@@ -51,9 +51,9 @@ void GlWidget::keyPressEvent(QKeyEvent *event)
 	}
 }
 
-void GlWidget::handleMessage(Message & msg) const
+void GlWidget::handleMessage(Message & msg)
 {
-	switch(msg.type())
+	switch(msg._type)
 	{
 		case HELLO_ACK:
 			cout("Loaded in the \033[45m\033[1m[MessageBus]\033[49m\033[0m");
