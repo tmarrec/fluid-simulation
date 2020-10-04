@@ -41,6 +41,9 @@ add_executable(${PROJECT_NAME}
 	src/config.h
  	src/main.cpp
 
+	src/ECS.h
+	src/Components.h
+
 	src/System.h
 	src/System.cpp
 

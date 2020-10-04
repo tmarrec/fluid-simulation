@@ -4,6 +4,9 @@
 #include "Renderer.h"
 #include "ui/MainWindow.h"
 
+#include "ECS.h"
+#include "Components.h"
+
 #include <iostream>
 
 #include <QApplication>
@@ -24,6 +27,13 @@ int main(int argc, char *argv[])
 	QApplication gui{argc, argv};
 	MainWindow mainWindow {messageBus};
 	mainWindow.show();
+
+	// Testings
+	Manager manager;
+	auto & test(manager.addEntity());
+	test.addComponent<PositionComponent>();
+	manager.update();
+	std::cout << test.getComponent<PositionComponent>().x() << std::endl;
 	
 	QApplication::exec();
 
