@@ -10,7 +10,6 @@
 
 #include <iostream>
 #include <thread>
-#include "structs.h"
 
 class MessageBus;
 

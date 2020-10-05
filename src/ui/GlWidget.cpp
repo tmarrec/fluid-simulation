@@ -17,7 +17,7 @@ void GlWidget::initializeGL()
 		exit(1);
 	}
 
-	cout(std::string("QT Version     : ")+qVersion());
+	//cout(std::string("QT Version     : ")+qVersion());
 	Message initGLMsg {INIT_GL, size().width(), size().height()};
 	postMessage(initGLMsg);
 
