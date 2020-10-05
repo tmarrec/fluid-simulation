@@ -1,8 +1,7 @@
 #pragma once
 
 #include "System.h"
-
-#include <unordered_map>
+#include "Shader.h"
 
 class Renderer : public System
 {
@@ -13,11 +12,13 @@ public:
 
 	void initGl(int width, int height) const;
 	void resizeGl(int width, int height) const;
-	void initDrawable(std::uint64_t componentID, Shape shape);
-	void freeDrawable(std::uint64_t componentID, Shape shape);
-	void draw(std::uint64_t componentID, Shape shape);
+
+	void initDrawable(Message & msg);
+	void freeDrawable(Message & msg);
+	void draw(Message & msg);
 
 private:
-	std::unordered_map<std::uint64_t, GLObjects> _GLObjects; 
-
+	void _useShader(Message & msg);
+	glm::mat4 _getModel(Message & msg);
 };
+

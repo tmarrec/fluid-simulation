@@ -6,6 +6,8 @@
 
 #include "ECS.h"
 #include "DrawableComponent.h"
+#include "CameraComponent.h"
+#include "TransformComponent.h"
 
 #include <iostream>
 
@@ -31,9 +33,12 @@ int main(int argc, char *argv[])
 
 	// Testings
 	// ECS Manager
+	
+
+	// TODO Maybe link Entity to mainbus instead of each component...
 	Manager manager {messageBus};
 
-	auto & cube(manager.addEntity());
+	auto & cube(manager.addEntity(messageBus));
 	std::vector<GLfloat> v = std::vector<GLfloat>{
 					-0.5f, -0.5f, 0.5f,
 					0.5f, -0.5f, 0.5f,
@@ -105,9 +110,14 @@ int main(int argc, char *argv[])
 					20, 21, 22, 20, 22, 23 	 //bottom
 				};
 
-	cube.addComponent<DrawableComponent>("shaders/vert.vert", "shaders/frag.frag", v, n, i, messageBus);
-	cube.addComponent<DrawableComponent>("shaders/vert.vert", "shaders/frag.frag", v, n, i, messageBus);
-	cube.addComponent<DrawableComponent>("shaders/vert.vert", "shaders/frag.frag", v, n, i, messageBus);
+	cube.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
+		glm::vec3{1.0f, 1.0f, 1.0f});
+	cube.addComponent<DrawableComponent>("shaders/vert.vert", "shaders/frag.frag", v, n, i);
+
+	auto & camera(manager.addEntity(messageBus));
+	camera.addComponent<CameraComponent>(0.0f, 0.0f, 15.0f, 90.0f);
+	camera.addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
+		glm::vec3{1.0f, 1.0f, 1.0f});
 
 	// Update in the game loop
 	manager.update();

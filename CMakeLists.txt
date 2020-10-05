@@ -40,14 +40,14 @@ configure_file("src/config.h.in" "config.h")
 add_executable(${PROJECT_NAME}
 	src/config.h
  	src/main.cpp
-	
-	src/structs.h
 
 	src/Shader.h
 	src/Shader.cpp
 
 	src/ECS.h
 	src/DrawableComponent.h
+	src/CameraComponent.h
+	src/TransformComponent.h
 
 	src/System.h
 	src/System.cpp
