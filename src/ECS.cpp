@@ -64,6 +64,13 @@ void Entity::handleMessage(Message & msg)
 			{
 				auto cameraComponent = getComponent<CameraComponent>();
 				auto view = cameraComponent.view();
+				auto projection = cameraComponent.projection();
+				
+				Message drawMsg {DRAW, msg._vertices, msg._normals, msg._indices, msg._VAO,
+					msg._VBO, msg._NBO, msg._EBO, msg._color, msg._shader, msg._position, msg._rotation,
+					msg._scale, view, projection};
+				postMessage(drawMsg);
+
 			}
 			break;
 

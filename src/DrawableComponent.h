@@ -3,13 +3,14 @@
 #include "ECS.h"
 
 #include "TransformComponent.h"
+#include <GL/gl.h>
 
 class DrawableComponent : public Component
 {
 private:
-	std::vector<GLfloat> _vertices;
-	std::vector<GLfloat> _normals;
-	std::vector<GLuint>  _indices;
+	std::shared_ptr<std::vector<GLfloat>> _vertices;
+	std::shared_ptr<std::vector<GLfloat>> _normals;
+	std::shared_ptr<std::vector<GLuint>>  _indices;
 
 	GLuint _VAO;
 	GLuint _VBO;
@@ -22,8 +23,8 @@ private:
 
 public:
 	DrawableComponent(std::string vertPath, std::string fragPath,
-		std::vector<GLfloat> vertices, std::vector<GLfloat> normals,
-		std::vector<GLuint> indices)
+		std::shared_ptr<std::vector<GLfloat>> vertices, std::shared_ptr<std::vector<GLfloat>> normals,
+		std::shared_ptr<std::vector<GLuint>> indices)
 	: Component{}
 	{
 		_vertices = vertices;
@@ -72,17 +73,17 @@ public:
 		entity->entityPostMessage(freeMsg);
 	}
 
-	std::vector<GLfloat> vertices() const
+	std::shared_ptr<std::vector<GLfloat>> vertices()
 	{
 		return _vertices;
 	}
 
-	std::vector<GLfloat> normals() const
+	std::shared_ptr<std::vector<GLfloat>> normals()
 	{
 		return _normals;
 	}
 
-	std::vector<GLuint> indices() const
+	std::shared_ptr<std::vector<GLuint>> indices()
 	{
 		return _indices;
 	}

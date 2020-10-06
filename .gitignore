@@ -1,4 +1,6 @@
 build/
+src/.clangd/
+compile_commands.json*
 
 :
 *<
