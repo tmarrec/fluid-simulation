@@ -1,5 +1,6 @@
 #include "Renderer.h"
 
+
 Renderer::Renderer(MsgBus_ptr messageBus)
 	: System{messageBus}
 {
@@ -16,16 +17,21 @@ void Renderer::cout(std::string string) const
 	std::cout << " " << string << std::endl;
 }
 
-void Renderer::initGl(int width, int height) const
+void Renderer::initGl(Message & msg)
 {
+	_glContext = msg._glContext;
+	_glWidget = msg._glWidget;
+
+	//_glWidget->makeCurrent();
 	glEnable(GL_DEPTH_TEST);
-	glViewport(0, 0, width, height);
+	glViewport(0, 0, msg._width, msg._height);
 	/*
 	cout(std::string("Renderer       : ")+reinterpret_cast<char const*>(glGetString(GL_RENDERER)));
 	cout(std::string("Vendor         : ")+reinterpret_cast<char const*>(glGetString(GL_VENDOR)));
 	cout(std::string("Version        : ")+reinterpret_cast<char const*>(glGetString(GL_VERSION)));
 	cout(std::string("GLSL Version   : ")+reinterpret_cast<char const*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 	*/
+	//_glWidget->doneCurrent();
 	cout("OpenGL initialized");
 }
 
@@ -36,17 +42,27 @@ void Renderer::resizeGl(int width, int height) const
 
 void Renderer::initDrawable(Message & msg)
 {
+	// not sure about this
+	_glWidget->makeCurrent();
+	//_glContext->doneCurrent();
+
+	//std::cout << "isvalid: " << _glContext->isValid() << std::endl;
+	std::cout << "start init" << std::endl;
 	glGenBuffers(1, &msg._VBO);
 	glGenBuffers(1, &msg._NBO);
 	glGenBuffers(1, &msg._EBO);
 
 	glGenVertexArrays(1, &msg._VAO);
 
+	std::cout << msg._vertices->size() << std::endl;
+	std::cout << msg._vertices->data() << std::endl;
+
 	glBindVertexArray(msg._VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, msg._VBO);
 		glBufferData(
 			GL_ARRAY_BUFFER,
-			msg._vertices.size()*sizeof(GLfloat),
-			msg._vertices.data(),
+			msg._vertices->size()*sizeof(GLfloat),
+			msg._vertices->data(),
 			GL_STATIC_DRAW
 		);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
@@ -55,8 +71,8 @@ void Renderer::initDrawable(Message & msg)
 		glBindBuffer(GL_ARRAY_BUFFER, msg._NBO);
 		glBufferData(
 			GL_ARRAY_BUFFER,
-			msg._normals.size()*sizeof(GLfloat),
-			msg._normals.data(),
+			msg._normals->size()*sizeof(GLfloat),
+			msg._normals->data(),
 			GL_STATIC_DRAW
 		);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
@@ -65,12 +81,15 @@ void Renderer::initDrawable(Message & msg)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, msg._EBO);
 		glBufferData(
 			GL_ELEMENT_ARRAY_BUFFER,
-			msg._indices.size()*sizeof(GLuint),
-			msg._indices.data(),
+			msg._indices->size()*sizeof(GLuint),
+			msg._indices->data(),
 			GL_STATIC_DRAW
 		);
 
 	glBindVertexArray(0);
+	std::cout << "end init" << std::endl;
+
+	_glWidget->doneCurrent();
 }
 
 void Renderer::freeDrawable(Message & msg)
@@ -104,16 +123,19 @@ void Renderer::_useShader(Message & msg)
 	shader->set_3f("_object_color", color);
 
 	shader->set_mat4("model", _getModel(msg));
-	/*
-	shader->set_mat4("view", view);
-	shader->set_mat4("projection", projection);
+	shader->set_mat4("view", msg._view);
+	shader->set_mat4("projection", msg._projection);
 	uint64_t time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	float time_sin = sin(time/50000);
 	shader->set_1f("time", time_sin);
 
-	shader->set_3f("_view_pos", view[3]);
-	shader->set_1i("_light_nb", lights.size());
+	shader->set_3f("_view_pos", msg._view[3]);
 
+	// TODO add ligths 	
+	shader->set_1i("_light_nb", 0);
+
+	/*
+	shader->set_1i("_light_nb", lights.size());
 	// Envoie les uniforms pour toutes les lumieres
 	for (size_t i = 0; i < lights.size(); ++i) {
 		auto light = std::static_pointer_cast<Light>(lights[i]);
@@ -135,13 +157,26 @@ void Renderer::_useShader(Message & msg)
 
 void Renderer::draw(Message & msg)
 {
-	_useShader(msg);
-	glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
+	//_glContext->doneCurrent();
+	//_glWidget->makeCurrent();
+
+	glClearColor(0.8f, 0.8f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	_useShader(msg);
+	
+	std::cout << msg._VAO << std::endl;
+	std::cout << msg._indices->size() << std::endl;
 
 	glBindVertexArray(msg._VAO);
-	glDrawElements(GL_TRIANGLES, msg._indices.size(), GL_UNSIGNED_INT, nullptr);
+	std::cout << "1" << std::endl;
+	glDrawElements(GL_TRIANGLES, msg._indices->size(), GL_UNSIGNED_INT, nullptr);
+	std::cout << "2" << std::endl;
 	glBindVertexArray(0);
+
+	glFinish();
+	//_glWidget->doneCurrent();
 }
 
 void Renderer::handleMessage(Message & msg)
@@ -153,7 +188,7 @@ void Renderer::handleMessage(Message & msg)
 			break;
 
 		case INIT_GL:
-			initGl(msg._width, msg._height);
+			initGl(msg);
 			break;
 
 		case RESIZE_GL:
@@ -169,6 +204,7 @@ void Renderer::handleMessage(Message & msg)
 			break;
 
 		case DRAW:
+			cout("Draw");
 			draw(msg);
 			break;
 

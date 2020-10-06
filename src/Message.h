@@ -10,6 +10,9 @@
 #include <vector>
 #include <iostream>
 #include <memory>
+
+#include <QOpenGLWidget>
+
 #include "Shader.h"
 
 #ifdef __APPLE__
@@ -56,9 +59,24 @@ public:
 		, _height{height}
 	{};
 
-	Message(Type type, std::vector<GLfloat> vertices,
-		std::vector<GLfloat> normals,
-		std::vector<GLuint>  indices,
+	Message(Type type, int width, int height, QOpenGLContext * glContext)
+		: _type{type}
+		, _width{width}
+		, _height{height}
+		, _glContext{glContext}
+	{};
+
+	Message(Type type, int width, int height, QOpenGLWidget * glWidget)
+		: _type{type}
+		, _width{width}
+		, _height{height}
+		, _glWidget{glWidget}
+	{};
+
+	Message(Type type,
+		std::shared_ptr<std::vector<GLfloat>> vertices,
+		std::shared_ptr<std::vector<GLfloat>> normals,
+		std::shared_ptr<std::vector<GLuint>>  indices,
 		GLuint VAO,
 		GLuint VBO,
 		GLuint NBO,
@@ -77,9 +95,10 @@ public:
 		, _shader{shader}
 	{};
 
-	Message(Type type, std::vector<GLfloat> vertices,
-		std::vector<GLfloat> normals,
-		std::vector<GLuint>  indices,
+	Message(Type type,
+		std::shared_ptr<std::vector<GLfloat>> vertices,
+		std::shared_ptr<std::vector<GLfloat>> normals,
+		std::shared_ptr<std::vector<GLuint>>  indices,
 		GLuint VAO,
 		GLuint VBO,
 		GLuint NBO,
@@ -105,6 +124,39 @@ public:
 		, _scale{scale}
 	{};
 
+	Message(Type type,
+		std::shared_ptr<std::vector<GLfloat>> vertices,
+		std::shared_ptr<std::vector<GLfloat>> normals,
+		std::shared_ptr<std::vector<GLuint>>  indices,
+		GLuint VAO,
+		GLuint VBO,
+		GLuint NBO,
+		GLuint EBO,
+		glm::vec3 color,
+		std::shared_ptr<Shader> shader,
+		glm::vec3 position,
+		glm::vec3 rotation,
+		glm::vec3 scale,
+		glm::mat4 view,
+		glm::mat4 projection
+		)
+		: _type{type}
+		, _vertices{vertices}
+		, _normals{normals}
+		, _indices{indices}
+		, _VAO{VAO}
+		, _VBO{VBO}
+		, _NBO{NBO}
+		, _EBO{EBO}
+		, _color{color}
+		, _shader{shader}
+		, _position{position}
+		, _rotation{rotation}
+		, _scale{scale}
+		, _view{view}
+		, _projection{projection}
+	{};
+
 	const Type & type() const;
 	System * system() const;
 	int width() const;
@@ -117,9 +169,9 @@ public:
 	int _width = 0;
 	int _height = 0;
 
-	std::vector<GLfloat> _vertices;
-	std::vector<GLfloat> _normals;
-	std::vector<GLuint>  _indices;
+	std::shared_ptr<std::vector<GLfloat>> _vertices;
+	std::shared_ptr<std::vector<GLfloat>> _normals;
+	std::shared_ptr<std::vector<GLuint>> _indices;
 
 	GLuint _VAO;
 	GLuint _VBO;
@@ -132,6 +184,12 @@ public:
 	glm::vec3 _position;
 	glm::vec3 _rotation;
 	glm::vec3 _scale;
+
+	glm::mat4 _view;
+	glm::mat4 _projection;
+
+	QOpenGLContext * _glContext;
+	QOpenGLWidget * _glWidget;
 
 
 private:

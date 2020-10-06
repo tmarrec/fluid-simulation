@@ -11,7 +11,7 @@ MainWindow::MainWindow(MsgBus_ptr messageBus)
 	format.setVersion(4, 6);
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	format.setDepthBufferSize(24);
-	format.setSamples(8);
+	format.setSamples(4);
 	QSurfaceFormat::setDefaultFormat(format);
 
 	ui->setupUi(this);

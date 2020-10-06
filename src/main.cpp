@@ -9,6 +9,7 @@
 #include "CameraComponent.h"
 #include "TransformComponent.h"
 
+#include <GL/gl.h>
 #include <iostream>
 
 #include <QApplication>
@@ -111,16 +112,19 @@ int main(int argc, char *argv[])
 				};
 
 	cube.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
-		glm::vec3{1.0f, 1.0f, 1.0f});
-	cube.addComponent<DrawableComponent>("shaders/vert.vert", "shaders/frag.frag", v, n, i);
+		glm::vec3{100.0f, 100.0f, 100.0f});
+	cube.addComponent<DrawableComponent>("shaders/vert.vert", "shaders/frag.frag", std::make_shared<std::vector<GLfloat>>(v), std::make_shared<std::vector<GLfloat>>(n), std::make_shared<std::vector<GLuint>>(i));
 
 	auto & camera(manager.addEntity(messageBus));
 	camera.addComponent<CameraComponent>(0.0f, 0.0f, 15.0f, 90.0f);
-	camera.addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
+	camera.addComponent<TransformComponent>(glm::vec3{-10.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
 		glm::vec3{1.0f, 1.0f, 1.0f});
 
 	// Update in the game loop
-	manager.update();
+	for (int i = 0; i < 10; ++i)
+	{
+		manager.update();
+	}
 	
 	QApplication::exec();
 

@@ -1,7 +1,11 @@
 #pragma once
 
+#include <QOpenGLContext>
+#include <QOpenGLWidget>
+
 #include "System.h"
 #include "Shader.h"
+
 
 class Renderer : public System
 {
@@ -10,7 +14,7 @@ public:
 	void cout(std::string string) const override;
 	void handleMessage(Message & msg) override;
 
-	void initGl(int width, int height) const;
+	void initGl(Message & msg);
 	void resizeGl(int width, int height) const;
 
 	void initDrawable(Message & msg);
@@ -20,5 +24,7 @@ public:
 private:
 	void _useShader(Message & msg);
 	glm::mat4 _getModel(Message & msg);
+	QOpenGLContext * _glContext;
+	QOpenGLWidget * _glWidget;
 };
 

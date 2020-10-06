@@ -24,6 +24,7 @@ public:
 		_pitch = pitch;
 		_speed = speed;
 		_FOV = FOV;
+		_projection = glm::mat4{1.0f};
 		// need width and height :(
 		
 	}
@@ -42,6 +43,11 @@ public:
 		}
 	}
 
+	glm::mat4 projection() const
+	{
+		return _projection;
+	}
+
 	void setProjection(int width, int height)
 	{
 		// Not sure about the "infinite"
@@ -52,7 +58,6 @@ public:
 
 	void init() override
 	{
-		std::cout << ":)" << std::endl;
 		Message askGLSizeMsg {ASK_GLWIDGET_SIZE};
 		entity->entityPostMessage(askGLSizeMsg);
 	}

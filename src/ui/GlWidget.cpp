@@ -11,6 +11,19 @@ GlWidget::GlWidget(QWidget *parent)
 	postMessage(helloMsg);
 }
 
+void GLAPIENTRY
+MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+	fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+		(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+}
+
 void GlWidget::initializeGL()
 {
 	connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GlWidget::cleanup);
@@ -19,8 +32,12 @@ void GlWidget::initializeGL()
 		exit(1);
 	}
 
+	glEnable              ( GL_DEBUG_OUTPUT );
+	glDebugMessageCallback( MessageCallback, 0 );
+
 	//cout(std::string("QT Version     : ")+qVersion());
-	Message initGLMsg {INIT_GL, size().width(), size().height()};
+	//Message initGLMsg {INIT_GL, size().width(), size().height(), context()};
+	Message initGLMsg {INIT_GL, size().width(), size().height(), this};
 	postMessage(initGLMsg);
 
 }
@@ -45,8 +62,7 @@ void GlWidget::keyPressEvent(QKeyEvent *event)
 	{
 		case Qt::Key_R:
 			{
-				Message test {TEST};
-				postMessage(test);
+
 			}
 			break;
 
@@ -82,6 +98,8 @@ void GlWidget::cout(std::string string) const
 	std::cout << "[GlWidget]";
 	std::cout << "\033[49m\033[0m";
 	std::cout << " " << string << std::endl;
+
+	std::cout << context() << std::endl;
 }
 
 void GlWidget::cleanup()
