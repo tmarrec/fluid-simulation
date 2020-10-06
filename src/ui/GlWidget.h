@@ -31,6 +31,8 @@ protected:
 	void keyPressEvent(QKeyEvent *event) override;
 
 private:
+	int _glWidth;
+	int _glHeight;
 
 };
 

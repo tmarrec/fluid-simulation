@@ -62,8 +62,16 @@ void Entity::handleMessage(Message & msg)
 		case ASK_CAMERA_INFOS_FOR_DRAW:
 			if (hasComponent<CameraComponent>())
 			{
-				std::cout << getEntityID() << " j'ai une cam" << std::endl;
 				auto cameraComponent = getComponent<CameraComponent>();
+				auto view = cameraComponent.view();
+			}
+			break;
+
+		case GL_SIZE:
+			if (hasComponent<CameraComponent>())
+			{
+				auto cameraComponent = getComponent<CameraComponent>();
+				cameraComponent.setProjection(msg._width, msg._height);
 			}
 			break;
 	

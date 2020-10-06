@@ -4,6 +4,8 @@
 GlWidget::GlWidget(QWidget *parent)
 : QOpenGLWidget{parent}
 , System{qobject_cast<MainWindow*>(parentWidget()->parentWidget())->__messageBus()}
+, _glWidth{0}
+, _glHeight{0}
 {
 	Message helloMsg {HELLO, this};
 	postMessage(helloMsg);
@@ -31,6 +33,8 @@ void GlWidget::paintGL()
 
 void GlWidget::resizeGL(int w, int h)
 {
+	_glWidth = w;
+	_glHeight = h;
 	Message resizeMsg {RESIZE_GL, w, h};
 	postMessage(resizeMsg);
 }
@@ -57,6 +61,13 @@ void GlWidget::handleMessage(Message & msg)
 	{
 		case HELLO_ACK:
 			cout("Loaded in the \033[45m\033[1m[MessageBus]\033[49m\033[0m");
+			break;
+
+		case ASK_GLWIDGET_SIZE:
+			{
+				Message glSizeMsg {GL_SIZE, _glWidth, _glHeight};
+				postMessage(glSizeMsg);
+			}
 			break;
 
 		default:
