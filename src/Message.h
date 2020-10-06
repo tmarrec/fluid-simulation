@@ -33,6 +33,8 @@ enum Type
 	,RESIZE_GL
 	,INIT_DRAWABLE
 	,FREE_DRAWABLE
+	,ASK_GLWIDGET_SIZE
+	,GL_SIZE
 };
 
 class Message

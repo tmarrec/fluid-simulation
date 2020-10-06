@@ -25,7 +25,7 @@ public:
 		_speed = speed;
 		_FOV = FOV;
 		// need width and height :(
-		//_projection = glm::perspective(glm::radians(FOV), (float)
+		
 	}
 
 	glm::mat4 view() const
@@ -42,8 +42,19 @@ public:
 		}
 	}
 
+	void setProjection(int width, int height)
+	{
+		// Not sure about the "infinite"
+		// 																		(near value
+		// 																		should be variable)
+		_projection = glm::infinitePerspective(glm::radians(_FOV), (float)width/(float)height, 0.1f);
+	}
+
 	void init() override
 	{
+		std::cout << ":)" << std::endl;
+		Message askGLSizeMsg {ASK_GLWIDGET_SIZE};
+		entity->entityPostMessage(askGLSizeMsg);
 	}
 
 	void draw() override
