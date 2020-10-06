@@ -45,6 +45,7 @@ add_executable(${PROJECT_NAME}
 	src/Shader.cpp
 
 	src/ECS.h
+	src/ECS.cpp
 	src/DrawableComponent.h
 	src/CameraComponent.h
 	src/TransformComponent.h

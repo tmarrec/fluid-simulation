@@ -2,6 +2,12 @@
 
 #include <bitset>
 #include <array>
+#include <vector>
+#include <iostream>
+#include <memory>
+#include <algorithm>
+
+#include "System.h"
 
 class CameraComponent;
 class Component;
@@ -53,92 +59,24 @@ private:
 
 };
 
-ID Component::_counter = 0;
-
 class Entity : public System
 {
 public:
 
-	Entity(MsgBus_ptr messageBus)
-		: System{messageBus}
-	{
-		_id = _counter++;
-		Message helloMsg {HELLO, this};
-		postMessage(helloMsg);
-	}
+	Entity(MsgBus_ptr messageBus);
 
+	ID getEntityID() const;
+	void update();
+	void init();
+	void draw();
 
-	ID getEntityID() const
-	{
-		return _id;
-	}
+	void cout(std::string string) const;
+	void entityPostMessage(Message & msg);
 
-	void update()
-	{
-		for(const auto & component : _components)
-		{
-			component->update();
-		}
-		for(const auto & component : _components)
-		{
-			component->draw();
-		}
-	}
+	virtual void handleMessage(Message & msg);
 
-	void init()
-	{
-		std::cout << "teste" << std::endl;
-	}
-
-	void draw()
-	{
-
-	}
-
-	void cout(std::string string) const
-	{
-		std::cout << "0x" << std::hex << std::this_thread::get_id() << " ";
-		std::cout << "  \033[100m\033[1m";
-		std::cout << "[Entity " << getEntityID() << "]";
-		std::cout << "\033[49m\033[0m";
-		std::cout << " " << string << std::endl;
-	}
-
-	void entityPostMessage(Message & msg)
-	{
-		postMessage(msg);
-	}
-		
-	virtual void handleMessage(Message & msg)
-	{
-		switch(msg._type)
-		{
-			case HELLO_ACK:
-				cout("Loaded in the \033[45m\033[1m[MessageBus]\033[49m\033[0m");
-				break;
-			
-			case ASK_CAMERA_INFOS_FOR_DRAW:
-				if (hasComponent<CameraComponent>())
-				{
-					std::cout << getEntityID() << " j'ai une cam" << std::endl;
-					//auto cameraComponent = getComponent<CameraComponent>();
-				}
-				break;
-	
-			default:
-				break;
-		}
-	}
-
-	bool isActive() const
-	{
-		return _active;
-	}
-
-	void destroy()
-	{
-		_active = false;
-	}
+	bool isActive() const;
+	void destroy();
 
 	template <typename T> bool hasComponent() const
 	{
@@ -179,73 +117,21 @@ private:
 
 };
 
-ID Entity::_counter = 0;
-
 class Manager : public System
 {
 public:
-	Manager(MsgBus_ptr messageBus)
-	: System{messageBus}
-	{
-		Message helloMsg {HELLO, this};
-		postMessage(helloMsg);
-	}
+	Manager(MsgBus_ptr messageBus);
 
-	void cout(std::string string) const
-	{
-		std::cout << "0x" << std::hex << std::this_thread::get_id() << " ";
-		std::cout << "       \033[42m\033[1m";
-		std::cout << "[ECS]";
-		std::cout << "\033[49m\033[0m";
-		std::cout << " " << string << std::endl;
-	}
+	void cout(std::string string) const;
 		
-	void handleMessage(Message & msg)
-	{
-		switch(msg._type)
-		{
-			case HELLO_ACK:
-				cout("Loaded in the \033[45m\033[1m[MessageBus]\033[49m\033[0m");
-				break;
-	
-			default:
-				break;
-		}
-	}
+	void handleMessage(Message & msg);
+	void update();
 
-	void update()
-	{
-		for (const auto & entity : _entities)
-		{
-			entity->update();
-		}
-	}
+	void draw();
 
-	void draw()
-	{
-		for (const auto & entity: _entities)
-		{
-			entity->draw();
-		}
-	}
+	void refresh();
 
-	void refresh()
-	{
-		_entities.erase(std::remove_if(std::begin(_entities), std::end(_entities),
-			[](const std::unique_ptr<Entity> &mEntity)
-			{
-				return !mEntity->isActive();
-			}),
-			std::end(_entities));
-	}
-
-	Entity & addEntity(MsgBus_ptr messageBus)
-	{
-		Entity * e = new Entity(messageBus);
-		std::unique_ptr<Entity> uPtr {e};
-		_entities.emplace_back(std::move(uPtr));
-		return *e;
-	}
+	Entity & addEntity(MsgBus_ptr messageBus);
 
 private:
 	std::vector<std::unique_ptr<Entity>> _entities;
