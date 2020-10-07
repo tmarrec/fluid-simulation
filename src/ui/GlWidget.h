@@ -4,21 +4,19 @@
 #include <QOpenGLFunctions_4_5_Core>
 #include <QKeyEvent>
 
+#include "../Renderer.h"
 
-#include "../MessageBus.h"
-#include "../System.h"
-#include "MainWindow.h"
+using Renderer__ = std::shared_ptr<Renderer>; 
 
-class GlWidget : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Core, public System
+class GlWidget : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Core
 {
 Q_OBJECT
 public:
 	explicit GlWidget(QWidget *parent = nullptr);
 
-	~GlWidget() final;
+	void setRenderer(Renderer__ __renderer);
 
-	void cout(std::string string) const override;
-	void handleMessage(Message & msg) override;
+	~GlWidget();
 
 public slots:
 	void cleanup();
@@ -31,8 +29,7 @@ protected:
 	void keyPressEvent(QKeyEvent *event) override;
 
 private:
-	int _glWidth;
-	int _glHeight;
+	Renderer__ _renderer = nullptr;
 
 };
 

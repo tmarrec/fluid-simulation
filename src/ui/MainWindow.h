@@ -1,27 +1,32 @@
 #pragma once
 
-#include <QtWidgets/QMainWindow>
+#include <memory>
 
-#include "../System.h"
+#include <QtWidgets/QMainWindow>
+#include <QOpenGLWidget>
+
+#include "../utils.h"
+#include "../Renderer.h"
+#include "GlWidget.h"
+#include "ui/ui_MainWindow.h"
 
 namespace Ui {
 	class MainWindow;
 }
 
-class MainWindow : public QMainWindow, public System
+class MainWindow : public QMainWindow
 {
 Q_OBJECT
 
 public:
-	explicit MainWindow(MsgBus_ptr messageBus);
-	void cout(std::string string) const override;
-	void handleMessage(Message & msg) override;
-	MsgBus_ptr messageBus() const;
+	explicit MainWindow(Renderer__ __renderer);
+	void paint();
 
-	~MainWindow() final;
+	~MainWindow();
 
 private:
-	Ui::MainWindow * ui;
+	Ui::MainWindow* _ui;
+	GlWidget* _QOpenGLWidget;
 
 private slots:
 

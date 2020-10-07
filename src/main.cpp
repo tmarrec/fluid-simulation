@@ -1,45 +1,32 @@
-#include "config.h"
+#include <iostream>
 
-#include "MessageBus.h"
+#include <GL/gl.h>
+#include <QApplication>
+
+#include "config.h"
 #include "Renderer.h"
 #include "ui/MainWindow.h"
-
 #include "ECS.h"
 #include "DrawableComponent.h"
 #include "CameraComponent.h"
 #include "TransformComponent.h"
 
-#include <GL/gl.h>
-#include <iostream>
-
-#include <QApplication>
-
-void printTitle()
-{
-	std::cout << "\033[96m\033[1m";
-	std::cout << "                          __                                                                            \n                         /\\ \\                                                      __                   \n  ___    ___   __  __  __\\ \\ \\____    ___   __  __              __    ___      __ /\\_\\    ___      __   \n /'___\\ / __`\\/\\ \\/\\ \\/\\ \\\\ \\ '__`\\  / __`\\/\\ \\/\\ \\  _______  /'__`\\/' _ `\\  /'_ `\\/\\ \\ /' _ `\\  /'__`\\ \n/\\ \\__//\\ \\L\\ \\ \\ \\_/ \\_/ \\\\ \\ \\L\\ \\/\\ \\L\\ \\ \\ \\_\\ \\/\\______\\/\\  __//\\ \\/\\ \\/\\ \\L\\ \\ \\ \\/\\ \\/\\ \\/\\  __/ \n\\ \\____\\ \\____/\\ \\___x___/' \\ \\_,__/\\ \\____/\\/`____ \\/______/\\ \\____\\ \\_\\ \\_\\ \\____ \\ \\_\\ \\_\\ \\_\\ \\____\\\n \\/____/\\/___/  \\/__//__/    \\/___/  \\/___/  `/___/> \\        \\/____/\\/_/\\/_/\\/___L\\ \\/_/\\/_/\\/_/\\/____/\n                                                /\\___/                         /\\____/                  \n                                                \\/__/                          \\_/__/                   \n" << std::endl;
-	std::cout << "\033[39m\033[0m";
-}
+using Renderer__ = std::shared_ptr<Renderer>; 
 
 int main(int argc, char *argv[])
 {
-	printTitle();
-	MessageBus * msgBus_ptr = new MessageBus();
-	MsgBus_ptr messageBus {msgBus_ptr};
-	Renderer renderer {messageBus};
+	PRINT_TITLE()
 
 	QApplication gui{argc, argv};
-	MainWindow mainWindow {messageBus};
+
+	Renderer renderer {};
+	Renderer__ renderer_ = std::make_shared<Renderer>(renderer);
+
+	Manager manager {};
+
+	MainWindow mainWindow {renderer_};
 	mainWindow.show();
 
-	// Testings
-	// ECS Manager
-	
-
-	// TODO Maybe link Entity to mainbus instead of each component...
-	Manager manager {messageBus};
-
-	auto & cube(manager.addEntity(messageBus));
 	std::vector<GLfloat> v = std::vector<GLfloat>{
 					-0.5f, -0.5f, 0.5f,
 					0.5f, -0.5f, 0.5f,
@@ -111,19 +98,32 @@ int main(int argc, char *argv[])
 					20, 21, 22, 20, 22, 23 	 //bottom
 				};
 
+	auto & cube(manager.addEntity());
 	cube.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
-		glm::vec3{100.0f, 100.0f, 100.0f});
-	cube.addComponent<DrawableComponent>("shaders/vert.vert", "shaders/frag.frag", std::make_shared<std::vector<GLfloat>>(v), std::make_shared<std::vector<GLfloat>>(n), std::make_shared<std::vector<GLuint>>(i));
+		glm::vec3{50.0f, 50.0f, 50.0f});
+	cube.addComponent<DrawableComponent>(renderer_, "shaders/vert.vert", "shaders/frag.frag", std::make_shared<std::vector<GLfloat>>(v), std::make_shared<std::vector<GLfloat>>(n), std::make_shared<std::vector<GLuint>>(i));
 
-	auto & camera(manager.addEntity(messageBus));
+
+	/*
+	auto & cube2(manager.addEntity());
+	cube2.addComponent<TransformComponent>(glm::vec3{5.0f, 0.0f, 0.0f}, glm::vec3{3.0f, 0.0f, 0.0f},
+		glm::vec3{4.0f, 5.0f, 5.0f});
+	cube2.addComponent<DrawableComponent>(renderer_, "shaders/vert.vert", "shaders/frag.frag", std::make_shared<std::vector<GLfloat>>(v), std::make_shared<std::vector<GLfloat>>(n), std::make_shared<std::vector<GLuint>>(i));
+	*/
+
+	auto & camera(manager.addEntity());
 	camera.addComponent<CameraComponent>(0.0f, 0.0f, 15.0f, 90.0f);
-	camera.addComponent<TransformComponent>(glm::vec3{-10.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
+	camera.addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f},
 		glm::vec3{1.0f, 1.0f, 1.0f});
+	
+	std::cout << "start draw" << std::endl;
 
 	// Update in the game loop
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 1; ++i)
 	{
+		renderer_->setActiveCamera(&camera.getComponent<CameraComponent>());
 		manager.update();
+		renderer_->draw();
 	}
 	
 	QApplication::exec();

@@ -1,13 +1,18 @@
 #pragma once
 
-#include "ECS.h"
-
-#include "TransformComponent.h"
 #include <GL/gl.h>
+
+#include "ECS.h"
+#include "TransformComponent.h"
+#include "Shader.h"
+#include "Renderer.h"
+
+using Renderer__ = std::shared_ptr<Renderer>; 
 
 class DrawableComponent : public Component
 {
 private:
+	Renderer__ _renderer;
 	std::shared_ptr<std::vector<GLfloat>> _vertices;
 	std::shared_ptr<std::vector<GLfloat>> _normals;
 	std::shared_ptr<std::vector<GLuint>>  _indices;
@@ -22,7 +27,7 @@ private:
 
 
 public:
-	DrawableComponent(std::string vertPath, std::string fragPath,
+	DrawableComponent(Renderer__ __renderer, std::string vertPath, std::string fragPath,
 		std::shared_ptr<std::vector<GLfloat>> vertices, std::shared_ptr<std::vector<GLfloat>> normals,
 		std::shared_ptr<std::vector<GLuint>> indices)
 	: Component{}
@@ -30,6 +35,7 @@ public:
 		_vertices = vertices;
 		_normals = normals;
 		_indices = indices;
+		_renderer = __renderer;
 		
 		auto shader = new Shader{vertPath.c_str(), fragPath.c_str()};
 		std::shared_ptr<Shader> uPtr {shader};
@@ -38,28 +44,13 @@ public:
 
 	void init() override
 	{
-		// TODO maybe should send pointers
-		Message initMsg {INIT_DRAWABLE, _vertices, _normals, _indices, _VAO,
-			_VBO, _NBO, _EBO, _color, _shader};
-		entity->entityPostMessage(initMsg);
+		std::cout << "init" << std::endl;
+		_renderer->initDrawable(this);
 	}
 
 	void draw() override
 	{
-		if (!entity->hasComponent<TransformComponent>())
-		{
-			std::cout << "ERROR: DrawableComponent.h : The entity does not have a TransformComponent" << std::endl;
-			exit(1);
-		}
-
-		auto position = entity->getComponent<TransformComponent>().position();
-		auto rotation = entity->getComponent<TransformComponent>().rotation();
-		auto scale = entity->getComponent<TransformComponent>().scale();
-
-		// TODO maybe should send pointers
-		Message drawMsg {ASK_CAMERA_INFOS_FOR_DRAW, _vertices, _normals, _indices, _VAO,
-			_VBO, _NBO, _EBO, _color, _shader, position, rotation, scale};
-		entity->entityPostMessage(drawMsg);
+		_renderer->useShader(this);	
 	}
 
 	void update() override
@@ -68,9 +59,12 @@ public:
 
 	~DrawableComponent() override
 	{
-		Message freeMsg {FREE_DRAWABLE, _vertices, _normals, _indices, _VAO,
-			_VBO, _NBO, _EBO, _color, _shader};
-		entity->entityPostMessage(freeMsg);
+	}
+
+	glm::mat4 getModel()
+	{
+		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");
+		return entity->getComponent<TransformComponent>().getModel();
 	}
 
 	std::shared_ptr<std::vector<GLfloat>> vertices()
@@ -96,5 +90,25 @@ public:
 	std::shared_ptr<Shader> shader() const
 	{
 		return _shader;
+	}
+
+	GLuint& VAO()
+	{
+		return _VAO;
+	}
+
+	GLuint& VBO()
+	{
+		return _VBO;
+	}
+
+	GLuint& NBO()
+	{
+		return _NBO;
+	}
+
+	GLuint& EBO()
+	{
+		return _EBO;
 	}
 };

@@ -7,7 +7,7 @@
 #include <memory>
 #include <algorithm>
 
-#include "System.h"
+#include "utils.h"
 
 class CameraComponent;
 class Component;
@@ -59,11 +59,11 @@ private:
 
 };
 
-class Entity : public System
+class Entity
 {
 public:
-
-	Entity(MsgBus_ptr messageBus);
+	
+	Entity();
 
 	ID getEntityID() const;
 	void update();
@@ -71,9 +71,6 @@ public:
 	void draw();
 
 	void cout(std::string string) const;
-	void entityPostMessage(Message & msg);
-
-	virtual void handleMessage(Message & msg);
 
 	bool isActive() const;
 	void destroy();
@@ -117,23 +114,17 @@ private:
 
 };
 
-class Manager : public System
+class Manager
 {
 public:
-	Manager(MsgBus_ptr messageBus);
-
-	void cout(std::string string) const;
-		
-	void handleMessage(Message & msg);
 	void update();
 
 	void draw();
 
 	void refresh();
 
-	Entity & addEntity(MsgBus_ptr messageBus);
+	Entity & addEntity();
 
 private:
 	std::vector<std::unique_ptr<Entity>> _entities;
-
 };

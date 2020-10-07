@@ -25,22 +25,14 @@ public:
 		_speed = speed;
 		_FOV = FOV;
 		_projection = glm::mat4{1.0f};
-		// need width and height :(
-		
 	}
 
 	glm::mat4 view() const
 	{
-		if (entity->hasComponent<TransformComponent>())
-		{
-			auto position = entity->getComponent<TransformComponent>().position();
-			return glm::lookAt(position, position+_front, _up);	
-		}
-		else
-		{
-			std::cout << "ERROR: CameraComponent.h : The entity does not have a TransformComponent" << std::endl;
-			exit(1);
-		}
+		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");
+
+		auto position = entity->getComponent<TransformComponent>().position();
+		return glm::lookAt(position, position+_front, _up);	
 	}
 
 	glm::mat4 projection() const
@@ -54,12 +46,11 @@ public:
 		// 																		(near value
 		// 																		should be variable)
 		_projection = glm::infinitePerspective(glm::radians(_FOV), (float)width/(float)height, 0.1f);
+		//_projection = glm::perspective(glm::radians(_FOV), (float)width/(float)height, 0.1f, 1000000.0f);
 	}
 
 	void init() override
 	{
-		Message askGLSizeMsg {ASK_GLWIDGET_SIZE};
-		entity->entityPostMessage(askGLSizeMsg);
 	}
 
 	void draw() override

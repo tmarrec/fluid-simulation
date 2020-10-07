@@ -39,6 +39,8 @@ configure_file("src/config.h.in" "config.h")
 
 add_executable(${PROJECT_NAME}
 	src/config.h
+	src/utils.h
+
  	src/main.cpp
 
 	src/Shader.h
@@ -49,14 +51,6 @@ add_executable(${PROJECT_NAME}
 	src/DrawableComponent.h
 	src/CameraComponent.h
 	src/TransformComponent.h
-
-	src/System.h
-	src/System.cpp
-
-	src/Message.h
-
-	src/MessageBus.h
-	src/MessageBus.cpp
 
 	src/ui/MainWindow.h
 	src/ui/MainWindow.cpp
