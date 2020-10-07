@@ -44,7 +44,6 @@ public:
 
 	void init() override
 	{
-		std::cout << "init" << std::endl;
 		_renderer->initDrawable(this);
 	}
 

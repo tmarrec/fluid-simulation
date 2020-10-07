@@ -5,6 +5,7 @@
 
 #include <GL/gl.h>
 #include <memory>
+#include <thread>
 
 void Renderer::initGl()
 {
@@ -32,7 +33,6 @@ void Renderer::initDrawable(DrawableComponent* __drawableComponent)
 	// TODO works only with one shape, need to use 
 	glGenVertexArrays(1, &_VAO);
 
-	std::cout << "start init" << std::endl;
 	glGenBuffers(1, &__drawableComponent->VBO());
 	glGenBuffers(1, &__drawableComponent->NBO());
 	glGenBuffers(1, &__drawableComponent->EBO());
@@ -69,7 +69,6 @@ void Renderer::initDrawable(DrawableComponent* __drawableComponent)
 		);
 
 	glBindVertexArray(0);
-	std::cout << "end init" << std::endl;
 
 	//_glWidget->doneCurrent();
 }
@@ -135,20 +134,12 @@ void Renderer::draw()
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	std::cout << _VAOs.size() << std::endl;
 	glBindVertexArray(_VAO);
-	std::cout << _sceneIndices << std::endl;
 	glDrawElements(GL_TRIANGLES, _sceneIndices, GL_UNSIGNED_INT, nullptr);
-	/*
-	for (const auto &VAO : _VAOs)
-	{
-		glDrawElements(GL_TRIANGLES, __drawableComponent->_indices()->size(), GL_UNSIGNED_INT, nullptr);
-	}
-	*/
 	glBindVertexArray(0);
 
-	//TODO Not sure about this
 	glFinish();
+	//TODO Not sure about this
 	//_glWidget->doneCurrent();
 }
 
