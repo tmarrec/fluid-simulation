@@ -1,5 +1,4 @@
 #include "Shader.h"
-#include "System.h"
 
 #include <iostream>
 #include <string>

@@ -1,13 +1,12 @@
 #include "ECS.h"
 
 #include "CameraComponent.h"
+#include "src/DrawableComponent.h"
+#include <algorithm>
 
-Entity::Entity(MsgBus_ptr messageBus)
-	: System{messageBus}
+Entity::Entity()
 {
 	_id = _counter++;
-	Message helloMsg {HELLO, this};
-	postMessage(helloMsg);
 }
 
 ID Entity::getEntityID() const
@@ -37,56 +36,6 @@ void Entity::draw()
 
 }
 
-void Entity::cout(std::string string) const
-{
-	std::cout << "0x" << std::hex << std::this_thread::get_id() << " ";
-	std::cout << "  \033[100m\033[1m";
-	std::cout << "[Entity " << getEntityID() << "]";
-	std::cout << "\033[49m\033[0m";
-	std::cout << " " << string << std::endl;
-}
-
-void Entity::entityPostMessage(Message & msg)
-{
-	postMessage(msg);
-}
-		
-void Entity::handleMessage(Message & msg)
-{
-	switch(msg._type)
-	{
-		case HELLO_ACK:
-			cout("Loaded in the \033[45m\033[1m[MessageBus]\033[49m\033[0m");
-			break;
-			
-		case ASK_CAMERA_INFOS_FOR_DRAW:
-			if (hasComponent<CameraComponent>())
-			{
-				auto cameraComponent = getComponent<CameraComponent>();
-				auto view = cameraComponent.view();
-				auto projection = cameraComponent.projection();
-				
-				Message drawMsg {DRAW, msg._vertices, msg._normals, msg._indices, msg._VAO,
-					msg._VBO, msg._NBO, msg._EBO, msg._color, msg._shader, msg._position, msg._rotation,
-					msg._scale, view, projection};
-				postMessage(drawMsg);
-
-			}
-			break;
-
-		case GL_SIZE:
-			if (hasComponent<CameraComponent>())
-			{
-				auto cameraComponent = getComponent<CameraComponent>();
-				cameraComponent.setProjection(msg._width, msg._height);
-			}
-			break;
-	
-		default:
-			break;
-	}
-}
-
 bool Entity::isActive() const
 {
 	return _active;
@@ -100,35 +49,6 @@ void Entity::destroy()
 
 ID Entity::_counter = 0;
 ID Component::_counter = 0;
-
-Manager::Manager(MsgBus_ptr messageBus)
-	: System{messageBus}
-{
-	Message helloMsg {HELLO, this};
-	postMessage(helloMsg);
-}
-
-void Manager::cout(std::string string) const
-{
-	std::cout << "0x" << std::hex << std::this_thread::get_id() << " ";
-	std::cout << "       \033[42m\033[1m";
-	std::cout << "[ECS]";
-	std::cout << "\033[49m\033[0m";
-	std::cout << " " << string << std::endl;
-}
-		
-void Manager::handleMessage(Message & msg)
-{
-	switch(msg._type)
-	{
-		case HELLO_ACK:
-			cout("Loaded in the \033[45m\033[1m[MessageBus]\033[49m\033[0m");
-			break;
-	
-		default:
-			break;
-	}
-}
 
 void Manager::update()
 {
@@ -156,9 +76,9 @@ void Manager::refresh()
 		std::end(_entities));
 }
 
-Entity & Manager::addEntity(MsgBus_ptr messageBus)
+Entity & Manager::addEntity()
 {
-	Entity * e = new Entity(messageBus);
+	Entity * e = new Entity();
 	std::unique_ptr<Entity> uPtr {e};
 	_entities.emplace_back(std::move(uPtr));
 	return *e;

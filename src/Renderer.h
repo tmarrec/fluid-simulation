@@ -1,30 +1,33 @@
 #pragma once
 
+#include <GL/gl.h>
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
+#include <memory>
 
-#include "System.h"
 #include "Shader.h"
+#include "src/ECS.h"
 
 
-class Renderer : public System
+class DrawableComponent;
+class CameraComponent;
+
+class Renderer
 {
 public:
-	Renderer(MsgBus_ptr messageBus);
-	void cout(std::string string) const override;
-	void handleMessage(Message & msg) override;
+	void initGl();
+	void resizeGl(int w, int h) const;
 
-	void initGl(Message & msg);
-	void resizeGl(int width, int height) const;
-
-	void initDrawable(Message & msg);
-	void freeDrawable(Message & msg);
-	void draw(Message & msg);
+	void initDrawable(DrawableComponent* __drawableComponent);
+	void freeDrawable();
+	void draw();
+	void useShader(DrawableComponent* __drawableComponent);
+	void setActiveCamera(CameraComponent* __cameraComponent);
 
 private:
-	void _useShader(Message & msg);
-	glm::mat4 _getModel(Message & msg);
-	QOpenGLContext * _glContext;
-	QOpenGLWidget * _glWidget;
+	CameraComponent* _activeCamera = nullptr;
+	std::vector<GLuint> _VAOs;
+	GLuint _VAO;
+	GLsizei _sceneIndices = 0;
 };
 
