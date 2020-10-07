@@ -4,17 +4,20 @@
 #include <QOpenGLFunctions_4_5_Core>
 #include <QKeyEvent>
 
-#include "../Renderer.h"
+#include "../utils.h"
+
+class Renderer;
+class Manager;
+class Entity;
 
 using Renderer__ = std::shared_ptr<Renderer>; 
+using Manager__ = std::shared_ptr<Manager>; 
 
 class GlWidget : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Core
 {
 Q_OBJECT
 public:
 	explicit GlWidget(QWidget *parent = nullptr);
-
-	void setRenderer(Renderer__ __renderer);
 
 	~GlWidget();
 
@@ -29,7 +32,10 @@ protected:
 	void keyPressEvent(QKeyEvent *event) override;
 
 private:
-	Renderer__ _renderer = nullptr;
+	void _init();
+	const Renderer__ _renderer;
+	const Manager__ _manager;
+	Entity* _camera; //TODO Change that
 
 };
 

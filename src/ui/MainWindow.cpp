@@ -1,7 +1,6 @@
 #include "MainWindow.h"
 
-
-MainWindow::MainWindow(Renderer__ __renderer)
+MainWindow::MainWindow()
 : QMainWindow{nullptr}
 , _ui{new Ui::MainWindow}
 {
@@ -13,17 +12,9 @@ MainWindow::MainWindow(Renderer__ __renderer)
 	QSurfaceFormat::setDefaultFormat(format);
 
 	_ui->setupUi(this);
-	_QOpenGLWidget = _ui->openGLWidget;
-	_QOpenGLWidget->setFocus();
-	_QOpenGLWidget->setRenderer(__renderer);
 }
 
 MainWindow::~MainWindow()
 {
 	delete _ui;
-}
-
-void MainWindow::paint()
-{
-	_QOpenGLWidget->update();
 }
