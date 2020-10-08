@@ -19,17 +19,17 @@ public:
 	void initGl();
 	void resizeGl(int w, int h) const;
 
+	void drawDrawable(DrawableComponent* __drawableComponent);
 	void initDrawable(DrawableComponent* __drawableComponent);
-	void freeDrawable();
-	void draw();
-	void useShader(DrawableComponent* __drawableComponent);
+	void freeDrawable(DrawableComponent* __drawableComponent);
 	void setActiveCamera(CameraComponent* __cameraComponent);
+	void clear() const;
+
 
 private:
 	CameraComponent* _activeCamera = nullptr;
-	std::vector<GLuint> _VAOs;
-	GLuint _VAO;
-	std::uint_fast64_t arrayObjetsNB = 0;
 	GLsizei _sceneIndices = 0;
+
+	void _useShader(DrawableComponent* __drawableComponent);
 };
 

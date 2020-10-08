@@ -31,8 +31,7 @@ void Renderer::resizeGl(int w, int h) const
 
 void Renderer::initDrawable(DrawableComponent* __drawableComponent)
 {
-	// TODO works only with one shape, need to use 
-	glGenVertexArrays(1, &_VAO);
+	glGenVertexArrays(1, &__drawableComponent->VAO());
 
 	glGenBuffers(1, &__drawableComponent->VBO());
 	glGenBuffers(1, &__drawableComponent->NBO());
@@ -40,7 +39,7 @@ void Renderer::initDrawable(DrawableComponent* __drawableComponent)
 
 	_sceneIndices += __drawableComponent->indices()->size();
 
-	glBindVertexArray(_VAO);
+	glBindVertexArray(__drawableComponent->VAO());
 		glBindBuffer(GL_ARRAY_BUFFER, __drawableComponent->VBO());
 		glBufferData(
 			GL_ARRAY_BUFFER,
@@ -72,20 +71,17 @@ void Renderer::initDrawable(DrawableComponent* __drawableComponent)
 		glEnableVertexAttribArray(2);
 
 	glBindVertexArray(0);
-	arrayObjetsNB++;
 }
 
-void Renderer::freeDrawable()
+void Renderer::freeDrawable(DrawableComponent* __drawableComponent)
 {
-	/*
-	glDeleteVertexArrays(1, &_componentAttributes[componentID]._GLObjects.VAO);	
-	glDeleteBuffers(1, &_componentAttributes[componentID]._GLObjects.VBO);
-	glDeleteBuffers(1, &_componentAttributes[componentID]._GLObjects.NBO);
-	glDeleteBuffers(1, &_componentAttributes[componentID]._GLObjects.EBO);
-	*/
+	glDeleteVertexArrays(1, &__drawableComponent->VAO());	
+	glDeleteBuffers(1, &__drawableComponent->VBO());
+	glDeleteBuffers(1, &__drawableComponent->NBO());
+	glDeleteBuffers(1, &__drawableComponent->EBO());
 }
 
-void Renderer::useShader(DrawableComponent* __drawableComponent)
+void Renderer::_useShader(DrawableComponent* __drawableComponent)
 {
 	ASSERT(_activeCamera, "_activeCamera should not be nullptr");
 
@@ -127,18 +123,18 @@ void Renderer::useShader(DrawableComponent* __drawableComponent)
 	*/
 }
 
-void Renderer::draw()
+void Renderer::clear() const
 {
 	glClearColor(0.8f, 0.8f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-	glBindVertexArray(_VAO);
-	glDrawElements(GL_TRIANGLES, _sceneIndices, GL_UNSIGNED_INT, nullptr);
+void Renderer::drawDrawable(DrawableComponent* __drawableComponent)
+{
+	_useShader(__drawableComponent);
+	glBindVertexArray(__drawableComponent->VAO());
+	glDrawElements(GL_TRIANGLES, __drawableComponent->indices()->size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
-
-	glFinish();
 }
 
 void Renderer::setActiveCamera(CameraComponent* __cameraComponent)

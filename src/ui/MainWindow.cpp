@@ -4,7 +4,6 @@ MainWindow::MainWindow()
 : QMainWindow{nullptr}
 , _ui{new Ui::MainWindow}
 {
-	std::cout << ":)" << std::endl;
 	QSurfaceFormat format;
 	format.setVersion(4, 6);
 	format.setProfile(QSurfaceFormat::CoreProfile);

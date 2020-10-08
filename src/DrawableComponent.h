@@ -49,7 +49,7 @@ public:
 
 	void draw() override
 	{
-		_renderer->useShader(this);	
+		_renderer->drawDrawable(this);	
 	}
 
 	void update() override
@@ -58,6 +58,7 @@ public:
 
 	~DrawableComponent() override
 	{
+		_renderer->freeDrawable(this);
 	}
 
 	glm::mat4 getModel()
