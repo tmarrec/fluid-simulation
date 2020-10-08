@@ -30,7 +30,6 @@ public:
 	glm::mat4 view() const
 	{
 		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");
-
 		auto position = entity->getComponent<TransformComponent>().position();
 		return glm::lookAt(position, position+_front, _up);	
 	}
@@ -42,11 +41,7 @@ public:
 
 	void setProjection(int width, int height)
 	{
-		// Not sure about the "infinite"
-		// 																		(near value
-		// 																		should be variable)
 		_projection = glm::infinitePerspective(glm::radians(_FOV), (float)width/(float)height, 0.1f);
-		//_projection = glm::perspective(glm::radians(_FOV), (float)width/(float)height, 0.1f, 1000000.0f);
 	}
 
 	void init() override

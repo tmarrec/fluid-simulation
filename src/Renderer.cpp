@@ -9,7 +9,6 @@
 
 void Renderer::initGl()
 {
-	//_glWidget->makeCurrent();
 	glEnable(GL_DEPTH_TEST);
 	resizeGl(0, 0);
 	
@@ -19,17 +18,19 @@ void Renderer::initGl()
 	cout(std::string("Version        : ")+reinterpret_cast<char const*>(glGetString(GL_VERSION)));
 	cout(std::string("GLSL Version   : ")+reinterpret_cast<char const*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
 	*/
-	//_glWidget->doneCurrent();
 }
 
 void Renderer::resizeGl(int w, int h) const
 {
+	if (_activeCamera)
+	{
+		_activeCamera->setProjection(w, h);
+	}
 	glViewport(0, 0, w, h);
 }
 
 void Renderer::initDrawable(DrawableComponent* __drawableComponent)
 {
-	//_glWidget->makeCurrent();
 	// TODO works only with one shape, need to use 
 	glGenVertexArrays(1, &_VAO);
 
@@ -67,10 +68,11 @@ void Renderer::initDrawable(DrawableComponent* __drawableComponent)
 			__drawableComponent->indices()->data(),
 			GL_STATIC_DRAW
 		);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLuint), (GLvoid*)nullptr);
+		glEnableVertexAttribArray(2);
 
 	glBindVertexArray(0);
-
-	//_glWidget->doneCurrent();
+	arrayObjetsNB++;
 }
 
 void Renderer::freeDrawable()
@@ -127,8 +129,6 @@ void Renderer::useShader(DrawableComponent* __drawableComponent)
 
 void Renderer::draw()
 {
-	//_glWidget->makeCurrent();
-
 	glClearColor(0.8f, 0.8f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -139,8 +139,6 @@ void Renderer::draw()
 	glBindVertexArray(0);
 
 	glFinish();
-	//TODO Not sure about this
-	//_glWidget->doneCurrent();
 }
 
 void Renderer::setActiveCamera(CameraComponent* __cameraComponent)
