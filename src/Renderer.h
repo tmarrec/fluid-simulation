@@ -3,6 +3,7 @@
 #include <GL/gl.h>
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
+#include <cstdint>
 #include <memory>
 
 #include "Shader.h"
@@ -28,6 +29,7 @@ private:
 	CameraComponent* _activeCamera = nullptr;
 	std::vector<GLuint> _VAOs;
 	GLuint _VAO;
+	std::uint_fast64_t arrayObjetsNB = 0;
 	GLsizei _sceneIndices = 0;
 };
 

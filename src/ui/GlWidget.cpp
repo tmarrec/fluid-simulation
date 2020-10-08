@@ -93,6 +93,11 @@ void GlWidget::_init()
 	cube.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
 	cube.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", std::make_shared<std::vector<GLfloat>>(v), std::make_shared<std::vector<GLfloat>>(n), std::make_shared<std::vector<GLuint>>(i));
 
+	auto & cube2(_manager->addEntity());
+	cube2.addComponent<TransformComponent>(glm::vec3{20.0f, 10.0f, 5.0f}, glm::vec3{30.0f, 10.0f, 60.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
+	cube2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", std::make_shared<std::vector<GLfloat>>(v), std::make_shared<std::vector<GLfloat>>(n), std::make_shared<std::vector<GLuint>>(i));
+
+
 	_camera = &_manager->addEntity();
 	_camera->addComponent<CameraComponent>(0.0f, 0.0f, 15.0f, 90.0f);
 	_camera->addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
