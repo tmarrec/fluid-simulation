@@ -113,7 +113,8 @@ void GlWidget::initializeGL()
 
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
-
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	
 	_init();
 	
 	//cout(std::string("QT Version     : ")+qVersion());
@@ -121,10 +122,11 @@ void GlWidget::initializeGL()
 
 void GlWidget::paintGL()
 {
-
 	_renderer->setActiveCamera(&_camera->getComponent<CameraComponent>());
+	_renderer->clear();
 	_manager->update();
-	_renderer->draw();
+
+	glFinish();
 
 
 	update();
