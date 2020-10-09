@@ -53,8 +53,10 @@ public:
 		_renderer->drawDrawable(this);	
 	}
 
-	void update() override
+	void update(double _deltaTime) override
 	{
+		auto test = glm::vec3{0.0f, 0.0f, 100.0f}*(float)_deltaTime;
+		entity->getComponent<TransformComponent>().move(test);
 	}
 
 	~DrawableComponent() override
