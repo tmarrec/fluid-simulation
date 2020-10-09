@@ -1,8 +1,9 @@
+#include "src/CameraComponent.h"
+#include "src/TransformComponent.h"
 #include "utils.h"
 
 #include "InputManager.h"
 #include "ui/GlWidget.h"
-#include <qwindowdefs.h>
 
 InputManager::InputManager(GlWidget* __glWidget)
 {
@@ -15,41 +16,48 @@ InputManager::InputManager(GlWidget* __glWidget)
 
 void InputManager::_process_inputs()
 {
+	Entity* activeCameraEntity;
+	glm::vec3 cameraFrontVec;
+	glm::vec3 cameraUpVec;
+	glm::vec3 directionVec;
+	if (_moveFront || _moveBack || _moveLeft || _moveRight || _moveUp || _moveDown)
+	{
+		activeCameraEntity = _glWidget->getActiveCamera();
+		ASSERT(activeCameraEntity->hasComponent<TransformComponent>(), "activeCameraEntity should have a TransformComponent");
+		ASSERT(activeCameraEntity->hasComponent<CameraComponent>(), "activeCameraEntity should have a CameraComponent");
+		auto cameraComponent = activeCameraEntity->getComponent<CameraComponent>();
+		cameraFrontVec = cameraComponent.front();
+		cameraUpVec = cameraComponent.up();
+	}
+
 	if (_moveFront)
 	{
-		glm::vec3 directionVec = {1.0f, 0.0f, 0.0f};
-		auto activeCamera = _glWidget->getActiveCamera();
-		activeCamera->getComponent<TransformComponent>().move(directionVec*activeCamera->getComponent<CameraComponent>().speed());
+		directionVec = glm::normalize(cameraFrontVec);
 	}
 	if (_moveBack)
 	{
-		glm::vec3 directionVec = {-1.0f, 0.0f, 0.0f};
-		auto activeCamera = _glWidget->getActiveCamera();
-		activeCamera->getComponent<TransformComponent>().move(directionVec*activeCamera->getComponent<CameraComponent>().speed());
+		directionVec = -glm::normalize(cameraFrontVec);
 	}
 	if (_moveLeft)
 	{
-		glm::vec3 directionVec = {0.0f, 0.0f, -1.0f};
-		auto activeCamera = _glWidget->getActiveCamera();
-		activeCamera->getComponent<TransformComponent>().move(directionVec*activeCamera->getComponent<CameraComponent>().speed());
+		directionVec = -glm::normalize(glm::cross(cameraFrontVec, cameraUpVec));
 	}
 	if (_moveRight)
 	{
-		glm::vec3 directionVec = {0.0f, 0.0f, 1.0f};
-		auto activeCamera = _glWidget->getActiveCamera();
-		activeCamera->getComponent<TransformComponent>().move(directionVec*activeCamera->getComponent<CameraComponent>().speed());
+		directionVec = glm::normalize(glm::cross(cameraFrontVec, cameraUpVec));
 	}
 	if (_moveUp)
 	{
-		glm::vec3 directionVec = {0.0f, 1.0f, 0.0f};
-		auto activeCamera = _glWidget->getActiveCamera();
-		activeCamera->getComponent<TransformComponent>().move(directionVec*activeCamera->getComponent<CameraComponent>().speed());
+		directionVec = {0.0f, 1.0f, 0.0f};
 	}
 	if (_moveDown)
 	{
-		glm::vec3 directionVec = {0.0f, -1.0f, 0.0f};
-		auto activeCamera = _glWidget->getActiveCamera();
-		activeCamera->getComponent<TransformComponent>().move(directionVec*activeCamera->getComponent<CameraComponent>().speed());
+		directionVec = {0.0f, -1.0f, 0.0f};
+	}
+
+	if (_moveFront || _moveBack || _moveLeft || _moveRight || _moveUp || _moveDown)
+	{
+		activeCameraEntity->getComponent<TransformComponent>().move(directionVec*activeCameraEntity->getComponent<CameraComponent>().speed());
 	}
 }
 
@@ -109,3 +117,41 @@ void InputManager::keyReleaseEvent(QKeyEvent *event)
 	}
 }
 
+void InputManager::mousePressEvent(QMouseEvent *event)
+{
+	_last_mouse_x = event->x();
+	_last_mouse_y = event->y();
+}
+
+void InputManager::mouseMoveEvent(QMouseEvent *event)
+{
+	int x = event->x();
+	int y = event->y();
+
+	auto activeCameraEntity = _glWidget->getActiveCamera();
+	ASSERT(activeCameraEntity->hasComponent<CameraComponent>(), "activeCameraEntity should have a CameraComponent");
+	auto& activeCamera = activeCameraEntity->getComponent<CameraComponent>();
+	float yaw = activeCamera.yaw();
+	float pitch = activeCamera.pitch();
+
+	float sensitivity = 0.3f;
+	float offset_x = (x-_last_mouse_x)*sensitivity;
+	float offset_y = (y-_last_mouse_y)*sensitivity;
+
+	yaw += offset_x;
+	pitch -= offset_y;
+	pitch = glm::clamp(pitch, -89.9f, 89.9f);
+
+	activeCamera.setYaw(yaw);
+	activeCamera.setPitch(pitch);
+
+	glm::vec3 dir;
+	dir.x = cos(glm::radians(yaw))*cos(glm::radians(pitch));
+	dir.y = sin(glm::radians(pitch));
+	dir.z = sin(glm::radians(yaw))*cos(glm::radians(pitch));
+	dir = glm::normalize(dir);
+	activeCamera.setFront(dir);
+
+	_last_mouse_x = x;
+	_last_mouse_y = y;
+}

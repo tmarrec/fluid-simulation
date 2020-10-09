@@ -27,9 +27,29 @@ public:
 		_projection = glm::mat4{1.0f};
 	}
 
+	float yaw() const
+	{
+		return _yaw;
+	}
+	
+	float pitch() const
+	{
+		return _pitch;
+	}
+
 	float speed() const
 	{
 		return _speed;
+	}
+	
+	glm::vec3 front() const
+	{
+		return _front;
+	}
+
+	glm::vec3 up() const
+	{
+		return _up;
 	}
 
 	glm::mat4 view() const
@@ -47,6 +67,21 @@ public:
 	void setProjection(int width, int height)
 	{
 		_projection = glm::infinitePerspective(glm::radians(_FOV), (float)width/(float)height, 0.1f);
+	}
+
+	void setYaw(float __yaw)
+	{
+		_yaw = __yaw;
+	}
+
+	void setPitch(float __pitch)
+	{
+		_pitch = __pitch;
+	}
+
+	void setFront(glm::vec3 __front)
+	{
+		_front = __front;
 	}
 
 	void init() override
