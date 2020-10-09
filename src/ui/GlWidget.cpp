@@ -2,10 +2,11 @@
 #include "src/ui/MainWindow.h"
 
 #include <cstdint>
+#include <qevent.h>
 #include <unistd.h>
 #include <thread>
 
-
+#include "../InputManager.h"
 #include "../shapes.h"
 #include "../Renderer.h"
 #include "../TransformComponent.h"
@@ -16,31 +17,37 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 
 GlWidget::GlWidget(QWidget *parent)
 : QOpenGLWidget{parent}
-, _renderer{ std::shared_ptr<Renderer>(new Renderer) }
-, _manager{ std::shared_ptr<ECS_Manager>(new ECS_Manager) }
+, _renderer { std::shared_ptr<Renderer>(new Renderer) }
+, _ECS_manager { std::shared_ptr<ECS_Manager>(new ECS_Manager) }
+, _InputManager { std::shared_ptr<InputManager>(new InputManager(static_cast<GlWidget*>(this))) }
 {
 	setFocus();
 	//_currentTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
+
+Entity* GlWidget::getActiveCamera() const
+{
+	return _activeCamera;
+}	
 
 void GlWidget::_init()
 {
 
 	Cube c;
 
-	auto & cube(_manager->addEntity());
+	auto & cube(_ECS_manager->addEntity());
 	cube.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
 	cube.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices);
 
-	auto & cube2(_manager->addEntity());
+	auto & cube2(_ECS_manager->addEntity());
 	cube2.addComponent<TransformComponent>(glm::vec3{20.0f, 10.0f, 80.0f}, glm::vec3{30.0f, 10.0f, 60.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
 	cube2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices);
 
-	_camera = &_manager->addEntity();
-	_camera->addComponent<CameraComponent>(0.0f, 0.0f, 15.0f, 90.0f);
-	_camera->addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	_activeCamera = &_ECS_manager->addEntity();
+	_activeCamera->addComponent<CameraComponent>(0.0f, 0.0f, 15.0f, 90.0f);
+	_activeCamera->addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 
-	_renderer->setActiveCamera(&_camera->getComponent<CameraComponent>());
+	_renderer->setActiveCamera(&_activeCamera->getComponent<CameraComponent>());
 }
 
 void GlWidget::initializeGL()
@@ -56,7 +63,7 @@ void GlWidget::initializeGL()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	
 	_init();
-	std::thread t ((Test(_manager)));
+	std::thread t ((Test(_ECS_manager)));
 	t.detach();
 	
 	//cout(std::string("QT Version     : ")+qVersion());
@@ -66,8 +73,8 @@ void GlWidget::paintGL()
 {
 
 	_renderer->clear();
-	_manager->update(_deltaTime);
-	_manager->draw();
+	_ECS_manager->update(_deltaTime);
+	_ECS_manager->draw();
 	glFinish();
 
 	//#####################################
@@ -99,18 +106,12 @@ void GlWidget::resizeGL(int w, int h)
 
 void GlWidget::keyPressEvent(QKeyEvent *event)
 {
-	switch(event->key())
-	{
-		case Qt::Key_Z:
-			{
-				glm::vec3 directionVec = {1.0f, 0.0f, 0.0f};
-				_camera->getComponent<TransformComponent>().move(directionVec*_camera->getComponent<CameraComponent>().speed());
-			}
-			break;
+	_InputManager->keyPressEvent(event);
+}
 
-		default:
-			break;
-	}
+void GlWidget::keyReleaseEvent(QKeyEvent *event)
+{
+	_InputManager->keyReleaseEvent(event);
 }
 
 void GlWidget::cleanup()

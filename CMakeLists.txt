@@ -44,6 +44,9 @@ add_executable(${PROJECT_NAME}
  	src/main.cpp
 	src/shapes.h
 
+	src/InputManager.h
+	src/InputManager.cpp
+
 	src/Shader.h
 	src/Shader.cpp
 
