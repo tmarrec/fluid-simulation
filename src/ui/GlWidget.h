@@ -3,15 +3,16 @@
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_4_5_Core>
 #include <QKeyEvent>
+#include <cstdint>
 
 #include "../utils.h"
 
 class Renderer;
-class Manager;
+class ECS_Manager;
 class Entity;
 
 using Renderer__ = std::shared_ptr<Renderer>; 
-using Manager__ = std::shared_ptr<Manager>; 
+using ECS_Manager__ = std::shared_ptr<ECS_Manager>; 
 
 class GlWidget : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Core
 {
@@ -34,8 +35,12 @@ protected:
 private:
 	void _init();
 	const Renderer__ _renderer;
-	const Manager__ _manager;
+	const ECS_Manager__ _manager;
 	Entity* _camera; //TODO Change that
+
+	std::uint64_t _frame_count = 0;
+	std::uint64_t _start_timer_fps = 0;
+	std::uint64_t _start_timer_frame = 0;
 
 };
 

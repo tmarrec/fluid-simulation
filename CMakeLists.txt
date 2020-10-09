@@ -42,6 +42,7 @@ add_executable(${PROJECT_NAME}
 	src/utils.h
 
  	src/main.cpp
+	src/shapes.h
 
 	src/Shader.h
 	src/Shader.cpp

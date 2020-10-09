@@ -27,6 +27,11 @@ public:
 		_projection = glm::mat4{1.0f};
 	}
 
+	float speed() const
+	{
+		return _speed;
+	}
+
 	glm::mat4 view() const
 	{
 		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");

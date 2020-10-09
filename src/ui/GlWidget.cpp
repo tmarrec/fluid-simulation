@@ -1,6 +1,7 @@
 #include "GlWidget.h"
 #include "src/ui/MainWindow.h"
 
+#include "../shapes.h"
 #include "../Renderer.h"
 #include "../TransformComponent.h"
 #include "../CameraComponent.h"
@@ -11,92 +12,23 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 GlWidget::GlWidget(QWidget *parent)
 : QOpenGLWidget{parent}
 , _renderer{ std::shared_ptr<Renderer>(new Renderer) }
-, _manager{ std::shared_ptr<Manager>(new Manager) }
+, _manager{ std::shared_ptr<ECS_Manager>(new ECS_Manager) }
 {
 	setFocus();
 }
 
 void GlWidget::_init()
 {
-	std::vector<GLfloat> v = std::vector<GLfloat>{
-					-0.5f, -0.5f, 0.5f,
-					0.5f, -0.5f, 0.5f,
-					0.5f, 0.5f, 0.5f,
-					-0.5f, 0.5f, 0.5f,
 
-					0.5f, 0.5f, 0.5f,
-					0.5f, 0.5f, -0.5f,
-					0.5f, -0.5f, -0.5f,
-					0.5f, -0.5f, 0.5f,
-
-					-0.5f, -0.5f, -0.5f,
-					0.5f, -0.5f, -0.5f,
-					0.5f, 0.5f, -0.5f,
-					-0.5f, 0.5f, -0.5f,
-
-					-0.5f, -0.5f, -0.5f,
-					-0.5f, -0.5f, 0.5f,
-					-0.5f, 0.5f, 0.5f,
-					-0.5f, 0.5f, -0.5f,
-						
-					0.5f, 0.5f, 0.5f,
-					-0.5f, 0.5f, 0.5f,
-					-0.5f, 0.5f, -0.5f,
-					0.5f, 0.5f, -0.5f,
-
-					-0.5f, -0.5f, -0.5f,
-					0.5f, -0.5f, -0.5f,
-					0.5f, -0.5f, 0.5f,
-					-0.5f, -0.5f, 0.5f,
-	};
-	std::vector<GLfloat> n = std::vector<GLfloat>{
-					0.0f, 0.0f, 1.0f,
-					0.0f, 0.0f, 1.0f,
-					0.0f, 0.0f, 1.0f,
-					0.0f, 0.0f, 1.0f,
-
-					1.0f, 0.0f, 0.0f,
-					1.0f, 0.0f, 0.0f,
-					1.0f, 0.0f, 0.0f,
-					1.0f, 0.0f, 0.0f,
-
-					0.0f, 0.0f, -1.0f,
-					0.0f, 0.0f, -1.0f,
-					0.0f, 0.0f, -1.0f,
-					0.0f, 0.0f, -1.0f,
-
-					-1.0f, 0.0f, 0.0f,
-					-1.0f, 0.0f, 0.0f,
-					-1.0f, 0.0f, 0.0f,
-					-1.0f, 0.0f, 0.0f,
-
-					0.0f, 1.0f, 0.0f,
-					0.0f, 1.0f, 0.0f,
-					0.0f, 1.0f, 0.0f,
-					0.0f, 1.0f, 0.0f,
-
-					0.0f, -1.0f, 0.0f,
-					0.0f, -1.0f, 0.0f,
-					0.0f, -1.0f, 0.0f,
-					0.0f, -1.0f, 0.0f,
-				};
-	std::vector<GLuint> i = std::vector<GLuint>{
-					0,  1,  2,  0,  2,  3,   //front
-					4,  5,  6,  4,  6,  7,   //right
-					8,  9,  10, 8,  10, 11,  //back
-					12, 13, 14, 12, 14, 15,  //left
-					16, 17, 18, 16, 18, 19,  //upper
-					20, 21, 22, 20, 22, 23 	 //bottom
-				};
+	Cube c;
 
 	auto & cube(_manager->addEntity());
 	cube.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
-	cube.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", std::make_shared<std::vector<GLfloat>>(v), std::make_shared<std::vector<GLfloat>>(n), std::make_shared<std::vector<GLuint>>(i));
+	cube.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices);
 
 	auto & cube2(_manager->addEntity());
-	cube2.addComponent<TransformComponent>(glm::vec3{20.0f, 10.0f, 5.0f}, glm::vec3{30.0f, 10.0f, 60.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
-	cube2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", std::make_shared<std::vector<GLfloat>>(v), std::make_shared<std::vector<GLfloat>>(n), std::make_shared<std::vector<GLuint>>(i));
-
+	cube2.addComponent<TransformComponent>(glm::vec3{20.0f, 10.0f, 80.0f}, glm::vec3{30.0f, 10.0f, 60.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
+	cube2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices);
 
 	_camera = &_manager->addEntity();
 	_camera->addComponent<CameraComponent>(0.0f, 0.0f, 15.0f, 90.0f);
@@ -122,12 +54,34 @@ void GlWidget::initializeGL()
 
 void GlWidget::paintGL()
 {
+
+	_manager->update(); //TODO a faire dans la gameloop
+
 	_renderer->setActiveCamera(&_camera->getComponent<CameraComponent>());
 	_renderer->clear();
-	_manager->update();
+	_manager->draw();
 
 	glFinish();
 
+
+	//#####################################
+	// Compte les FPS chaque secondes
+	std::uint64_t end_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	if (end_timer_fps-_start_timer_fps > 1000) {
+		//_main_window->update_title_infos("FPS: " + std::to_string(_frame_count));
+		std::cout << _frame_count << std::endl;
+		_frame_count = 0;
+		_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	}
+
+	// Calcule le Time Delta
+	if (_start_timer_frame != 0) {
+		std::uint64_t end_timer_frame = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		//_openGL->set_delta_time(1e-9*(end_timer_frame-_start_timer_frame));
+	}
+	_start_timer_frame = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	_frame_count++;
+	//#####################################
 
 	update();
 }
@@ -141,9 +95,10 @@ void GlWidget::keyPressEvent(QKeyEvent *event)
 {
 	switch(event->key())
 	{
-		case Qt::Key_R:
+		case Qt::Key_Z:
 			{
-
+				glm::vec3 directionVec = {1.0f, 0.0f, 0.0f};
+				_camera->getComponent<TransformComponent>().move(directionVec*_camera->getComponent<CameraComponent>().speed());
 			}
 			break;
 
