@@ -44,7 +44,7 @@ void GlWidget::_init()
 	cube2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices);
 
 	_activeCamera = &_ECS_manager->addEntity();
-	_activeCamera->addComponent<CameraComponent>(0.0f, 0.0f, 15.0f, 90.0f);
+	_activeCamera->addComponent<CameraComponent>(0.0f, 0.0f, 5.0f, 90.0f);
 	_activeCamera->addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 
 	_renderer->setActiveCamera(&_activeCamera->getComponent<CameraComponent>());
@@ -112,6 +112,15 @@ void GlWidget::keyPressEvent(QKeyEvent *event)
 void GlWidget::keyReleaseEvent(QKeyEvent *event)
 {
 	_InputManager->keyReleaseEvent(event);
+}
+void GlWidget::mousePressEvent(QMouseEvent *event)
+{
+	_InputManager->mousePressEvent(event);
+}
+
+void GlWidget::mouseMoveEvent(QMouseEvent *event)
+{
+	_InputManager->mouseMoveEvent(event);
 }
 
 void GlWidget::cleanup()
