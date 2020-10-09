@@ -10,20 +10,26 @@
 #include "../utils.h"
 
 #include "../ECS.h"
+#include "../TransformComponent.h"
+#include "../CameraComponent.h"
+#include "../DrawableComponent.h"
 
 class Renderer;
 class ECS_Manager;
+class InputManager;
 class Entity;
 class Test;
 
 using Renderer__ = std::shared_ptr<Renderer>; 
 using ECS_Manager__ = std::shared_ptr<ECS_Manager>; 
+using InputManager__ = std::shared_ptr<InputManager>; 
 
 class GlWidget : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Core
 {
 Q_OBJECT
 public:
 	explicit GlWidget(QWidget *parent = nullptr);
+	Entity* getActiveCamera() const;
 
 	~GlWidget();
 
@@ -36,12 +42,14 @@ protected:
 	void resizeGL(int w, int h) override;
 
 	void keyPressEvent(QKeyEvent *event) override;
+	void keyReleaseEvent(QKeyEvent *event) override;
 
 private:
 	void _init();
 	const Renderer__ _renderer;
-	const ECS_Manager__ _manager;
-	Entity* _camera; //TODO Change that
+	const ECS_Manager__ _ECS_manager;
+	const InputManager__ _InputManager;
+	Entity* _activeCamera; //TODO Change that
 
 	std::uint64_t _frame_count = 0;
 	std::uint64_t _start_timer_fps = 0;
@@ -53,10 +61,10 @@ private:
 class Test
 {
 public:
-	Test(ECS_Manager__ __manager)
+	Test(ECS_Manager__ __ECS_manager)
 	{
 		_currentTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		_manager = __manager;
+		_ECS_manager = __ECS_manager;
 	}
 
 	void operator()()
@@ -77,10 +85,10 @@ public:
 			{
 				_time += _deltaTime;
 				_accumulator -= _deltaTime;
-				//_manager->update(); //TODO a faire dans la gameloop
+				//ECS_manager->update(); //TODO a faire dans la gameloop
 				std::cout << _time << " " << _deltaTime << std::endl;
 				//std::this_thread::sleep_for(std::chrono::milliseconds(400));
-				_manager->update(_deltaTime);
+				ECS_manager->update(_deltaTime);
 			}
 			*/
 
@@ -92,6 +100,7 @@ public:
 	double _currentTime = 0.0f;
 	double _accumulator = 0.0f;
 	const std::uint8_t _tick_rate = 64;
-	ECS_Manager__ _manager;
+	ECS_Manager__ _ECS_manager;
+	InputManager__ _InputManager;
 
 };
