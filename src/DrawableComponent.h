@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GL/gl.h>
+#include <memory>
 
 #include "ECS.h"
 #include "TransformComponent.h"
@@ -28,13 +29,13 @@ private:
 
 public:
 	DrawableComponent(Renderer__ __renderer, std::string vertPath, std::string fragPath,
-		std::shared_ptr<std::vector<GLfloat>> vertices, std::shared_ptr<std::vector<GLfloat>> normals,
-		std::shared_ptr<std::vector<GLuint>> indices)
+		std::vector<GLfloat> vertices, std::vector<GLfloat> normals,
+		std::vector<GLuint> indices)
 	: Component{}
 	{
-		_vertices = vertices;
-		_normals = normals;
-		_indices = indices;
+		_vertices = std::make_shared<std::vector<GLfloat>>(vertices);
+		_normals = std::make_shared<std::vector<GLfloat>>(normals);
+		_indices = std::make_shared<std::vector<GLuint>>(indices);
 		_renderer = __renderer;
 		
 		auto shader = new Shader{vertPath.c_str(), fragPath.c_str()};

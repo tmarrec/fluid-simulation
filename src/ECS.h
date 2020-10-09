@@ -114,7 +114,7 @@ private:
 
 };
 
-class Manager
+class ECS_Manager
 {
 public:
 	void update();

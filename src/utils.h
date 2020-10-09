@@ -7,11 +7,11 @@
 #include <GL/gl.h>
 
 #define WARNING(m) \
-	std::cerr << m << std::endl; \
+	std::cerr << m << std::endl;
 
 #define ERROR(m) \
 	std::cerr << m << std::endl; \
-	exit(2); \
+	exit(2);
 
 #ifndef NDEBUG
 #define ASSERT(c, m) \
@@ -38,4 +38,4 @@
 	for (unsigned char i = 0; i < 3; ++i) \
 	{ \
 		std::cout << std::endl; \
-	} \
+	}

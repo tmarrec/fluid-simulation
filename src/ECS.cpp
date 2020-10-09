@@ -4,6 +4,9 @@
 #include "src/DrawableComponent.h"
 #include <algorithm>
 
+ID Entity::_counter = 0;
+ID Component::_counter = 0;
+
 Entity::Entity()
 {
 	_id = _counter++;
@@ -20,20 +23,19 @@ void Entity::update()
 	{
 		component->update();
 	}
-	for(const auto & component : _components)
-	{
-		component->draw();
-	}
 }
 
 void Entity::init()
 {
-	std::cout << "teste" << std::endl;
+
 }
 
 void Entity::draw()
 {
-
+	for(const auto & component : _components)
+	{
+		component->draw();
+	}
 }
 
 bool Entity::isActive() const
@@ -46,19 +48,16 @@ void Entity::destroy()
 	_active = false;
 }
 
-
-ID Entity::_counter = 0;
-ID Component::_counter = 0;
-
-void Manager::update()
+void ECS_Manager::update()
 {
+	refresh();
 	for (const auto & entity : _entities)
 	{
 		entity->update();
 	}
 }
 
-void Manager::draw()
+void ECS_Manager::draw()
 {
 	for (const auto & entity: _entities)
 	{
@@ -66,7 +65,7 @@ void Manager::draw()
 	}
 }
 
-void Manager::refresh()
+void ECS_Manager::refresh()
 {
 	_entities.erase(std::remove_if(std::begin(_entities), std::end(_entities),
 		[](const std::unique_ptr<Entity> &mEntity)
@@ -76,10 +75,11 @@ void Manager::refresh()
 		std::end(_entities));
 }
 
-Entity & Manager::addEntity()
+Entity & ECS_Manager::addEntity()
 {
 	Entity * e = new Entity();
 	std::unique_ptr<Entity> uPtr {e};
+	uPtr->init();
 	_entities.emplace_back(std::move(uPtr));
 	return *e;
 }

@@ -33,6 +33,11 @@ public:
 		return _scale;
 	}
 
+	void move(glm::vec3 moveVector)
+	{
+		_position += moveVector;
+	}
+
 	glm::mat4 getModel()
 	{
 		glm::mat4 model {1.0f};
