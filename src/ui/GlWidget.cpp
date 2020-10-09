@@ -25,10 +25,7 @@ GlWidget::GlWidget(QWidget *parent)
 	//_currentTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-Entity* GlWidget::getActiveCamera() const
-{
-	return _activeCamera;
-}	
+Entity* GlWidget::getActiveCamera() const { return _activeCamera; }	
 
 void GlWidget::_init()
 {
@@ -65,13 +62,10 @@ void GlWidget::initializeGL()
 	_init();
 	std::thread t ((Test(_ECS_manager)));
 	t.detach();
-	
-	//cout(std::string("QT Version     : ")+qVersion());
 }
 
 void GlWidget::paintGL()
 {
-
 	_renderer->clear();
 	_ECS_manager->update(_deltaTime);
 	_ECS_manager->draw();
@@ -99,29 +93,11 @@ void GlWidget::paintGL()
 	update();
 }
 
-void GlWidget::resizeGL(int w, int h)
-{
-	_renderer->resizeGl(w, h);
-}
-
-void GlWidget::keyPressEvent(QKeyEvent *event)
-{
-	_InputManager->keyPressEvent(event);
-}
-
-void GlWidget::keyReleaseEvent(QKeyEvent *event)
-{
-	_InputManager->keyReleaseEvent(event);
-}
-void GlWidget::mousePressEvent(QMouseEvent *event)
-{
-	_InputManager->mousePressEvent(event);
-}
-
-void GlWidget::mouseMoveEvent(QMouseEvent *event)
-{
-	_InputManager->mouseMoveEvent(event);
-}
+void GlWidget::resizeGL(int w, int h) { _renderer->resizeGl(w, h); }
+void GlWidget::keyPressEvent(QKeyEvent *event) { _InputManager->keyPressEvent(event); }
+void GlWidget::keyReleaseEvent(QKeyEvent *event) { _InputManager->keyReleaseEvent(event); }
+void GlWidget::mousePressEvent(QMouseEvent *event) { _InputManager->mousePressEvent(event); }
+void GlWidget::mouseMoveEvent(QMouseEvent *event) { _InputManager->mouseMoveEvent(event); }
 
 void GlWidget::cleanup()
 {
