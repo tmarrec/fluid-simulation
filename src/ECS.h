@@ -48,7 +48,7 @@ public:
 	}
 
 	virtual void init() {}
-	virtual void update() {}
+	virtual void update(double _deltaTime) {}
 	virtual void draw() {}
 	virtual ~Component() {}
 
@@ -66,7 +66,7 @@ public:
 	Entity();
 
 	ID getEntityID() const;
-	void update();
+	void update(double _deltaTime);
 	void init();
 	void draw();
 
@@ -117,7 +117,7 @@ private:
 class ECS_Manager
 {
 public:
-	void update();
+	void update(double _deltaTime);
 
 	void draw();
 

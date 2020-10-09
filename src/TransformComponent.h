@@ -58,7 +58,7 @@ public:
 	{
 	}
 
-	void update() override
+	void update(double _deltaTime) override
 	{
 	}
 

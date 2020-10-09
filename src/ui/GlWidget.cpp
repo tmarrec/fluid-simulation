@@ -1,6 +1,11 @@
 #include "GlWidget.h"
 #include "src/ui/MainWindow.h"
 
+#include <cstdint>
+#include <unistd.h>
+#include <thread>
+
+
 #include "../shapes.h"
 #include "../Renderer.h"
 #include "../TransformComponent.h"
@@ -15,6 +20,7 @@ GlWidget::GlWidget(QWidget *parent)
 , _manager{ std::shared_ptr<ECS_Manager>(new ECS_Manager) }
 {
 	setFocus();
+	//_currentTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 void GlWidget::_init()
@@ -33,6 +39,8 @@ void GlWidget::_init()
 	_camera = &_manager->addEntity();
 	_camera->addComponent<CameraComponent>(0.0f, 0.0f, 15.0f, 90.0f);
 	_camera->addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+
+	_renderer->setActiveCamera(&_camera->getComponent<CameraComponent>());
 }
 
 void GlWidget::initializeGL()
@@ -48,6 +56,8 @@ void GlWidget::initializeGL()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	
 	_init();
+	std::thread t ((Test(_manager)));
+	t.detach();
 	
 	//cout(std::string("QT Version     : ")+qVersion());
 }
@@ -55,14 +65,10 @@ void GlWidget::initializeGL()
 void GlWidget::paintGL()
 {
 
-	_manager->update(); //TODO a faire dans la gameloop
-
-	_renderer->setActiveCamera(&_camera->getComponent<CameraComponent>());
 	_renderer->clear();
+	_manager->update(_deltaTime);
 	_manager->draw();
-
 	glFinish();
-
 
 	//#####################################
 	// Compte les FPS chaque secondes
@@ -77,7 +83,7 @@ void GlWidget::paintGL()
 	// Calcule le Time Delta
 	if (_start_timer_frame != 0) {
 		std::uint64_t end_timer_frame = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		//_openGL->set_delta_time(1e-9*(end_timer_frame-_start_timer_frame));
+		_deltaTime = 1e-9*(end_timer_frame-_start_timer_frame);
 	}
 	_start_timer_frame = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	_frame_count++;
