@@ -11,12 +11,11 @@ InputManager::InputManager(GlWidget* __glWidget)
 	_input_timer = new QTimer(nullptr);
 	connect(_input_timer, &QTimer::timeout, this, &InputManager::_process_inputs);
 	_input_timer->start((1.0f/128.0f)*1000.0f);
-
 }
 
 void InputManager::_process_inputs()
 {
-	Entity* activeCameraEntity;
+	Entity* activeCameraEntity = nullptr;
 	glm::vec3 cameraFrontVec;
 	glm::vec3 cameraUpVec;
 	glm::vec3 directionVec;

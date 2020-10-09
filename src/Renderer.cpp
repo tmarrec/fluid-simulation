@@ -7,26 +7,19 @@
 #include <memory>
 #include <thread>
 
-void Renderer::initGl()
+void Renderer::initGl() const
 {
 	glEnable(GL_DEPTH_TEST);
 	resizeGl(0, 0);
-	
-	/*
-	cout(std::string("Renderer       : ")+reinterpret_cast<char const*>(glGetString(GL_RENDERER)));
-	cout(std::string("Vendor         : ")+reinterpret_cast<char const*>(glGetString(GL_VENDOR)));
-	cout(std::string("Version        : ")+reinterpret_cast<char const*>(glGetString(GL_VERSION)));
-	cout(std::string("GLSL Version   : ")+reinterpret_cast<char const*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
-	*/
 }
 
-void Renderer::resizeGl(int w, int h) const
+void Renderer::resizeGl(int __w, int __h) const
 {
 	if (_activeCamera)
 	{
-		_activeCamera->setProjection(w, h);
+		_activeCamera->setProjection(__w, __h);
 	}
-	glViewport(0, 0, w, h);
+	glViewport(0, 0, __w, __h);
 }
 
 void Renderer::initDrawable(DrawableComponent* __drawableComponent)
@@ -91,13 +84,13 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 	shader->set_3f("_object_color", color);
 
 	shader->set_mat4("model", __drawableComponent->getModel());
-	shader->set_mat4("view", _activeCamera->view());
+	shader->set_mat4("view", _activeCamera->getView());
 	shader->set_mat4("projection", _activeCamera->projection());
 	uint64_t time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	float time_sin = sin(time/50000);
 	shader->set_1f("time", time_sin);
 
-	shader->set_3f("_view_pos", _activeCamera->view()[3]);
+	shader->set_3f("_view_pos", _activeCamera->getView()[3]);
 
 	// TODO add ligths 	
 	shader->set_1i("_light_nb", 0);

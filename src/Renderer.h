@@ -16,14 +16,15 @@ class CameraComponent;
 class Renderer
 {
 public:
-	void initGl();
-	void resizeGl(int w, int h) const;
+	void initGl() const;
+	void resizeGl(int __w, int __h) const;
 
 	void drawDrawable(DrawableComponent* __drawableComponent);
 	void initDrawable(DrawableComponent* __drawableComponent);
 	void freeDrawable(DrawableComponent* __drawableComponent);
-	void setActiveCamera(CameraComponent* __cameraComponent);
 	void clear() const;
+
+	void setActiveCamera(CameraComponent* __cameraComponent);
 
 
 private:

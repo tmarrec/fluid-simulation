@@ -1,3 +1,5 @@
+#pragma once
+
 #include <QKeyEvent>
 #include <QTimer>
 #include <QObject>
@@ -14,9 +16,10 @@ public:
 	void mousePressEvent(QMouseEvent *event);
 	void mouseMoveEvent(QMouseEvent *event);
 	
-	GlWidget* _glWidget;
 
 private:
+	void _process_inputs();
+
 	bool _moveFront = false;
 	bool _moveBack = false;
 	bool _moveLeft = false;
@@ -24,8 +27,7 @@ private:
 	bool _moveUp = false;
 	bool _moveDown = false;
 	QTimer* _input_timer;
-	void _process_inputs();
-
 	int _last_mouse_x = 0;
 	int _last_mouse_y = 0;
+	GlWidget* _glWidget;
 };

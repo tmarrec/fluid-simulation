@@ -12,15 +12,12 @@ namespace Ui {
 class MainWindow : public QMainWindow
 {
 Q_OBJECT
-
 public:
 	explicit MainWindow();
-
 	~MainWindow();
 
 private:
 	Ui::MainWindow* _ui;
 
 private slots:
-
 };

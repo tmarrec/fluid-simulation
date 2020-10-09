@@ -17,11 +17,11 @@ ID Entity::getEntityID() const
 	return _id;
 }
 
-void Entity::update(double _deltaTime)
+void Entity::update(double __deltaTime)
 {
 	for(const auto & component : _components)
 	{
-		component->update(_deltaTime);
+		component->update(__deltaTime);
 	}
 }
 
@@ -48,12 +48,12 @@ void Entity::destroy()
 	_active = false;
 }
 
-void ECS_Manager::update(double _deltaTime)
+void ECS_Manager::update(double __deltaTime)
 {
 	refresh();
 	for (const auto & entity : _entities)
 	{
-		entity->update(_deltaTime);
+		entity->update(__deltaTime);
 	}
 }
 

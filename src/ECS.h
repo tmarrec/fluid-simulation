@@ -38,35 +38,29 @@ public:
 	Entity* entity;
 
 	Component()
-	{
-		_id = _counter++;
-	}
-
-	ID getComponentID() const
-	{
-		return _id;
-	}
+	: _id { _counter++ }
+	{}
 
 	virtual void init() {}
-	virtual void update(double _deltaTime) {}
+	virtual void update([[maybe_unused]] double __deltaTime) {}
 	virtual void draw() {}
 	virtual ~Component() {}
+
+	ID getComponentID() const { return _id; }
 
 	static ID _counter;
 
 private:
 	ID _id;
-
 };
 
 class Entity
 {
 public:
-	
 	Entity();
 
 	ID getEntityID() const;
-	void update(double _deltaTime);
+	void update(double __deltaTime);
 	void init();
 	void draw();
 
@@ -79,7 +73,6 @@ public:
 	{
 		return _componentBitSet[getComponentTypeID<T>()];
 	}
-
 	template <typename T, typename... TArgs>
 	T& addComponent(TArgs... mArgs)
 	{
@@ -95,7 +88,6 @@ public:
 		c->init();
 		return *c;
 	}
-
 	template <typename T> T& getComponent() const
 	{
 		auto ptr {_componentArray[getComponentTypeID<T>()]};
@@ -117,12 +109,9 @@ private:
 class ECS_Manager
 {
 public:
-	void update(double _deltaTime);
-
+	void update(double __deltaTime);
 	void draw();
-
 	void refresh();
-
 	Entity & addEntity();
 
 private:
