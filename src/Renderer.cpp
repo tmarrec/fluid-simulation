@@ -126,7 +126,7 @@ void Renderer::drawDrawable(DrawableComponent* __drawableComponent)
 {
 	_useShader(__drawableComponent);
 	glBindVertexArray(__drawableComponent->VAO());
-	glDrawElements(GL_TRIANGLES, __drawableComponent->indices()->size(), GL_UNSIGNED_INT, nullptr);
+	glDrawElements(__drawableComponent->drawMode(), __drawableComponent->indices()->size(), GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }
 

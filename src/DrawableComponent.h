@@ -13,13 +13,14 @@ using Renderer__ = std::shared_ptr<Renderer>;
 class DrawableComponent : public Component
 {
 public:
-	DrawableComponent(Renderer__ __renderer, std::string __vertPath, std::string __fragPath, std::vector<GLfloat> __vertices, std::vector<GLfloat> __normals, std::vector<GLuint> __indices)
+	DrawableComponent(Renderer__ __renderer, std::string __vertPath, std::string __fragPath, std::vector<GLfloat> __vertices, std::vector<GLfloat> __normals, std::vector<GLuint> __indices, GLenum __drawMode)
 	: Component{}
 	, _renderer { __renderer }
 	, _vertices { std::make_shared<std::vector<GLfloat>>(__vertices) }
 	, _normals { std::make_shared<std::vector<GLfloat>>(__normals) }
 	, _indices { std::make_shared<std::vector<GLuint>>(__indices) }
 	, _shader { std::make_shared<Shader>(Shader{__vertPath.c_str(), __fragPath.c_str()}) }
+	, _drawMode { __drawMode }
 	{}
 
 	void init() override
@@ -45,6 +46,7 @@ public:
 	std::shared_ptr<std::vector<GLuint>> indices() const { return _indices; }
 	glm::vec3 color() const	{ return _color; }
 	std::shared_ptr<Shader> shader() const { return _shader; }
+	GLenum drawMode() const { return _drawMode; }
 	GLuint& VAO() { return _VAO; }
 	GLuint& VBO() { return _VBO; }
 	GLuint& NBO() { return _NBO; }
@@ -68,4 +70,5 @@ private:
 
 	glm::vec3 _color = {1.0f, 0.5f, 0.5f};
 	std::shared_ptr<Shader> _shader;
+	GLenum _drawMode;
 };

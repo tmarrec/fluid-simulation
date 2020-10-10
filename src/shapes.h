@@ -1,6 +1,15 @@
+#pragma once
+
 #include <vector>
 
 #include "utils.h"
+
+struct Shape
+{
+	std::vector<GLfloat> vertices;
+	std::vector<GLfloat> normals;
+	std::vector<GLuint> indices;
+};
 
 struct Cube
 {
@@ -36,7 +45,6 @@ struct Cube
 		0.5f, -0.5f, 0.5f,
 		-0.5f, -0.5f, 0.5f,
 	};
-
 	std::vector<GLfloat> normals =
 	{
 		0.0f, 0.0f, 1.0f,
@@ -69,7 +77,6 @@ struct Cube
 		0.0f, -1.0f, 0.0f,
 		0.0f, -1.0f, 0.0f,
 	};
-
 	std::vector<GLuint> indices
 	{
 		0,  1,  2,  0,  2,  3,   // Front
