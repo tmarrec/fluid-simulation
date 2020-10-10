@@ -6,12 +6,12 @@
 #include <unistd.h>
 #include <thread>
 
-#include "../InputManager.h"
-#include "../shapes.h"
-#include "../Renderer.h"
-#include "../TransformComponent.h"
-#include "../CameraComponent.h"
-#include "../DrawableComponent.h"
+#include "InputManager.h"
+#include "shapes.h"
+#include "Renderer.h"
+#include "TransformComponent.h"
+#include "CameraComponent.h"
+#include "DrawableComponent.h"
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 

@@ -3,7 +3,7 @@
 #include "utils.h"
 
 #include "InputManager.h"
-#include "ui/GlWidget.h"
+#include "GlWidget.h"
 
 InputManager::InputManager(GlWidget* __glWidget)
 {

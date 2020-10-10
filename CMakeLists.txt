@@ -63,8 +63,10 @@ add_executable(${PROJECT_NAME}
 	src/Renderer.h
 	src/Renderer.cpp
 
-	src/ui/GlWidget.h
-	src/ui/GlWidget.cpp
+	src/GlWidget.h
+	src/GlWidget.cpp
+
+	src/math/BSpline.h
 )
 
 set(EXT_LIBS Qt5::OpenGL ${OPENGL_LIBRARIES})
