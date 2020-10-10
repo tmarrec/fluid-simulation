@@ -270,7 +270,7 @@
   <customwidget>
    <class>GlWidget</class>
    <extends>QOpenGLWidget</extends>
-   <header>src/ui/GlWidget.h</header>
+   <header>src/GlWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

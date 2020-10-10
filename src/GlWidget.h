@@ -7,12 +7,12 @@
 #include <cstdint>
 #include <thread>
 
-#include "../utils.h"
+#include "utils.h"
 
-#include "../ECS.h"
-#include "../TransformComponent.h"
-#include "../CameraComponent.h"
-#include "../DrawableComponent.h"
+#include "ECS.h"
+#include "TransformComponent.h"
+#include "CameraComponent.h"
+#include "DrawableComponent.h"
 
 class Renderer;
 class ECS_Manager;
