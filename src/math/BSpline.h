@@ -23,7 +23,7 @@ public:
 	{}
 
 
-	glm::vec3 eval(float u) const
+	glm::vec3 eval(float __u) const
 	{
 		std::uint8_t dec = 0;
 		std::uint8_t i = _order;
@@ -31,25 +31,23 @@ public:
 		std::uint8_t k = _order;
 		std::vector<glm::vec3> P_temps;
 
-
-		while (u > _knots[i]) {
+		while (__u > _knots[i]) {
 			i++;
 			dec++;
 		}
 	
 		for(unsigned a = dec; a < dec+_order; ++a)
 			P_temps.push_back(_controls[a]);
-	
+
 		for (std::uint8_t l = 0; l < m; ++l) {
 			for (std::uint8_t j = 0; j < k-1; ++j) {
-				P_temps[j] = ((_knots[dec+k+j]-u)/(_knots[dec+k+j]-_knots[dec+1+j]))*P_temps[j]
+				P_temps[j] = ((_knots[dec+k+j]-__u)/(_knots[dec+k+j]-_knots[dec+1+j]))*P_temps[j]
 							 +
-							 ((u-_knots[dec+1+j])/(_knots[dec+k+j]-_knots[dec+1+j]))*P_temps[j+1];
+							 ((__u-_knots[dec+1+j])/(_knots[dec+k+j]-_knots[dec+1+j]))*P_temps[j+1];
 			}
 			dec++;
 			k--;
 		}
-
 		return P_temps.front();
 	}
 

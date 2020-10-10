@@ -1,4 +1,5 @@
 #include "GlWidget.h"
+#include "src/math/BSpline.h"
 #include "src/ui/MainWindow.h"
 
 #include <cstdint>
@@ -12,6 +13,8 @@
 #include "TransformComponent.h"
 #include "CameraComponent.h"
 #include "DrawableComponent.h"
+
+#include "BSplineLine.h"
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 
@@ -33,18 +36,30 @@ void GlWidget::_init()
 	Cube c;
 
 	auto & cube(_ECS_manager->addEntity());
-	cube.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
-	cube.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices);
+	cube.addComponent<TransformComponent>(glm::vec3{-50.0f, -20.0f, -50.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
+	cube.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices, GL_TRIANGLES);
 
 	auto & cube2(_ECS_manager->addEntity());
 	cube2.addComponent<TransformComponent>(glm::vec3{20.0f, 10.0f, 80.0f}, glm::vec3{30.0f, 10.0f, 60.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
-	cube2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices);
+	//cube2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices, GL_TRIANGLES);
 
 	_activeCamera = &_ECS_manager->addEntity();
 	_activeCamera->addComponent<CameraComponent>(0.0f, 0.0f, 5.0f, 90.0f);
 	_activeCamera->addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 
 	_renderer->setActiveCamera(&_activeCamera->getComponent<CameraComponent>());
+
+
+	auto & bsplineline(_ECS_manager->addEntity());
+	std::vector<glm::vec3> controls = {
+			{0, 0, 0},
+			{1, 1.5f, 0},
+			{2, -1.5f, 0},
+			{3, 0, 0},
+	};
+	auto bsp = BSplineLine(3, controls, false, 0.1f).shape();
+	bsplineline.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
+	bsplineline.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bsp.vertices, bsp.normals, bsp.indices, GL_LINE_STRIP);
 }
 
 void GlWidget::initializeGL()
