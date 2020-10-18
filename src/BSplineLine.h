@@ -19,6 +19,13 @@ public:
 	, _controls { __controls }
 	{}
 
+	BSplineLine(std::uint8_t __order, std::vector<glm::vec3> __controls, bool __show_controls, float __delta, std::vector<float> __knots)
+	: _bspline { std::make_unique<MathBSpline>(MathBSpline{__order, __controls, __knots}) }
+	, _delta { __delta }
+	, _show_controls { __show_controls }
+	, _controls { __controls }
+	{}
+
 	Shape shape() const
 	{
 		std::vector<GLfloat> vertices;

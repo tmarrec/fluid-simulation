@@ -20,6 +20,11 @@ public:
 	, _delta { __delta }
 	, _controls { __controls }
 	{}
+	BSplineTensor(std::uint8_t __order, std::vector<std::vector<glm::vec3>> __controls, float __delta, std::vector<std::vector<float>> __knots)
+	: _bsplineTensor { std::make_unique<MathBSplineTensor>(MathBSplineTensor{__order, __controls, __knots}) }
+	, _delta { __delta }
+	, _controls { __controls }
+	{}
 
 	Shape shape() const
 	{
