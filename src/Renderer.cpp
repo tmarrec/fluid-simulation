@@ -2,6 +2,7 @@
 
 #include "src/DrawableComponent.h"
 #include "src/CameraComponent.h"
+#include "src/LightComponent.h"
 
 #include <GL/gl.h>
 #include <memory>
@@ -92,16 +93,12 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 
 	shader->set_3f("_view_pos", _activeCamera->getView()[3]);
 
-	// TODO add ligths 	
-	shader->set_1i("_light_nb", 0);
-
-	/*
-	shader->set_1i("_light_nb", lights.size());
+	shader->set_1i("_light_nb", _lights.size());
 	// Envoie les uniforms pour toutes les lumieres
-	for (size_t i = 0; i < lights.size(); ++i) {
-		auto light = std::static_pointer_cast<Light>(lights[i]);
+	for (size_t i = 0; i < _lights.size(); ++i) {
+		auto light = static_cast<LightComponent*>(_lights[i]);
 		auto temp = std::string("_point_lights[") + std::to_string(i) + "].position";
-		shader->set_3f(temp.c_str(), light->position());
+		shader->set_3f(temp.c_str(), light->getPosition());
 		temp = std::string("_point_lights[") + std::to_string(i) + "].color";
 		shader->set_3f(temp.c_str(), light->color());
 		temp = std::string("_point_lights[") + std::to_string(i) + "].intensity";
@@ -113,12 +110,11 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 		temp = std::string("_point_lights[") + std::to_string(i) + "].quadratic";
 		shader->set_1f(temp.c_str(), 0.000007f);
 	}
-	*/
 }
 
 void Renderer::clear() const
 {
-	glClearColor(0.8f, 0.8f, 1.0f, 1.0f);
+	glClearColor(0.85f, 0.9f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -134,4 +130,10 @@ void Renderer::setActiveCamera(CameraComponent* __cameraComponent)
 {
 	ASSERT(__cameraComponent, "__cameraComponent should not be nullptr");
 	_activeCamera = __cameraComponent;	
+}
+
+void Renderer::addLight(LightComponent* __lightComponent)
+{
+	ASSERT(__lightComponent, "__lightComponent should not be nullptr");
+	_lights.emplace_back(__lightComponent);
 }

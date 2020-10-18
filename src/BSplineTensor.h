@@ -8,6 +8,7 @@
 #include <tuple>
 #include <numeric>
 
+#include "glm/glm/geometric.hpp"
 #include "math/MathBSplineTensor.h"
 #include "shapes.h"
 
@@ -24,7 +25,6 @@ public:
 	Shape shape() const
 	{
 		std::vector<GLfloat> vertices;
-		std::vector<GLfloat> normals;
 		std::vector<GLuint> indices;
 		auto rangeU = _bsplineTensor->rangeU();
 		auto rangeV = _bsplineTensor->rangeV();
@@ -36,40 +36,67 @@ public:
 		for (float v = rangeV.start; v < rangeV.end; v += _delta)
 			nbGenerator++;
 
+		std::vector<glm::vec3> points;
 		for (float u = rangeU.start; u < rangeU.end; u += _delta)
 		{
 			for (float v = rangeV.start; v < rangeV.end; v += _delta)
 			{
 				auto point = _bsplineTensor->eval(u, v);
+				points.emplace_back(point);
 				vertices.emplace_back(point.x);
 				vertices.emplace_back(point.y);
 				vertices.emplace_back(point.z);
-				normals.emplace_back(1);
-				normals.emplace_back(1);
-				normals.emplace_back(1);
 			}
 		}
+		std::vector<GLfloat> normals(vertices.size());
+		std::vector<std::vector<glm::vec3>> normalsPerPoint(points.size());
+
 		std::cout << nbPointsGenerator << " " << nbGenerator << std::endl;
 		for (std::uint64_t i = 0; i < nbPointsGenerator-1; ++i)
 		{
 			for (std::uint64_t j = 0; j < nbGenerator-1; ++j)
 			{
-				std::cout << i << " " << j << std::endl;
 				GLuint p = j+i*nbGenerator;	
+				glm::vec3 norm;
 
 				// First face triangle
 				indices.emplace_back(p);
 				indices.emplace_back(p+nbGenerator);
 				indices.emplace_back(p+1);
+
+				norm = glm::normalize(glm::cross(points[p+nbGenerator]-points[p], points[p+1]-points[p]));
+				normalsPerPoint[p].emplace_back(norm);
+				normalsPerPoint[p+nbGenerator].emplace_back(norm);
+				normalsPerPoint[p+1].emplace_back(norm);
+
 				std::cout << p << " " << p+nbGenerator << " " << p+1 << std::endl;
 
 				// Second face triangle
 				indices.emplace_back(p+nbGenerator);
 				indices.emplace_back(p+nbGenerator+1);
 				indices.emplace_back(p+1);
+
+				norm = glm::normalize(glm::cross(points[p+nbGenerator+1]-points[p+nbGenerator], points[p+1]-points[p+nbGenerator]));
+				normalsPerPoint[p+nbGenerator].emplace_back(norm);
+				normalsPerPoint[p+nbGenerator+1].emplace_back(norm);
+				normalsPerPoint[p+1].emplace_back(norm);
 				std::cout << p+nbGenerator << " " << p+nbGenerator+1 << " " << p+1 << std::endl << std::endl;
 			}
 		}
+
+		for (std::uint64_t i = 0; i < normalsPerPoint.size(); ++i)
+		{
+			glm::vec3 average = {0.0f, 0.0f, 0.0f};
+			for (auto a : normalsPerPoint[i])
+			{
+				average += a;
+			}
+			average /= normalsPerPoint[i].size();
+			normals[3*i] = average.x;
+			normals[3*i+1] = average.y;
+			normals[3*i+2] = average.z;
+		}
+		std::cout << std::endl;
 
 		Shape shape;
 		shape.vertices = vertices;

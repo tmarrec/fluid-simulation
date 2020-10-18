@@ -12,6 +12,7 @@
 
 class DrawableComponent;
 class CameraComponent;
+class LightComponent;
 
 class Renderer
 {
@@ -25,11 +26,13 @@ public:
 	void clear() const;
 
 	void setActiveCamera(CameraComponent* __cameraComponent);
+	void addLight(LightComponent* __lightComponent);
 
 
 private:
 	CameraComponent* _activeCamera = nullptr;
 	GLsizei _sceneIndices = 0;
+	std::vector<LightComponent*> _lights;
 
 	void _useShader(DrawableComponent* __drawableComponent);
 };
