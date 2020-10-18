@@ -66,8 +66,11 @@ add_executable(${PROJECT_NAME}
 	src/GlWidget.h
 	src/GlWidget.cpp
 
-	src/math/BSpline.h
+	src/math/MathBSpline.h
 	src/BSplineLine.h
+
+	src/math/MathBSplineTensor.h
+	src/BSplineTensor.h
 )
 
 set(EXT_LIBS Qt5::OpenGL ${OPENGL_LIBRARIES})

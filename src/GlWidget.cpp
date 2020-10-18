@@ -1,7 +1,7 @@
 #include "GlWidget.h"
-#include "src/math/BSpline.h"
 #include "src/ui/MainWindow.h"
 
+#include <GL/gl.h>
 #include <cstdint>
 #include <qevent.h>
 #include <unistd.h>
@@ -15,6 +15,7 @@
 #include "DrawableComponent.h"
 
 #include "BSplineLine.h"
+#include "BSplineTensor.h"
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 
@@ -44,7 +45,7 @@ void GlWidget::_init()
 	//cube2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices, GL_TRIANGLES);
 
 	_activeCamera = &_ECS_manager->addEntity();
-	_activeCamera->addComponent<CameraComponent>(0.0f, 0.0f, 5.0f, 90.0f);
+	_activeCamera->addComponent<CameraComponent>(0.0f, 0.0f, 2.0f, 90.0f);
 	_activeCamera->addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 
 	_renderer->setActiveCamera(&_activeCamera->getComponent<CameraComponent>());
@@ -56,10 +57,54 @@ void GlWidget::_init()
 			{1, 1.5f, 0},
 			{2, -1.5f, 0},
 			{3, 0, 0},
+			{4, 1, 0},
 	};
 	auto bsp = BSplineLine(3, controls, false, 0.1f).shape();
 	bsplineline.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
 	bsplineline.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bsp.vertices, bsp.normals, bsp.indices, GL_LINE_STRIP);
+
+
+	auto & bsplinetensor(_ECS_manager->addEntity());
+	std::vector<std::vector<glm::vec3>> test = {
+		{
+			{0, 0, 0},
+			{1, 1.5f, 0},
+			{2, -1.5f, 0},
+			{3, 0, 0},
+			{4, 1, 0},
+		},
+		{
+			{0, 0, 1},
+			{1, 1.5f, 1},
+			{2, -1.5f, 1},
+			{3, 0, 1},
+			{4, 1, 1},
+		},
+		{
+			{0, 0, 2},
+			{1, 1.5f, 2},
+			{2, -1.5f, 2},
+			{3, 0, 2},
+			{4, 1, 2},
+		}
+	};	
+	auto bspt = BSplineTensor(3, test, false, 0.15f).shape();
+	bsplinetensor.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, -150.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
+	bsplinetensor.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bspt.vertices, bspt.normals, bspt.indices, GL_TRIANGLES);
+
+	
+	auto & bsplinetensor2(_ECS_manager->addEntity());
+	std::vector<std::vector<glm::vec3>> randomControls;
+	for (int i = 0; i < 50; ++i) {
+		std::vector<glm::vec3> temp;
+		for (int j = 0; j < 50; ++j) {
+			temp.push_back({j, rand()%3, i});
+		}
+		randomControls.emplace_back(temp);
+	}
+	auto bspt2 = BSplineTensor(3, randomControls, false, 0.3f).shape();
+	bsplinetensor2.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 100.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
+	bsplinetensor2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bspt2.vertices, bspt2.normals, bspt2.indices, GL_TRIANGLES);
 }
 
 void GlWidget::initializeGL()
@@ -72,11 +117,27 @@ void GlWidget::initializeGL()
 
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(MessageCallback, 0);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	
 	_init();
 	std::thread t ((Test(_ECS_manager)));
 	t.detach();
+}
+
+void GlWidget::switchPolygonmode()
+{
+	makeCurrent();
+	if (_polygonFillMode)
+	{
+		_polygonFillMode = false;
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else
+	{
+		_polygonFillMode = true;
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+	doneCurrent();
 }
 
 void GlWidget::paintGL()
@@ -91,7 +152,7 @@ void GlWidget::paintGL()
 	std::uint64_t end_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	if (end_timer_fps-_start_timer_fps > 1000) {
 		//_main_window->update_title_infos("FPS: " + std::to_string(_frame_count));
-		std::cout << _frame_count << std::endl;
+		//std::cout << _frame_count << std::endl;
 		_frame_count = 0;
 		_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	}

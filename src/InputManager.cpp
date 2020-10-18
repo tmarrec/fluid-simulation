@@ -83,6 +83,9 @@ void InputManager::keyPressEvent(QKeyEvent *event)
 			_moveDown = true;
 			break;
 
+		case Qt::Key_P:
+			_glWidget->switchPolygonmode();	
+
 		default:
 			break;
 	}
