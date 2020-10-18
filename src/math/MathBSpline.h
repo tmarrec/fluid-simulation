@@ -16,6 +16,13 @@ public:
 	, _range { _knots[__order-1], _knots[__controls.size()] }
 	{}
 
+	MathBSpline(std::uint8_t __order, std::vector<glm::vec3> __controls, std::vector<float> __knots)
+	: _order { __order }
+	, _knots { __knots }
+	, _controls { __controls }
+	, _range { _knots[__order-1], _knots[__controls.size()] }
+	{}
+
 	glm::vec3 eval(float __u) const
 	{
 		ASSERT(__u >= _range.start && __u <= _range.end, "__u is not in the range of the BSpline");
