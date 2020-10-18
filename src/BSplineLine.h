@@ -6,14 +6,14 @@
 #include <tuple>
 #include <numeric>
 
-#include "math/BSpline.h"
+#include "math/MathBSpline.h"
 #include "shapes.h"
 
 class BSplineLine
 {
 public:
 	BSplineLine(std::uint8_t __order, std::vector<glm::vec3> __controls, bool __show_controls, float __delta)
-	: _bspline { std::make_unique<BSpline>(BSpline{__order, uniform_vector(__controls.size()+__order+1), __controls}) }
+	: _bspline { std::make_unique<MathBSpline>(MathBSpline{__order, __controls}) }
 	, _delta { __delta }
 	, _show_controls { __show_controls }
 	, _controls { __controls }
@@ -27,9 +27,11 @@ public:
 		auto range = _bspline->range();
 		GLuint ind = 0;
 			
-		if (_show_controls) {
+		if (_show_controls)
+		{
 			std::vector<float> flat;
-			for (auto p : _controls) {
+			for (auto p : _controls)
+			{
 				flat.emplace_back(p.x);
 				flat.emplace_back(p.y);
 				flat.emplace_back(p.z);
@@ -41,7 +43,8 @@ public:
 			ind = indices.size()-1;
 		}
 
-		for (float i = range.start; i < range.end; i += _delta) {
+		for (float i = range.start; i < range.end; i += _delta)
+		{
 			auto point = _bspline->eval(i);
 			vertices.emplace_back(point.x);
 			vertices.emplace_back(point.y);
@@ -60,20 +63,8 @@ public:
 	~BSplineLine() {}
 
 private:
-	std::unique_ptr<BSpline> _bspline;
+	std::unique_ptr<MathBSpline> _bspline;
 	float _delta;
 	bool _show_controls;
 	std::vector<glm::vec3> _controls;
-
-	std::vector<float> uniform_vector(std::uint8_t __size) const
-	{
-		std::vector<float> v;
-		std::generate_n(std::back_inserter(v), __size,
-		[]() -> float
-		{
-			static std::uint8_t i = 0;
-			return i++;
-		});
-		return v;
-	}
 };

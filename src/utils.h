@@ -10,6 +10,15 @@
 
 #include <GL/gl.h>
 
+#include <vector>
+#include <algorithm>
+
+struct Range
+{
+	double start;
+	double end;
+};
+
 #define WARNING(m) \
 	std::cerr << m << std::endl;
 
@@ -19,7 +28,7 @@
 
 #ifndef NDEBUG
 #define ASSERT(c, m) \
-	if (!c) { \
+	if (!(c)) { \
 		std::cerr << std::endl; \
 		std::cerr << "\033[41m\033[1m[ASSERT ERROR]\033[49m\033[0m " << std::endl; \
 		std::cerr << "\033[1mFILE\033[0m    : " << __FILE__ << std::endl; \
