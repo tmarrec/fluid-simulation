@@ -15,10 +15,9 @@
 class BSplineTensor
 {
 public:
-	BSplineTensor(std::uint8_t __order, std::vector<std::vector<glm::vec3>> __controls, bool __show_controls, float __delta)
+	BSplineTensor(std::uint8_t __order, std::vector<std::vector<glm::vec3>> __controls, float __delta)
 	: _bsplineTensor { std::make_unique<MathBSplineTensor>(MathBSplineTensor{__order, __controls}) }
 	, _delta { __delta }
-	, _show_controls { __show_controls }
 	, _controls { __controls }
 	{}
 
@@ -51,13 +50,13 @@ public:
 		std::vector<GLfloat> normals(vertices.size());
 		std::vector<std::vector<glm::vec3>> normalsPerPoint(points.size());
 
-		std::cout << nbPointsGenerator << " " << nbGenerator << std::endl;
+		//std::cout << nbPointsGenerator << " " << nbGenerator << std::endl;
+		glm::vec3 norm;
 		for (std::uint64_t i = 0; i < nbPointsGenerator-1; ++i)
 		{
 			for (std::uint64_t j = 0; j < nbGenerator-1; ++j)
 			{
 				GLuint p = j+i*nbGenerator;	
-				glm::vec3 norm;
 
 				// First face triangle
 				indices.emplace_back(p);
@@ -69,7 +68,7 @@ public:
 				normalsPerPoint[p+nbGenerator].emplace_back(norm);
 				normalsPerPoint[p+1].emplace_back(norm);
 
-				std::cout << p << " " << p+nbGenerator << " " << p+1 << std::endl;
+				//std::cout << p << " " << p+nbGenerator << " " << p+1 << std::endl;
 
 				// Second face triangle
 				indices.emplace_back(p+nbGenerator);
@@ -80,7 +79,7 @@ public:
 				normalsPerPoint[p+nbGenerator].emplace_back(norm);
 				normalsPerPoint[p+nbGenerator+1].emplace_back(norm);
 				normalsPerPoint[p+1].emplace_back(norm);
-				std::cout << p+nbGenerator << " " << p+nbGenerator+1 << " " << p+1 << std::endl << std::endl;
+				//std::cout << p+nbGenerator << " " << p+nbGenerator+1 << " " << p+1 << std::endl << std::endl;
 			}
 		}
 
@@ -92,11 +91,10 @@ public:
 				average += a;
 			}
 			average /= normalsPerPoint[i].size();
-			normals[3*i] = average.x;
-			normals[3*i+1] = average.y;
-			normals[3*i+2] = average.z;
+			normals[3*i] = -average.x;
+			normals[3*i+1] = -average.y;
+			normals[3*i+2] = -average.z;
 		}
-		std::cout << std::endl;
 
 		Shape shape;
 		shape.vertices = vertices;
@@ -110,6 +108,5 @@ public:
 private:
 	std::unique_ptr<MathBSplineTensor> _bsplineTensor;
 	float _delta;
-	bool _show_controls;
 	std::vector<std::vector<glm::vec3>> _controls;
 };

@@ -12,10 +12,16 @@ public:
 	, _scale { __scale }
 	{}
 
-	void move(glm::vec3 moveVector)
+	void move(glm::vec3 __moveVector)
 	{
-		_position += moveVector;
+		_position += __moveVector;
 	}
+	void rotate(glm::vec3 __rotationVector)
+	{
+		_rotation += __rotationVector;
+	}
+
+	void setPosition(glm::vec3 __position) { _position = __position; }
 
 	glm::vec3 position() const { return _position; }
 	glm::vec3 rotation() const { return _rotation; }
