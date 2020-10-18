@@ -33,6 +33,7 @@ public:
 	}
 	void update([[maybe_unused]] double _deltaTime) override
 	{
+		//entity->getComponent<TransformComponent>().rotate({0.0f, 0.01f, 0.0f});
 		//auto test = glm::vec3{0.0f, 0.0f, 100.0f}*(float)_deltaTime;
 		//entity->getComponent<TransformComponent>().move(test);
 	}

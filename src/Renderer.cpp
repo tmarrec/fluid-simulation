@@ -10,7 +10,6 @@
 
 void Renderer::initGl() const
 {
-	glEnable(GL_DEPTH_TEST);
 	resizeGl(0, 0);
 }
 

@@ -25,9 +25,19 @@ public:
 	void draw() override
 	{
 	}
+	/* temp circle motion */
+	float angle = 0;
+	float speed = (2*M_PI)/5;
+	float radius = 100;
 	void update([[maybe_unused]] double _deltaTime) override
 	{
-		entity->getComponent<TransformComponent>().move({0.02f, 0.0f, 0.02f});
+		radius = _intensity*100;
+		speed = (2*M_PI)/_intensity*0.5;
+		angle += speed*_deltaTime;
+		auto pos = entity->getComponent<TransformComponent>().position();
+		pos.x = cos(angle)*radius;
+		pos.z = sin(angle)*radius;
+		entity->getComponent<TransformComponent>().setPosition(pos);
 	}
 	~LightComponent() override
 	{
