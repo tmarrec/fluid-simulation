@@ -13,6 +13,7 @@
 #include "TransformComponent.h"
 #include "CameraComponent.h"
 #include "DrawableComponent.h"
+#include "LightComponent.h"
 
 #include "BSplineLine.h"
 #include "BSplineTensor.h"
@@ -45,7 +46,7 @@ void GlWidget::_init()
 	//cube2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices, GL_TRIANGLES);
 
 	_activeCamera = &_ECS_manager->addEntity();
-	_activeCamera->addComponent<CameraComponent>(0.0f, 0.0f, 2.0f, 90.0f);
+	_activeCamera->addComponent<CameraComponent>(0.0f, 0.0f, 3.0f, 90.0f);
 	_activeCamera->addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 
 	_renderer->setActiveCamera(&_activeCamera->getComponent<CameraComponent>());
@@ -105,6 +106,12 @@ void GlWidget::_init()
 	auto bspt2 = BSplineTensor(3, randomControls, false, 0.3f).shape();
 	bsplinetensor2.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 100.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
 	bsplinetensor2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bspt2.vertices, bspt2.normals, bspt2.indices, GL_TRIANGLES);
+
+
+	auto & light(_ECS_manager->addEntity());
+	light.addComponent<TransformComponent>(glm::vec3{0.0f, 300.0f, 100.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{20.0f, 20.0f, 20.0f});
+	light.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices, GL_TRIANGLES);
+	light.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 0.0f, 0.0f}, 2.f);
 }
 
 void GlWidget::initializeGL()
@@ -120,8 +127,8 @@ void GlWidget::initializeGL()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	
 	_init();
-	std::thread t ((Test(_ECS_manager)));
-	t.detach();
+	//std::thread t ((Test(_ECS_manager)));
+	//t.detach();
 }
 
 void GlWidget::switchPolygonmode()

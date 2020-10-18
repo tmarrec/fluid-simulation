@@ -55,6 +55,7 @@ add_executable(${PROJECT_NAME}
 	src/DrawableComponent.h
 	src/CameraComponent.h
 	src/TransformComponent.h
+	src/LightComponent.h
 
 	src/ui/MainWindow.h
 	src/ui/MainWindow.cpp
