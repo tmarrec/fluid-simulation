@@ -3,6 +3,8 @@
 #include "CameraComponent.h"
 #include "src/DrawableComponent.h"
 #include <algorithm>
+#include <execution>
+#include <pstl/glue_execution_defs.h>
 
 ID Entity::_counter = 0;
 ID Component::_counter = 0;
@@ -51,9 +53,9 @@ void Entity::destroy()
 void ECS_Manager::update(double __deltaTime)
 {
 	refresh();
-	for (const auto & entity : _entities)
+	for (const auto & entity: _entities)
 	{
-		entity->update(__deltaTime);
+		entity->update(__deltaTime);	
 	}
 }
 

@@ -15,7 +15,7 @@
 #include "DrawableComponent.h"
 #include "LightComponent.h"
 
-#include "BSplineLine.h"
+#include "BSpline.h"
 #include "BSplineTensor.h"
 
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
@@ -70,7 +70,7 @@ void GlWidget::_init()
 			{3, 0, 0},
 			{4, 1.5f, 0},
 	};
-	auto bsp = BSplineLine(3, controls, true, 0.1f).shape();
+	auto bsp = BSplineShape(3, controls, true, 0.1f).shape();
 	bsplineline.addComponent<TransformComponent>(glm::vec3{0.0f, 50.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
 	bsplineline.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bsp.vertices, bsp.normals, bsp.indices, GL_LINE_STRIP);
 
@@ -84,7 +84,7 @@ void GlWidget::_init()
 			{5, 0, 0},
 			{5, 2, 0},
 	};
-	auto bsp2 = BSplineLine(3, controls2, true, 0.01f, {0,0,0,0.25f,0.5f,0.75f,1,1,1}).shape();
+	auto bsp2 = BSplineShape(3, controls2, true, 0.01f, {0,0,0,0.25f,0.5f,0.75f,1,1,1}).shape();
 	bsplineline2.addComponent<TransformComponent>(glm::vec3{-200.0f, 0.0f, 400.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
 	bsplineline2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bsp2.vertices, bsp2.normals, bsp2.indices, GL_LINE_STRIP);
 
@@ -115,7 +115,7 @@ void GlWidget::_init()
 			{4, 1, 2},
 		}
 	};	
-	auto bspt = BSplineTensor(3, test, 0.15f).shape();
+	auto bspt = BSplineTensorShape(3, test, 0.15f).shape();
 	bsplinetensor.addComponent<TransformComponent>(glm::vec3{0.0f, 50.0f, -150.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
 	bsplinetensor.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bspt.vertices, bspt.normals, bspt.indices, GL_TRIANGLES);
 
@@ -154,7 +154,7 @@ void GlWidget::_init()
 		{0,0,0,0,0,0,1.0f,1,1},
 		{0,0,0,0.25f,0.5f,0.75f,1,1,1},
 	};
-	auto bsptknots = BSplineTensor(3, test2, 0.004f, knots).shape();
+	auto bsptknots = BSplineTensorShape(3, test2, 0.004f, knots).shape();
 	bsplinetensorknots.addComponent<TransformComponent>(glm::vec3{-200.0f, 0.0f, 150.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
 	bsplinetensorknots.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bsptknots.vertices, bsptknots.normals, bsptknots.indices, GL_TRIANGLES);
 	/* end with knots */
@@ -168,7 +168,7 @@ void GlWidget::_init()
 		}
 		randomControls.emplace_back(temp);
 	}
-	auto bspt2 = BSplineTensor(4, randomControls, 0.15f).shape();
+	auto bspt2 = BSplineTensorShape(4, randomControls, 0.20f).shape();
 	bsplinetensor2.addComponent<TransformComponent>(glm::vec3{-1000.0f, -200.0f, -1000.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
 	bsplinetensor2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bspt2.vertices, bspt2.normals, bspt2.indices, GL_TRIANGLES);
 
