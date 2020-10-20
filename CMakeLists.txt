@@ -67,10 +67,7 @@ add_executable(${PROJECT_NAME}
 	src/GlWidget.h
 	src/GlWidget.cpp
 
-	src/math/MathBSpline.h
-	src/BSplineLine.h
-
-	src/math/MathBSplineTensor.h
+	src/BSpline.h
 	src/BSplineTensor.h
 )
 
