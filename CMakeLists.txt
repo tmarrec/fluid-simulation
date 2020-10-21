@@ -14,40 +14,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# OPENMESH
-
-#list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/OpenMesh/cmake)
-#find_package( OpenMesh REQUIRED )
-
-
-
-
-#list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/OpenMesh/cmake)
-#list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/OpenMesh/src/)
-#include (OpenMesh/src/OpenMesh/Core/CMakeLists.txt)
-#acg_append_files (headers "*.hh" .)
-#acg_append_files (headers "*.cc" .)
-#include_directories( ${OpenMesh_INCLUDE_DIRS} )
-#target_link_libraries( ${OpenMesh_LIBS} OpenMeshCore OpenMeshTools)
-#include_directories( ${CMAKE_SOURCE_DIR}/OpenMesh/src/OpenMesh )
-
-
-
-
-
-#include (OpenMesh/cmake/FindOpenMesh.cmake)
-#if (OPENMESH_FOUND)
-#	message(STATUS "good")
-#else
-#	return
-#endif
-#list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/OpenMesh/cmake)
-#include_directories( ${OpenMesh_INCLUDE_DIRS} )
-#target_link_libraries( ${OpenMesh_LIBS} OpenMeshCore OpenMeshTools)
-
-
-# OPENMESH
-
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -Wall -pedantic -Wextra -pthread -DGL_GLEXT_PROTOTYPES")
@@ -101,6 +67,10 @@ add_executable(${PROJECT_NAME}
 	src/BSpline.h
 	src/BSplineTensor.h
 )
+
+add_subdirectory("OpenMesh")
+target_include_directories(${PROJECT_NAME} PUBLIC ${OPENMESH_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${OPENMESH_LIBRAIRIES})
 
 set(EXT_LIBS Qt5::OpenGL ${OPENGL_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${EXT_LIBS})
