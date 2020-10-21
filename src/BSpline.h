@@ -106,14 +106,14 @@ public:
 			}	
 		}
 		// BSpline attributes
-		for (float i = range.start; i < range.end; i += _delta)
+		for (float i = range.end; i > range.start; i -= _delta)
 		{
 			auto p = _bspline->eval(i);
 			vertices.insert(vertices.end(), {p.x, p.y, p.z});
 		}
 		ASSERT(vertices.size()%3 == 0, "vertices should be power of 3");
 		normals.assign(vertices.size(), 1);
-		indices.resize(vertices.size()/3);
+		indices.resize((vertices.size()/3)-1);
 		std::iota(indices.begin(), indices.end(), 0);
 		return {vertices, normals, indices};
 	}
