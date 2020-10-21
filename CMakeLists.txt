@@ -10,12 +10,43 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-#cmake_policy(SET CMP0072 NEW)
+# OPENMESH
+
+#list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/OpenMesh/cmake)
+#find_package( OpenMesh REQUIRED )
+
+
+
+
+#list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/OpenMesh/cmake)
+#list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/OpenMesh/src/)
+#include (OpenMesh/src/OpenMesh/Core/CMakeLists.txt)
+#acg_append_files (headers "*.hh" .)
+#acg_append_files (headers "*.cc" .)
+#include_directories( ${OpenMesh_INCLUDE_DIRS} )
+#target_link_libraries( ${OpenMesh_LIBS} OpenMeshCore OpenMeshTools)
+#include_directories( ${CMAKE_SOURCE_DIR}/OpenMesh/src/OpenMesh )
+
+
+
+
+
+#include (OpenMesh/cmake/FindOpenMesh.cmake)
+#if (OPENMESH_FOUND)
+#	message(STATUS "good")
+#else
+#	return
+#endif
+#list (APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/OpenMesh/cmake)
+#include_directories( ${OpenMesh_INCLUDE_DIRS} )
+#target_link_libraries( ${OpenMesh_LIBS} OpenMeshCore OpenMeshTools)
+
+
+# OPENMESH
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 

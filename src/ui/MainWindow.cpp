@@ -8,7 +8,7 @@ MainWindow::MainWindow()
 	format.setVersion(4, 6);
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	format.setDepthBufferSize(24);
-	format.setSamples(8);
+	format.setSamples(16);
 	format.setSwapInterval(0);
 	QSurfaceFormat::setDefaultFormat(format);
 
