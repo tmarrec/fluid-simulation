@@ -14,6 +14,7 @@
 #include "CameraComponent.h"
 #include "DrawableComponent.h"
 #include "LightComponent.h"
+#include "SubdivideComponent.h"
 
 #include "BSpline.h"
 #include "BSplineTensor.h"
@@ -171,9 +172,12 @@ void GlWidget::_init()
 	auto bspt2 = BSplineTensorShape(4, randomControls, 0.20f).shape();
 	bsplinetensor2.addComponent<TransformComponent>(glm::vec3{-1000.0f, -200.0f, -1000.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
 	bsplinetensor2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bspt2.vertices, bspt2.normals, bspt2.indices, GL_TRIANGLES);
+	
 
-
-
+	auto & CUBE(_ECS_manager->addEntity());
+	CUBE.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
+	CUBE.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices, GL_TRIANGLES);
+	CUBE.addComponent<SubdivideComponent>();
 }
 
 void GlWidget::initializeGL()

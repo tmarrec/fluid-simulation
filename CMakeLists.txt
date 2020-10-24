@@ -53,6 +53,7 @@ add_executable(${PROJECT_NAME}
 	src/CameraComponent.h
 	src/TransformComponent.h
 	src/LightComponent.h
+	src/SubdivideComponent.h
 
 	src/ui/MainWindow.h
 	src/ui/MainWindow.cpp
@@ -68,12 +69,15 @@ add_executable(${PROJECT_NAME}
 	src/BSplineTensor.h
 )
 
-add_subdirectory("OpenMesh")
-target_include_directories(${PROJECT_NAME} PUBLIC ${OPENMESH_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${OPENMESH_LIBRAIRIES})
-
 set(EXT_LIBS Qt5::OpenGL ${OPENGL_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${EXT_LIBS})
+
+add_subdirectory("OpenMesh")
+target_include_directories(${PROJECT_NAME} PUBLIC "${OPENMESH_INCLUDE_DIRS}")
+target_link_libraries(${PROJECT_NAME}
+	PRIVATE "${OPENMESH_LIBRARIES}"
+	${EXT_LIBS}
+)
+
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 

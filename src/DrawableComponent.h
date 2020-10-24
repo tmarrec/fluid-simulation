@@ -42,6 +42,20 @@ public:
 		_renderer->freeDrawable(this);
 	}
 
+	void setVertices(std::vector<GLfloat> __vertices)
+	{
+		_vertices = std::make_shared<std::vector<GLfloat>>(__vertices); 
+		_renderer->initDrawable(this);
+	}
+	void setNormals(std::vector<GLfloat> __normals)
+	{
+		_normals = std::make_shared<std::vector<GLfloat>>(__normals); 
+	}
+	void setIndices(std::vector<GLuint> __indices)
+	{
+		_indices = std::make_shared<std::vector<GLuint>>(__indices); 
+	}
+
 	std::shared_ptr<std::vector<GLfloat>> vertices() const { return _vertices; }
 	std::shared_ptr<std::vector<GLfloat>> normals() const { return _normals; }
 	std::shared_ptr<std::vector<GLuint>> indices() const { return _indices; }
