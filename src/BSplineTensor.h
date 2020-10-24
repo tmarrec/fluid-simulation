@@ -124,11 +124,14 @@ public:
 			for (std::uint64_t j = 0; j < nbGenerator-1; ++j)
 			{
 				GLuint p = j+i*nbGenerator;	
-				// First face triangle
+				// For the two triangles : p+nbGenerator+1 -- p+nbGenerator
+				//                                |    2    /   1    |
+				//                               p+1 --------------- p
+				// Triangles face normal
 				glm::vec3 normTriangle1 = glm::normalize(glm::cross(points[p+nbGenerator]-points[p], points[p+1]-points[p]));
-				// Second face triangle
 				glm::vec3 normTriangle2 = glm::normalize(glm::cross(points[p+nbGenerator+1]-points[p+nbGenerator], points[p+1]-points[p+nbGenerator]));
 				
+				// Add those normals to each points adjacent to one or more of thoses triangles 
 				normalsPerPoint[p].emplace_back(normTriangle1);
 				normalsPerPoint[p+1].insert(normalsPerPoint[p+1].end(), {normTriangle1, normTriangle2});
 				normalsPerPoint[p+nbGenerator].insert(normalsPerPoint[p+nbGenerator].end(), {normTriangle1, normTriangle2});
