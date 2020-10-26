@@ -62,7 +62,7 @@ public:
 		// SUBDIVIDE
 		OpenMesh::Subdivider::Uniform::LoopT<MyMesh> l;
 		l.attach(_mesh);
-		//l(1);
+		l(1);
 		l.detach();
 
 		writeMesh(drawableComponent);
@@ -100,26 +100,23 @@ private:
 		{
 			GLuint ind[3];
 			GLuint i = 0;
-
 			for (MyMesh::ConstFaceHalfedgeIter fv_it = _mesh.cfh_iter(*f_it); fv_it.is_valid(); ++fv_it)
 			{
 				ASSERT(i < 3, "all faces needs to be triangles");
 				auto p = _mesh.point(_mesh.to_vertex_handle(*fv_it));
 				Vertex_ v = {p};
-				std::cout << p << " ";
 				auto got = points.find(v);
 				if (got == points.end())
 				{
-					std::cout << vi << std::endl;
-					points.insert({{v, vi++}});
+					points.insert({{v, vi}});
 					newVertices.emplace_back(p[0]);
 					newVertices.emplace_back(p[1]);
 					newVertices.emplace_back(p[2]);
 					ind[i] = vi;
+					vi++;
 				}
 				else
 				{
-					std::cout << got->second << std::endl;
 					ind[i] = got->second;
 				}
 				i++;
@@ -127,17 +124,10 @@ private:
 			newIndices.emplace_back(ind[0]);
 			newIndices.emplace_back(ind[1]);
 			newIndices.emplace_back(ind[2]);
-			std::cout << " " << std::endl;
 		}
-		for (const auto & v : newVertices)
-		{
-			std::cout << v << std::endl;
-		}
-		std::cout << newVertices.size() << std::endl;
 		drawableComponent.setVertices(newVertices);
 		drawableComponent.setIndices(newIndices);
 	}
-
 
 	MyMesh _mesh;
 };
