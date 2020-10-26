@@ -50,10 +50,12 @@ public:
 	void setNormals(std::vector<GLfloat> __normals)
 	{
 		_normals = std::make_shared<std::vector<GLfloat>>(__normals); 
+		_renderer->initDrawable(this);
 	}
 	void setIndices(std::vector<GLuint> __indices)
 	{
 		_indices = std::make_shared<std::vector<GLuint>>(__indices); 
+		_renderer->initDrawable(this);
 	}
 
 	std::shared_ptr<std::vector<GLfloat>> vertices() const { return _vertices; }
