@@ -65,10 +65,10 @@ public:
 		/*
 		OpenMesh::Subdivider::Uniform::LoopT<MyMesh> l;
 		l.attach(_mesh);
-		l(2);
+		l(1);
 		l.detach();
 		*/
-		_subdivide();
+		_subdivide(3);
 		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		std::cout << "Time : " << end-start << std::endl;
 
@@ -77,105 +77,142 @@ public:
 	}
 
 private:
-	void _subdivide()
+	void _subdivide(const std::uint64_t iterations)
 	{
 		OpenMesh::EPropHandleT<MyMesh::Point> edgePoint;
 		OpenMesh::VPropHandleT<MyMesh::Point> vertexPoint;
 		_mesh.add_property(edgePoint);
 		_mesh.add_property(vertexPoint);
 
-		// Odd Vertices
-		for (auto e_it = _mesh.edges_begin(); e_it != _mesh.edges_end(); ++e_it)
+		for (std::uint64_t i = 0; i < iterations; ++i)
 		{
-			auto edge = _mesh.edge(*e_it);
-			auto v1 = _mesh.point(_mesh.to_vertex_handle(_mesh.halfedge_handle(*e_it, 0)));
-			auto v2 = _mesh.point(_mesh.from_vertex_handle(_mesh.halfedge_handle(*e_it, 0)));
-			//std::cout << v1 << " -> " << v2 << " -> " << (v2+v1)/2 << std::endl;
-			_mesh.property(edgePoint, *e_it) = (v2+v1)/2;
-		}
-		// Even Vertices
-		for (auto v_it = _mesh.vertices_begin(); v_it != _mesh.vertices_end(); ++v_it)
-		{
-			auto point = _mesh.point(*v_it);
-			/*
-			auto n = _mesh.valence(*v_it);	
-			ASSERT(n >= 3, "point valance should be greater or equal to 3");
-			float B;
-			if (n > 3)
+			// Odd Vertices
+			for (auto e_it = _mesh.edges_begin(); e_it != _mesh.edges_end(); ++e_it)
 			{
-				B = 3/(8*(float)n);
+				auto he = _mesh.halfedge_handle(*e_it, 0);
+				auto heOp = _mesh.next_halfedge_handle(he);
+				auto heNext = _mesh.next_halfedge_handle(heOp);
+
+				auto a = _mesh.point(_mesh.to_vertex_handle(he));
+				auto b = _mesh.point(_mesh.to_vertex_handle(heNext));
+				OpenMesh::VectorT<float, 3> point;
+				if (_mesh.is_boundary(*e_it))
+				{
+					point = (a+b)/2.0f;
+				}
+				else
+				{
+					auto c = _mesh.point(_mesh.to_vertex_handle(heOp));
+					auto heOp2 = _mesh.next_halfedge_handle(_mesh.halfedge_handle(*e_it, 1));
+					auto d = _mesh.point(_mesh.to_vertex_handle(heOp2));
+					point = 3.0f/8.0f*(a+b)+1.0f/8.0f*(c+d);
+				}
+
+				_mesh.property(edgePoint, *e_it) = point;
 			}
-			else
+			// Even Vertices
+			for (auto v_it = _mesh.vertices_begin(); v_it != _mesh.vertices_end(); ++v_it)
 			{
-				B = 3/16;
+				auto point = _mesh.point(*v_it);
+
+				auto n = _mesh.valence(*v_it);	
+				ASSERT(n >= 3, "point valance should be greater or equal to 3");
+				float B;
+				if (n > 3)
+				{
+					B = 3/(8*(float)n);
+				}
+				else
+				{
+					B = 3/16;
+				}
+				
+				OpenMesh::VectorT<float,3> sum = {0, 0, 0}; 
+				for (auto vvit = _mesh.vv_iter(*v_it); vvit.is_valid(); ++vvit)
+				{
+					sum += _mesh.point(*vvit);
+				}
+				point = point*(1-n*B)+(sum*B);
+
+				_mesh.property(vertexPoint, *v_it) = point;
 			}
-			std::cout << point << std::endl;	
-			std::cout << n << " " << B << std::endl;
-			std::cout << std::endl;
-			*/
 
+				
+			std::vector<MyMesh::VertexHandle> vhandle;
+			std::vector<std::vector<MyMesh::VertexHandle>> fHandle;
+			std::unordered_map<Vertex_, MyMesh::VertexHandle> points;
+			std::vector<Vertex_> vs;
 
-			//
-			_mesh.property(vertexPoint, *v_it) = point;
-		}
-
-		
-		std::vector<MyMesh::VertexHandle> vhandle;
-		std::vector<std::vector<MyMesh::VertexHandle>> fHandle;
-
-		// New faces creation
-		for (auto f_it = _mesh.faces_begin(); f_it != _mesh.faces_end(); ++f_it)
-		{
-			// Each edges
-			std::vector<MyMesh::VertexHandle> veHandle;
-			for (auto fe_it = _mesh.fe_begin(*f_it); fe_it.is_valid(); ++fe_it)
+			// New faces creation
+			std::uint64_t vertexInd = 0;
+			for (auto f_it = _mesh.faces_begin(); f_it != _mesh.faces_end(); ++f_it)
 			{
-				auto point = _mesh.property(edgePoint, *fe_it);
-				veHandle.emplace_back(_mesh.add_vertex(point));
-			}
+				// Each edges
+				std::vector<MyMesh::VertexHandle> veHandle;
+				std::vector<std::uint64_t> veHandleInd;
+				for (auto fe_it = _mesh.fe_begin(*f_it); fe_it.is_valid(); ++fe_it)
+				{
+					auto point = _mesh.property(edgePoint, *fe_it);
+					Vertex_ v = {point};
+					auto got = points.find(v);
+					if (got == points.end())
+					{
+						//veHandle.emplace_back(_mesh.add_vertex(point));
+						points.insert({{v, _mesh.add_vertex(point)}});
+					}
+					vs.emplace_back(v);
+				}
 
-			// Each vertex
-			std::vector<MyMesh::VertexHandle> vvHandle;
-			for (auto fv_it = _mesh.fv_begin(*f_it); fv_it.is_valid(); ++fv_it)
+				// Each vertex
+				std::vector<MyMesh::VertexHandle> vvHandle;
+				for (auto fv_it = _mesh.fv_begin(*f_it); fv_it.is_valid(); ++fv_it)
+				{
+					auto point = _mesh.property(vertexPoint, *fv_it);
+					//vvHandle.emplace_back(_mesh.add_vertex(point));
+					Vertex_ v = {point};
+					auto got = points.find(v);
+					if (got == points.end())
+					{
+						//veHandle.emplace_back(_mesh.add_vertex(point));
+						points.insert({{v, _mesh.add_vertex(point)}});
+					}
+					vs.emplace_back(v);
+				}
+			}
+			_mesh.request_face_status();
+			_mesh.request_edge_status();
+			_mesh.request_vertex_status();
+			for (auto f_it = _mesh.faces_begin(); f_it != _mesh.faces_end(); ++f_it)
 			{
-				auto point = _mesh.property(vertexPoint, *fv_it);
-				vvHandle.emplace_back(_mesh.add_vertex(point));
+				_mesh.delete_face(*f_it, true);
 			}
-		
-			fHandle.emplace_back(veHandle);
-
-			std::vector<MyMesh::VertexHandle> test;
-			test.emplace_back(vvHandle[0]);
-			test.emplace_back(veHandle[1]);
-			test.emplace_back(veHandle[0]);
-			fHandle.emplace_back(test);
-			test.clear();
-			test.emplace_back(vvHandle[1]);
-			test.emplace_back(veHandle[2]);
-			test.emplace_back(veHandle[1]);
-			fHandle.emplace_back(test);
-			test.clear();
-			test.emplace_back(vvHandle[2]);
-			test.emplace_back(veHandle[0]);
-			test.emplace_back(veHandle[2]);
-			fHandle.emplace_back(test);
-			test.clear();
-
+			// Create all faces
+			std::vector<MyMesh::VertexHandle> newFace;
+			for (std::uint64_t i = 0; i < vs.size(); i += 6)
+			{
+				newFace.emplace_back(points.find(vs[i])->second);
+				newFace.emplace_back(points.find(vs[i+1])->second);
+				newFace.emplace_back(points.find(vs[i+2])->second);
+				_mesh.add_face(newFace);
+				newFace.clear();
+				newFace.emplace_back(points.find(vs[i+3])->second);
+				newFace.emplace_back(points.find(vs[i+1])->second);
+				newFace.emplace_back(points.find(vs[i+0])->second);
+				_mesh.add_face(newFace);
+				newFace.clear();
+				newFace.emplace_back(points.find(vs[i+4])->second);
+				newFace.emplace_back(points.find(vs[i+2])->second);
+				newFace.emplace_back(points.find(vs[i+1])->second);
+				_mesh.add_face(newFace);
+				newFace.clear();
+				newFace.emplace_back(points.find(vs[i+5])->second);
+				newFace.emplace_back(points.find(vs[i+0])->second);
+				newFace.emplace_back(points.find(vs[i+2])->second);
+				_mesh.add_face(newFace);
+				newFace.clear();
+			}
+			_mesh.garbage_collection();
 		}
-		_mesh.request_face_status();
-		_mesh.request_edge_status();
-		_mesh.request_vertex_status();
-		for (auto f_it = _mesh.faces_begin(); f_it != _mesh.faces_end(); ++f_it)
-		{
-			_mesh.delete_face(*f_it, true);
-		}
-		// Create all faces
-		for (const auto& fh : fHandle)
-		{
-			_mesh.add_face(fh);
-		}
-		_mesh.garbage_collection();
-
 	}
 
 
