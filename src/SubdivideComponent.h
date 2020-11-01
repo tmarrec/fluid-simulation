@@ -3,6 +3,7 @@
 #include <GL/gl.h>
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 #include <OpenMesh/Tools/Subdivider/Uniform/LoopT.hh>
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -63,13 +64,9 @@ public:
 
 		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		// SUBDIVIDE
-		OpenMesh::Subdivider::Uniform::LoopT<MyMesh> l;
-		l.attach(_mesh);
-		l(1);
-		l.detach();
-		//_subdivide(1);
+		_subdivide(2);
 		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		//std::cout << "Time : " << end-start << std::endl;
+		std::cout << "Time : " << end-start << std::endl;
 
 		_writeMesh(drawableComponent);
 
@@ -78,137 +75,129 @@ public:
 private:
 	void _subdivide(const std::uint64_t iterations)
 	{
-		OpenMesh::EPropHandleT<MyMesh::Point> edgePoint;
-		OpenMesh::VPropHandleT<MyMesh::Point> vertexPoint;
-		_mesh.add_property(edgePoint);
-		_mesh.add_property(vertexPoint);
+		_mesh.add_property(_edgePoint);
+		_mesh.add_property(_vertexPoint);
 
 		for (std::uint64_t i = 0; i < iterations; ++i)
 		{
-			// Odd Vertices
-			for (auto e_it = _mesh.edges_begin(); e_it != _mesh.edges_end(); ++e_it)
-			{
-				auto he = _mesh.halfedge_handle(*e_it, 0);
-				auto heOp = _mesh.next_halfedge_handle(he);
-				auto heNext = _mesh.next_halfedge_handle(heOp);
-
-				auto a = _mesh.point(_mesh.to_vertex_handle(he));
-				auto b = _mesh.point(_mesh.to_vertex_handle(heNext));
-				OpenMesh::VectorT<float, 3> point;
-				if (_mesh.is_boundary(*e_it))
-				{
-					point = (a+b)/2.0f;
-				}
-				else
-				{
-					auto c = _mesh.point(_mesh.to_vertex_handle(heOp));
-					auto heOp2 = _mesh.next_halfedge_handle(_mesh.halfedge_handle(*e_it, 1));
-					auto d = _mesh.point(_mesh.to_vertex_handle(heOp2));
-					point = 3.0f/8.0f*(a+b)+1.0f/8.0f*(c+d);
-				}
-
-				_mesh.property(edgePoint, *e_it) = point;
-			}
-			// Even Vertices
-			for (auto v_it = _mesh.vertices_begin(); v_it != _mesh.vertices_end(); ++v_it)
-			{
-				auto point = _mesh.point(*v_it);
-				auto n = _mesh.valence(*v_it);	
-				ASSERT(n >= 3, "point valency should be greater or equal to 3");
-
-				float B;
-				if (n > 3)
-				{
-					B = (1.0f/(float)n)*((5.0f/8.0f)-std::pow((3.0f/8.0f)+((1.0f/4.0f)*cos((2.0f*M_PIf64)/(float)n)), 2));
-				}
-				else
-				{
-					B = 3.0f/16.0f;
-				}
-					
-				OpenMesh::VectorT<float,3> sum = {0, 0, 0}; 
-				for (auto vv_it = _mesh.vv_iter(*v_it); vv_it.is_valid(); ++vv_it)
-				{
-					sum += _mesh.point(*vv_it);
-				}
-				point = point*(1-n*B)+(sum*B);
-				_mesh.property(vertexPoint, *v_it) = point;
-			}
-
-				
-			std::vector<MyMesh::VertexHandle> vhandle;
-			std::vector<std::vector<MyMesh::VertexHandle>> fHandle;
 			std::unordered_map<Vertex_, MyMesh::VertexHandle> points;
 			std::vector<Vertex_> vs;
 
-			// New faces creation with properties
-			for (auto f_it = _mesh.faces_begin(); f_it != _mesh.faces_end(); ++f_it)
-			{
-				// Each edges
-				std::vector<MyMesh::VertexHandle> veHandle;
-				std::vector<std::uint64_t> veHandleInd;
-				for (auto fe_it = _mesh.fe_begin(*f_it); fe_it.is_valid(); ++fe_it)
-				{
-					auto point = _mesh.property(edgePoint, *fe_it);
-					Vertex_ v = {point};
-					auto got = points.find(v);
-					if (got == points.end())
-					{
-						points.insert({{v, _mesh.add_vertex(point)}});
-					}
-					vs.emplace_back(v);
-				}
-
-				// Each vertex
-				std::vector<MyMesh::VertexHandle> vvHandle;
-				for (auto fv_it = _mesh.fv_begin(*f_it); fv_it.is_valid(); ++fv_it)
-				{
-					auto point = _mesh.property(vertexPoint, *fv_it);
-					Vertex_ v = {point};
-					auto got = points.find(v);
-					if (got == points.end())
-					{
-						points.insert({{v, _mesh.add_vertex(point)}});
-					}
-					vs.emplace_back(v);
-				}
-			}
-			_mesh.request_face_status();
-			_mesh.request_edge_status();
-			_mesh.request_vertex_status();
-			// Delete all faces
-			for (auto f_it = _mesh.faces_begin(); f_it != _mesh.faces_end(); ++f_it)
-			{
-				_mesh.delete_face(*f_it, true);
-			}
-			// Create all new faces
-			std::vector<MyMesh::VertexHandle> newFace;
-			for (std::uint64_t i = 0; i < vs.size(); i += 6)
-			{
-				// Inside Triangle
-				newFace.emplace_back(points.find(vs[i])->second);
-				newFace.emplace_back(points.find(vs[i+1])->second);
-				newFace.emplace_back(points.find(vs[i+2])->second);
-				_mesh.add_face(newFace);
-				newFace.clear();
-				newFace.emplace_back(points.find(vs[i+3])->second);
-				newFace.emplace_back(points.find(vs[i+1])->second);
-				newFace.emplace_back(points.find(vs[i+0])->second);
-				_mesh.add_face(newFace);
-				newFace.clear();
-				newFace.emplace_back(points.find(vs[i+4])->second);
-				newFace.emplace_back(points.find(vs[i+2])->second);
-				newFace.emplace_back(points.find(vs[i+1])->second);
-				_mesh.add_face(newFace);
-				newFace.clear();
-				newFace.emplace_back(points.find(vs[i+5])->second);
-				newFace.emplace_back(points.find(vs[i+0])->second);
-				newFace.emplace_back(points.find(vs[i+2])->second);
-				_mesh.add_face(newFace);
-				newFace.clear();
-			}
-			_mesh.garbage_collection();
+			_smoothPoints();
+			_getSubdividedVertices(vs, points);
+			_updateFaces(vs, points);
 		}
+	}
+
+	void _smoothPoints() 
+	{
+		// Odd Vertices
+		for (const auto& e_it : _mesh.edges())
+		{
+			auto he = _mesh.halfedge_handle(e_it, 0);
+			auto heOp = _mesh.next_halfedge_handle(he);
+			auto heNext = _mesh.next_halfedge_handle(heOp);
+			auto a = _mesh.point(_mesh.to_vertex_handle(he));
+			auto b = _mesh.point(_mesh.to_vertex_handle(heNext));
+			OpenMesh::VectorT<float, 3> point;
+
+			if (_mesh.is_boundary(e_it))
+			{
+				point = (a+b)/2.0f;
+			}
+			else
+			{
+				auto c = _mesh.point(_mesh.to_vertex_handle(heOp));
+				auto heOp2 = _mesh.next_halfedge_handle(_mesh.halfedge_handle(e_it, 1));
+				auto d = _mesh.point(_mesh.to_vertex_handle(heOp2));
+				point = 3.0f/8.0f*(a+b)+1.0f/8.0f*(c+d);
+			}
+			_mesh.property(_edgePoint, e_it) = point;
+		}
+		// Even Vertices
+		for (const auto& v_it : _mesh.vertices())
+		{
+			auto point = _mesh.point(v_it);
+			auto n = _mesh.valence(v_it);	
+			float B;
+
+			ASSERT(n >= 3, "point valency should be greater or equal to 3");
+			if (n > 3)
+			{
+				B = (1.0f/(float)n)*((5.0f/8.0f)-std::pow((3.0f/8.0f)+((1.0f/4.0f)*cos((2.0f*M_PIf64)/(float)n)), 2));
+			}
+			else
+			{
+				B = 3.0f/16.0f;
+			}
+			OpenMesh::VectorT<float,3> sum = {0, 0, 0}; 
+			for (auto vv_it = _mesh.vv_iter(v_it); vv_it.is_valid(); ++vv_it)
+			{
+				sum += _mesh.point(*vv_it);
+			}
+			point = point*(1-n*B)+(sum*B);
+			_mesh.property(_vertexPoint, v_it) = point;
+		}
+	}
+
+	std::vector<Vertex_> _getSubdividedVertices(std::vector<Vertex_>& vs, std::unordered_map<Vertex_, MyMesh::VertexHandle>& points)
+	{
+		// Find all faces vertices with properties on edges/points
+		for (const auto& f_it : _mesh.faces())
+		{
+			// Each edges -> odd points
+			for (auto fe_it = _mesh.fe_begin(f_it); fe_it.is_valid(); ++fe_it)
+			{
+				auto point = _mesh.property(_edgePoint, *fe_it);
+				Vertex_ v = {point};
+				if (points.find(v) == points.end())
+				{
+					points.insert({{v, _mesh.add_vertex(point)}});
+				}
+				vs.emplace_back(v);
+			}
+
+			// Each vertex -> even points 
+			for (auto fv_it = _mesh.fv_begin(f_it); fv_it.is_valid(); ++fv_it)
+			{
+				auto point = _mesh.property(_vertexPoint, *fv_it);
+				Vertex_ v = {point};
+				if (points.find(v) == points.end())
+				{
+					points.insert({{v, _mesh.add_vertex(point)}});
+				}
+				vs.emplace_back(v);
+			}
+		}
+		return vs;
+	}
+
+
+	void _updateFaces(std::vector<Vertex_>& vs, std::unordered_map<Vertex_, MyMesh::VertexHandle>& points)
+	{
+		_mesh.request_face_status();
+		_mesh.request_edge_status();
+		_mesh.request_vertex_status();
+		// Delete all faces
+		for (const auto& f_it : _mesh.faces())
+		{
+			_mesh.delete_face(f_it, true);
+		}
+		// Create all new faces
+		for (std::uint64_t i = 0; i < vs.size(); i += 6)
+		{
+			const auto& A = points.find(vs[i+0])->second; //         D        //
+			const auto& B = points.find(vs[i+1])->second; //        /\        //
+			const auto& C = points.find(vs[i+2])->second; //       /  \       //
+			const auto& D = points.find(vs[i+3])->second; //      /    \      //
+			const auto& E = points.find(vs[i+4])->second; //   A /_____ \ B   //
+			const auto& F = points.find(vs[i+5])->second; //    / \    / \    //
+			_mesh.add_face({A,B,C});                      //   /   \  /   \   //
+			_mesh.add_face({D,B,A});                      //  /_____\/_____\  //
+			_mesh.add_face({E,C,B});                      // F      C       E //
+			_mesh.add_face({F,A,C});
+		}
+		_mesh.garbage_collection();
 	}
 
 
@@ -337,4 +326,6 @@ private:
 	}
 
 	MyMesh _mesh;
+	OpenMesh::EPropHandleT<MyMesh::Point> _edgePoint;
+	OpenMesh::VPropHandleT<MyMesh::Point> _vertexPoint;
 };
