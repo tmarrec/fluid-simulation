@@ -13,13 +13,13 @@ using Renderer__ = std::shared_ptr<Renderer>;
 class DrawableComponent : public Component
 {
 public:
-	DrawableComponent(Renderer__ __renderer, std::string __vertPath, std::string __fragPath, std::vector<GLfloat> __vertices, std::vector<GLfloat> __normals, std::vector<GLuint> __indices, GLenum __drawMode)
+	DrawableComponent(Renderer__ __renderer, std::shared_ptr<Shader> __shader, std::vector<GLfloat> __vertices, std::vector<GLfloat> __normals, std::vector<GLuint> __indices, GLenum __drawMode)
 	: Component{}
 	, _renderer { __renderer }
 	, _vertices { std::make_shared<std::vector<GLfloat>>(__vertices) }
 	, _normals { std::make_shared<std::vector<GLfloat>>(__normals) }
 	, _indices { std::make_shared<std::vector<GLuint>>(__indices) }
-	, _shader { std::make_shared<Shader>(Shader{__vertPath.c_str(), __fragPath.c_str()}) }
+	, _shader { __shader }
 	, _drawMode { __drawMode }
 	{}
 

@@ -68,9 +68,9 @@ public:
 		l(1);
 		l.detach();
 		*/
-		_subdivide(3);
+		_subdivide(1);
 		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		std::cout << "Time : " << end-start << std::endl;
+		//std::cout << "Time : " << end-start << std::endl;
 
 		_writeMesh(drawableComponent);
 
@@ -114,26 +114,25 @@ private:
 			for (auto v_it = _mesh.vertices_begin(); v_it != _mesh.vertices_end(); ++v_it)
 			{
 				auto point = _mesh.point(*v_it);
-
 				auto n = _mesh.valence(*v_it);	
-				ASSERT(n >= 3, "point valance should be greater or equal to 3");
+				ASSERT(n >= 3, "point valency should be greater or equal to 3");
+
 				float B;
 				if (n > 3)
 				{
-					B = 3/(8*(float)n);
+					B = 3.0f/(float)(8.0f*n);
 				}
 				else
 				{
-					B = 3/16;
+					B = 3.0f/16.0f;
 				}
-				
+					
 				OpenMesh::VectorT<float,3> sum = {0, 0, 0}; 
-				for (auto vvit = _mesh.vv_iter(*v_it); vvit.is_valid(); ++vvit)
+				for (auto vv_it = _mesh.vv_iter(*v_it); vv_it.is_valid(); ++vv_it)
 				{
-					sum += _mesh.point(*vvit);
+					sum += _mesh.point(*vv_it);
 				}
 				point = point*(1-n*B)+(sum*B);
-
 				_mesh.property(vertexPoint, *v_it) = point;
 			}
 
@@ -143,8 +142,7 @@ private:
 			std::unordered_map<Vertex_, MyMesh::VertexHandle> points;
 			std::vector<Vertex_> vs;
 
-			// New faces creation
-			std::uint64_t vertexInd = 0;
+			// New faces creation with properties
 			for (auto f_it = _mesh.faces_begin(); f_it != _mesh.faces_end(); ++f_it)
 			{
 				// Each edges
@@ -157,7 +155,6 @@ private:
 					auto got = points.find(v);
 					if (got == points.end())
 					{
-						//veHandle.emplace_back(_mesh.add_vertex(point));
 						points.insert({{v, _mesh.add_vertex(point)}});
 					}
 					vs.emplace_back(v);
@@ -168,12 +165,10 @@ private:
 				for (auto fv_it = _mesh.fv_begin(*f_it); fv_it.is_valid(); ++fv_it)
 				{
 					auto point = _mesh.property(vertexPoint, *fv_it);
-					//vvHandle.emplace_back(_mesh.add_vertex(point));
 					Vertex_ v = {point};
 					auto got = points.find(v);
 					if (got == points.end())
 					{
-						//veHandle.emplace_back(_mesh.add_vertex(point));
 						points.insert({{v, _mesh.add_vertex(point)}});
 					}
 					vs.emplace_back(v);
@@ -182,14 +177,16 @@ private:
 			_mesh.request_face_status();
 			_mesh.request_edge_status();
 			_mesh.request_vertex_status();
+			// Delete all faces
 			for (auto f_it = _mesh.faces_begin(); f_it != _mesh.faces_end(); ++f_it)
 			{
 				_mesh.delete_face(*f_it, true);
 			}
-			// Create all faces
+			// Create all new faces
 			std::vector<MyMesh::VertexHandle> newFace;
 			for (std::uint64_t i = 0; i < vs.size(); i += 6)
 			{
+				// Inside Triangle
 				newFace.emplace_back(points.find(vs[i])->second);
 				newFace.emplace_back(points.find(vs[i+1])->second);
 				newFace.emplace_back(points.find(vs[i+2])->second);
