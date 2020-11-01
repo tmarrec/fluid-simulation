@@ -45,7 +45,6 @@ add_executable(${PROJECT_NAME}
 	src/InputManager.cpp
 
 	src/Shader.h
-	src/Shader.cpp
 
 	src/ECS.h
 	src/ECS.cpp

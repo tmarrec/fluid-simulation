@@ -41,15 +41,18 @@ void GlWidget::_init()
 	_activeCamera->addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	_renderer->setActiveCamera(&_activeCamera->getComponent<CameraComponent>());
 	Cube c;
+	auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
 
+	/*
 	auto & light(_ECS_manager->addEntity());
 	light.addComponent<TransformComponent>(glm::vec3{0.0f, 100.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{20.0f, 20.0f, 20.0f});
 	light.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices, GL_TRIANGLES);
 	light.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 0.0f, 0.0f}, 1.f);
+	*/
 
 	auto & light2(_ECS_manager->addEntity());
 	light2.addComponent<TransformComponent>(glm::vec3{0.0f, 200.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{20.0f, 20.0f, 20.0f});
-	light2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices, GL_TRIANGLES);
+	light2.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES);
 	light2.addComponent<LightComponent>(_renderer, glm::vec3{0.0f, 0.0f, 1.0f}, 4.f);
 
 	/*
@@ -175,8 +178,8 @@ void GlWidget::_init()
 	
 
 	auto & CUBE(_ECS_manager->addEntity());
-	CUBE.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
-	CUBE.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices, GL_TRIANGLES);
+	CUBE.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{150.0f, 150.0f, 150.0f});
+	CUBE.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES);
 	CUBE.addComponent<SubdivideComponent>();
 }
 

@@ -32,7 +32,7 @@ public:
 	void update([[maybe_unused]] double _deltaTime) override
 	{
 		radius = _intensity*100;
-		speed = (2*M_PI)/_intensity*0.5;
+		speed = (2*M_PI)/_intensity*0.2;
 		angle += speed*_deltaTime;
 		auto pos = entity->getComponent<TransformComponent>().position();
 		pos.x = cos(angle)*radius;

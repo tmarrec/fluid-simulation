@@ -1,4 +1,5 @@
 build/
+.cache/
 src/.clangd/
 compile_commands.json*
 

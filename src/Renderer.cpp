@@ -81,18 +81,14 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 	auto shader = __drawableComponent->shader();
 	auto color = __drawableComponent->color();
 	shader->use();
-	shader->set_3f("_object_color", color);
-
 	shader->set_mat4("model", __drawableComponent->getModel());
 	shader->set_mat4("view", _activeCamera->getView());
 	shader->set_mat4("projection", _activeCamera->projection());
-	uint64_t time = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	float time_sin = sin(time/50000);
-	shader->set_1f("time", time_sin);
 
+	shader->set_3f("_object_color", color);
 	shader->set_3f("_view_pos", _activeCamera->getView()[3]);
-
 	shader->set_1i("_light_nb", _lights.size());
+
 	// Envoie les uniforms pour toutes les lumieres
 	for (size_t i = 0; i < _lights.size(); ++i) {
 		auto light = static_cast<LightComponent*>(_lights[i]);
