@@ -4,6 +4,7 @@
 #include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 #include <OpenMesh/Tools/Subdivider/Uniform/LoopT.hh>
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <unordered_map>
 #include <chrono>
@@ -62,13 +63,11 @@ public:
 
 		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		// SUBDIVIDE
-		/*
 		OpenMesh::Subdivider::Uniform::LoopT<MyMesh> l;
 		l.attach(_mesh);
 		l(1);
 		l.detach();
-		*/
-		_subdivide(1);
+		//_subdivide(1);
 		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		//std::cout << "Time : " << end-start << std::endl;
 
@@ -120,7 +119,7 @@ private:
 				float B;
 				if (n > 3)
 				{
-					B = 3.0f/(float)(8.0f*n);
+					B = (1.0f/(float)n)*((5.0f/8.0f)-std::pow((3.0f/8.0f)+((1.0f/4.0f)*cos((2.0f*M_PIf64)/(float)n)), 2));
 				}
 				else
 				{
