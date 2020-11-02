@@ -4,3 +4,6 @@
 [submodule "OpenMesh"]
 	path = OpenMesh
 	url = https://www.graphics.rwth-aachen.de:9000/OpenMesh/OpenMesh.git
+[submodule "tinygltf"]
+	path = tinygltf
+	url = https://github.com/syoyo/tinygltf.git

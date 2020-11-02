@@ -45,6 +45,7 @@ add_executable(${PROJECT_NAME}
 	src/InputManager.cpp
 
 	src/Shader.h
+	src/Scene.h
 
 	src/ECS.h
 	src/ECS.cpp
@@ -71,7 +72,10 @@ add_executable(${PROJECT_NAME}
 set(EXT_LIBS Qt5::OpenGL ${OPENGL_LIBRARIES})
 
 add_subdirectory("OpenMesh")
-target_include_directories(${PROJECT_NAME} PUBLIC "${OPENMESH_INCLUDE_DIRS}")
+target_include_directories(${PROJECT_NAME}
+	PUBLIC "${OPENMESH_INCLUDE_DIRS}"
+	PUBLIC "tinygltf/"
+)
 target_link_libraries(${PROJECT_NAME}
 	PRIVATE "${OPENMESH_LIBRARIES}"
 	${EXT_LIBS}

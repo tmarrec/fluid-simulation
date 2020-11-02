@@ -19,6 +19,8 @@
 #include "BSpline.h"
 #include "BSplineTensor.h"
 
+#include "Scene.h"
+
 void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 
 GlWidget::GlWidget(QWidget *parent)
@@ -35,6 +37,8 @@ Entity* GlWidget::getActiveCamera() const { return _activeCamera; }
 
 void GlWidget::_init()
 {
+
+	auto s = Scene();
 
 	_activeCamera = &_ECS_manager->addEntity();
 	_activeCamera->addComponent<CameraComponent>(0.0f, 0.0f, 3.0f, 90.0f);
