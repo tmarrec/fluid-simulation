@@ -64,7 +64,7 @@ public:
 
 		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		// SUBDIVIDE
-		_subdivide(2);
+		_subdivide(1);
 		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		std::cout << "Time : " << end-start << std::endl;
 
@@ -203,25 +203,39 @@ private:
 
 	void _readMesh(std::shared_ptr<std::vector<GLfloat>> __vertices, std::shared_ptr<std::vector<GLuint>> __indices)
 	{
-		/*
+		std::unordered_map<Vertex_, MyMesh::VertexHandle> points;
+		std::vector<MyMesh::VertexHandle> e;
+
 		MyMesh::VertexHandle vhandle[__vertices->size()];
 		for (std::uint64_t i = 0; i < __vertices->size(); i += 3)
 		{
-			std::cout << i << std::endl;
-			vhandle[i/3] = _mesh.add_vertex(MyMesh::Point(__vertices->at(i), __vertices->at(i+1), __vertices->at(i+2)));
+			MyMesh::Point p (__vertices->at(i), __vertices->at(i+1), __vertices->at(i+2));
+			Vertex_ v {p};
+			auto got = points.find(v);
+			if (got == points.end())
+			{
+				auto k = _mesh.add_vertex(MyMesh::Point(__vertices->at(i), __vertices->at(i+1), __vertices->at(i+2)));
+				points.insert({{v, k}});
+				e.emplace_back(k);
+			}
+			else
+			{
+				e.emplace_back(got->second);
+			}
 		}
 		std::vector<MyMesh::VertexHandle> t;
 		for (std::uint64_t i = 0; i < __indices->size(); i += 3)
 		{
+			std::cout << "i : " << i << std::endl;
 			t.clear();
-			t.emplace_back(vhandle[__indices->at(i)]);
-			t.emplace_back(vhandle[__indices->at(i+1)]);
-			t.emplace_back(vhandle[__indices->at(i+2)]);
+			t.emplace_back(e.at(__indices->at(i)));
+			t.emplace_back(e.at(__indices->at(i+1)));
+			t.emplace_back(e.at(__indices->at(i+2)));
 			_mesh.add_face(t);
 		}
 		std::cout << "Vertices : " << _mesh.n_vertices() << std::endl;
 		std::cout << "Faces : " << _mesh.n_faces() << std::endl;
-		*/
+		/*
 		MyMesh::VertexHandle vhandle[8];
 		vhandle[0] = _mesh.add_vertex(MyMesh::Point(-1, -1,1));
 		vhandle[1] = _mesh.add_vertex(MyMesh::Point( 1, -1,1));
@@ -270,6 +284,7 @@ private:
 		face_vhandles.push_back(vhandle[7]);
 		face_vhandles.push_back(vhandle[4]);
 		_mesh.add_face(face_vhandles);
+		*/
 	}
 
 	void _writeMesh(DrawableComponent& drawableComponent)
