@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GL/gl.h>
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 
@@ -55,12 +56,23 @@ public:
 		}
 	}
 
+	template<typename T>
+	void getIndicesFromBuffer(std::vector<GLuint>& indices, unsigned char* buffer, const size_t count)
+	{
+		T* indicesBuffer = reinterpret_cast<T*>(buffer);
+		for (std::uint64_t i = 0; i < count; ++i)
+		{
+			indices.emplace_back(static_cast<GLuint>(indicesBuffer[i]));
+		}
+	}
+
 	std::map<int, GLuint> bindMesh(std::map<int, GLuint> vbos, tinygltf::Model &model, tinygltf::Mesh &mesh)
 	{
 		for (const auto& primitive : mesh.primitives)
 		{
 			std::cout << "new entity" << std::endl;
-			std::vector<float> vertices;
+			std::vector<GLfloat> vertices;
+			std::vector<GLuint> indices;
     		for (const auto& attribute : primitive.attributes)
 			{
         		const auto& accessor = model.accessors[attribute.second];
@@ -72,11 +84,55 @@ public:
 					unsigned char* buffer = &vertexArray.data.at(0) + bufferView.byteOffset + accessor.byteOffset;
 
 					// Cast the vertex buffer to clean float vector
-					float* verticesBuffer = reinterpret_cast<float*>(buffer);
+					GLfloat* verticesBuffer = reinterpret_cast<GLfloat*>(buffer);
 					vertices.insert(vertices.cbegin(), verticesBuffer, verticesBuffer+accessor.count);
         		}
     		}
+			
+			// Indices
+			const auto& indicesAccessor = model.accessors[primitive.indices];
+			auto& type = indicesAccessor.componentType;
+			std::cout << type << std::endl;
+			auto& indicesArray = model.buffers[model.bufferViews[indicesAccessor.bufferView].buffer];
+			auto& indicesBufferView = model.bufferViews[indicesAccessor.bufferView];
+			// TODO buffer add offsets !
+			unsigned char* buffer = &indicesArray.data.at(0) + indicesBufferView.byteOffset + indicesAccessor.byteOffset;
+			switch (type)
+			{
+				case TINYGLTF_COMPONENT_TYPE_BYTE:
+					getIndicesFromBuffer<std::int8_t>(indices, buffer, indicesAccessor.count);
+					break;
+				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+					getIndicesFromBuffer<std::uint8_t>(indices, buffer, indicesAccessor.count);
+					break;
+				case TINYGLTF_COMPONENT_TYPE_SHORT:
+					getIndicesFromBuffer<std::int16_t>(indices, buffer, indicesAccessor.count);
+					break;
+				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+					getIndicesFromBuffer<std::uint16_t>(indices, buffer, indicesAccessor.count);
+					break;
+				case TINYGLTF_COMPONENT_TYPE_INT:
+					getIndicesFromBuffer<std::int32_t>(indices, buffer, indicesAccessor.count);
+					break;
+				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+					getIndicesFromBuffer<std::uint32_t>(indices, buffer, indicesAccessor.count);
+					break;
+				case TINYGLTF_COMPONENT_TYPE_FLOAT:
+				case TINYGLTF_COMPONENT_TYPE_DOUBLE:
+					ERROR("Indices componentType can't be a float or a double");
+					break;
+			}
+
+			std::cout << "::: " << indicesAccessor.count << std::endl;
+
+			std::cout << "Vertices : " << std::endl;
 			for (auto v : vertices)
+			{
+				std::cout << v << " ";
+			}
+			std::cout << std::endl;
+			std::cout << "Indices : " << std::endl;
+			for (auto v : indices)
 			{
 				std::cout << v << " ";
 			}
