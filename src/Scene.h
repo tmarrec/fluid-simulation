@@ -72,21 +72,25 @@ public:
 		{
 			std::cout << "new entity" << std::endl;
 			std::vector<GLfloat> vertices;
+			std::vector<GLfloat> normals;
 			std::vector<GLuint> indices;
     		for (const auto& attribute : primitive.attributes)
 			{
         		const auto& accessor = model.accessors[attribute.second];
+				const auto& bufferView = model.bufferViews[accessor.bufferView];
+            	auto& bufferArray = model.buffers[bufferView.buffer];
+				unsigned char* buffer = &bufferArray.data.at(0)+bufferView.byteOffset+accessor.byteOffset;
         		if (attribute.first.compare("POSITION") == 0)
 				{
-					// Get vertex buffer
-					const auto& bufferView = model.bufferViews[accessor.bufferView];
-            		auto& vertexArray = model.buffers[bufferView.buffer];
-					unsigned char* buffer = &vertexArray.data.at(0) + bufferView.byteOffset + accessor.byteOffset;
-
-					// Cast the vertex buffer to clean float vector
+					// Cast the vertex array to a clean float vector
 					GLfloat* verticesBuffer = reinterpret_cast<GLfloat*>(buffer);
-					vertices.insert(vertices.cbegin(), verticesBuffer, verticesBuffer+accessor.count);
+					vertices.insert(vertices.begin(), verticesBuffer, verticesBuffer+accessor.count);
         		}
+				else if (attribute.first.compare("NORMAL") == 0)
+				{
+					GLfloat* positionBuffer = reinterpret_cast<GLfloat*>(buffer);
+					normals.insert(normals.begin(), positionBuffer, positionBuffer+accessor.count);
+				}
     		}
 			
 			// Indices
@@ -95,7 +99,6 @@ public:
 			std::cout << type << std::endl;
 			auto& indicesArray = model.buffers[model.bufferViews[indicesAccessor.bufferView].buffer];
 			auto& indicesBufferView = model.bufferViews[indicesAccessor.bufferView];
-			// TODO buffer add offsets !
 			unsigned char* buffer = &indicesArray.data.at(0) + indicesBufferView.byteOffset + indicesAccessor.byteOffset;
 			switch (type)
 			{
@@ -123,10 +126,14 @@ public:
 					break;
 			}
 
-			std::cout << "::: " << indicesAccessor.count << std::endl;
-
 			std::cout << "Vertices : " << std::endl;
 			for (auto v : vertices)
+			{
+				std::cout << v << " ";
+			}
+			std::cout << std::endl;
+			std::cout << "Normals : " << std::endl;
+			for (auto v : normals)
 			{
 				std::cout << v << " ";
 			}
