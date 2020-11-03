@@ -45,7 +45,7 @@ void GlWidget::_init()
 
 	auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
 
-	auto s = Scene(_renderer, _ECS_manager, "Box.gltf");
+	auto s = Scene(_renderer, _ECS_manager, "GearboxAssy.gltf");
 
 	Cube c;
 
