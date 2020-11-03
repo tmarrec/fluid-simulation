@@ -39,13 +39,13 @@ void GlWidget::_init()
 {
 
 	_activeCamera = &_ECS_manager->addEntity();
-	_activeCamera->addComponent<CameraComponent>(0.0f, 0.0f, 3.0f, 90.0f);
-	_activeCamera->addComponent<TransformComponent>(glm::vec3{-250.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	_activeCamera->addComponent<CameraComponent>(0.0f, 0.0f, 0.05f, 90.0f);
+	_activeCamera->addComponent<TransformComponent>(glm::vec3{-5.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	_renderer->setActiveCamera(&_activeCamera->getComponent<CameraComponent>());
 
 	auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
 
-	auto s = Scene(_renderer, _ECS_manager, "GearboxAssy.gltf");
+	auto s = Scene(_renderer, _ECS_manager, "TEST.gltf");
 
 	Cube c;
 

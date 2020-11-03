@@ -1,6 +1,12 @@
 #pragma once
 
+#include "glm/glm/ext/scalar_constants.hpp"
+#include "glm/glm/gtc/quaternion.hpp"
+#include "glm/glm/gtc/type_ptr.hpp"
+#include "glm/glm/gtx/matrix_decompose.hpp"
+#include "glm/glm/gtx/string_cast.hpp"
 #include <GL/gl.h>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -14,6 +20,7 @@
 #include "tinygltf/tiny_gltf.h"
 
 #include "utils.h"
+#include "shapes.h"
 #include "ECS.h"
 #include "TransformComponent.h"
 #include "CameraComponent.h"
@@ -67,7 +74,43 @@ private:
 	void _nodeLoop(tinygltf::Model& __model, tinygltf::Node& __node)
 	{
 		if ((__node.mesh >= 0) && (__node.mesh < (int)__model.meshes.size())) {
-			_meshLoop(__model, __model.meshes[__node.mesh]);
+			Shape shape;
+			shape = _meshLoop(__model, __model.meshes[__node.mesh]);
+			// New entity creation for the mesh
+			// TODO SHADER
+			auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
+			auto& entity = _ECS_manager->addEntity();
+
+			glm::vec3 translation = {0.0f, 0.0f, 0.0f};
+			glm::vec3 rotation = {0.0f, 0.0f, 0.0f};
+			glm::vec3 scale = {1.0f, 1.0f, 1.0f};
+			if (__node.matrix.size() > 0)
+			{
+				glm::quat qrotation;
+				glm::mat4 matrix = glm::make_mat4(&__node.matrix.at(0));
+				glm::vec3 skew;
+				glm::vec4 perspective;
+				glm::decompose(matrix, scale, qrotation, translation, skew, perspective);
+				rotation = (glm::eulerAngles(qrotation)/(2*glm::pi<float>()))*glm::vec3{360.0f};
+			}
+			else
+			{
+				if (__node.translation.size() > 0)
+				{
+					translation = glm::make_vec3(&__node.translation.at(0));
+				}
+				if (__node.rotation.size() > 0)
+				{
+					rotation = glm::make_vec3(&__node.rotation.at(0));
+				}
+				if (__node.scale.size() > 0)
+				{
+					scale = glm::make_vec3(&__node.scale.at(0));
+				}
+			}
+			entity.addComponent<TransformComponent>(translation, rotation, scale);
+			entity.addComponent<DrawableComponent>(_renderer, shader, shape.vertices, shape.normals, shape.indices, GL_TRIANGLES);
+
 		}
 		for (size_t i = 0; i < __node.children.size(); i++) {
 			ASSERT((node.children[i] >= 0) && (node.children[i] < model.nodes.size()), "");
@@ -76,7 +119,7 @@ private:
 	}
 
 
-	void _meshLoop(tinygltf::Model& __model, tinygltf::Mesh& __mesh)
+	Shape _meshLoop(tinygltf::Model& __model, tinygltf::Mesh& __mesh)
 	{
 		std::vector<GLfloat> vertices;
 		std::vector<GLfloat> normals;
@@ -103,55 +146,62 @@ private:
     		}
 			
 			// Indices
-			const auto& indicesAccessor = __model.accessors[primitive.indices];
-			const auto& type = indicesAccessor.componentType;
-			auto& indicesArray = __model.buffers[__model.bufferViews[indicesAccessor.bufferView].buffer];
-			const auto& indicesBufferView = __model.bufferViews[indicesAccessor.bufferView];
-			unsigned char* buffer = &indicesArray.data.at(0) + indicesBufferView.byteOffset + indicesAccessor.byteOffset;
-			switch (type)
+			if (primitive.indices >= 0)
 			{
-				case TINYGLTF_COMPONENT_TYPE_BYTE:
-					_getIndicesFromBuffer<std::int8_t>(indices, buffer, indicesAccessor.count);
-					break;
-				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
-					_getIndicesFromBuffer<std::uint8_t>(indices, buffer, indicesAccessor.count);
-					break;
-				case TINYGLTF_COMPONENT_TYPE_SHORT:
-					_getIndicesFromBuffer<std::int16_t>(indices, buffer, indicesAccessor.count);
-					break;
-				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-					_getIndicesFromBuffer<std::uint16_t>(indices, buffer, indicesAccessor.count);
-					break;
-				case TINYGLTF_COMPONENT_TYPE_INT:
-					_getIndicesFromBuffer<std::int32_t>(indices, buffer, indicesAccessor.count);
-					break;
-				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-					_getIndicesFromBuffer<std::uint32_t>(indices, buffer, indicesAccessor.count);
-					break;
-				case TINYGLTF_COMPONENT_TYPE_FLOAT:
-				case TINYGLTF_COMPONENT_TYPE_DOUBLE:
-					ERROR("Indices componentType can't be a float or a double");
-					break;
+				const auto& indicesAccessor = __model.accessors[primitive.indices];
+				const auto& type = indicesAccessor.componentType;
+				auto& indicesArray = __model.buffers[__model.bufferViews[indicesAccessor.bufferView].buffer];
+				const auto& indicesBufferView = __model.bufferViews[indicesAccessor.bufferView];
+				unsigned char* buffer = &indicesArray.data.at(0) + indicesBufferView.byteOffset + indicesAccessor.byteOffset;
+				switch (type)
+				{
+					case TINYGLTF_COMPONENT_TYPE_BYTE:
+						_getIndicesFromBuffer<std::int8_t>(indices, buffer, indicesAccessor.count);
+						break;
+					case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+						_getIndicesFromBuffer<std::uint8_t>(indices, buffer, indicesAccessor.count);
+						break;
+					case TINYGLTF_COMPONENT_TYPE_SHORT:
+						_getIndicesFromBuffer<std::int16_t>(indices, buffer, indicesAccessor.count);
+						break;
+					case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+						_getIndicesFromBuffer<std::uint16_t>(indices, buffer, indicesAccessor.count);
+						break;
+					case TINYGLTF_COMPONENT_TYPE_INT:
+						_getIndicesFromBuffer<std::int32_t>(indices, buffer, indicesAccessor.count);
+						break;
+					case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+						_getIndicesFromBuffer<std::uint32_t>(indices, buffer, indicesAccessor.count);
+						break;
+					case TINYGLTF_COMPONENT_TYPE_FLOAT:
+					case TINYGLTF_COMPONENT_TYPE_DOUBLE:
+						ERROR("Indices componentType can't be a float or a double");
+							break;
+				}
+			}
+			else
+			{
+				std::cout << "no indices tf" << std::endl;
+				ASSERT(vertices.size%3==0, "vertices must be power of 3");
+				indices.resize(vertices.size()/3);
+				std::iota(indices.begin(), indices.end(), 0);
 			}
 			
  		} 
 
+		//std::cout << "vertices:" << std::endl;
 		for (int i = 0; i < vertices.size(); i += 3)
 		{
-			std::cout << vertices[i] << " " << vertices[i+1] << " " << vertices[i+2] << std::endl;
+			//std::cout << vertices[i] << " " << vertices[i+1] << " " << vertices[i+2] << std::endl;
 		}
 
+		//std::cout << "indices:" << std::endl;
 		for (int i = 0; i < indices.size(); i += 3)
 		{
-			std::cout << indices[i] << " " << indices[i+1] << " " << indices[i+2] << std::endl;
+			//std::cout << indices[i] << " " << indices[i+1] << " " << indices[i+2] << std::endl;
 		}
 
-		// New entity creation for the mesh
-		// TODO SHADER
-		auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
-		auto& entity = _ECS_manager->addEntity();
-		entity.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{20.0f, 20.0f, 20.0f});
-		entity.addComponent<DrawableComponent>(_renderer, shader, vertices, normals, indices, GL_TRIANGLES);
+		return {vertices, normals, indices};
 	}
 
 	template<typename T>
