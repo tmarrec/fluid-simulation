@@ -78,11 +78,11 @@ private:
 
 	void _meshLoop(tinygltf::Model& __model, tinygltf::Mesh& __mesh)
 	{
+		std::vector<GLfloat> vertices;
+		std::vector<GLfloat> normals;
+		std::vector<GLuint> indices;
 		for (const auto& primitive : __mesh.primitives)
 		{
-			std::vector<GLfloat> vertices;
-			std::vector<GLfloat> normals;
-			std::vector<GLuint> indices;
     		for (const auto& attribute : primitive.attributes)
 			{
         		const auto& accessor = __model.accessors[attribute.second];
@@ -93,12 +93,12 @@ private:
 				{
 					// Cast the vertex array to a clean float vector
 					GLfloat* verticesBuffer = reinterpret_cast<GLfloat*>(buffer);
-					vertices.insert(vertices.begin(), verticesBuffer, verticesBuffer+accessor.count);
+					vertices.insert(vertices.begin(), verticesBuffer, verticesBuffer+accessor.count*3);
         		}
 				else if (attribute.first.compare("NORMAL") == 0)
 				{
 					GLfloat* positionBuffer = reinterpret_cast<GLfloat*>(buffer);
-					normals.insert(normals.begin(), positionBuffer, positionBuffer+accessor.count);
+					normals.insert(normals.begin(), positionBuffer, positionBuffer+accessor.count*3);
 				}
     		}
 			
@@ -134,18 +134,31 @@ private:
 					break;
 			}
 			
-			std::cout << "new entity" << std::endl;
-			auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
-			auto& entity = _ECS_manager->addEntity();
-			entity.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{20.0f, 20.0f, 20.0f});
-			entity.addComponent<DrawableComponent>(_renderer, shader, vertices, normals, indices, GL_TRIANGLES);
  		} 
+
+		for (int i = 0; i < vertices.size(); i += 3)
+		{
+			std::cout << vertices[i] << " " << vertices[i+1] << " " << vertices[i+2] << std::endl;
+		}
+
+		for (int i = 0; i < indices.size(); i += 3)
+		{
+			std::cout << indices[i] << " " << indices[i+1] << " " << indices[i+2] << std::endl;
+		}
+
+		// New entity creation for the mesh
+		// TODO SHADER
+		auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
+		auto& entity = _ECS_manager->addEntity();
+		entity.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{20.0f, 20.0f, 20.0f});
+		entity.addComponent<DrawableComponent>(_renderer, shader, vertices, normals, indices, GL_TRIANGLES);
 	}
 
 	template<typename T>
 	void _getIndicesFromBuffer(std::vector<GLuint>& __indices, unsigned char* __buffer, const std::uint64_t __count) const
 	{
 		T* indicesBuffer = reinterpret_cast<T*>(__buffer);
+		__indices.reserve(__count);
 		for (std::uint64_t i = 0; i < __count; ++i)
 		{
 			__indices.emplace_back(static_cast<GLuint>(indicesBuffer[i]));
