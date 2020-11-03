@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <memory>
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -13,72 +14,80 @@
 #include "tinygltf/tiny_gltf.h"
 
 #include "utils.h"
+#include "ECS.h"
+#include "TransformComponent.h"
+#include "CameraComponent.h"
+#include "DrawableComponent.h"
 
 class Scene
 {
 public:
-	Scene()
+	Scene(std::shared_ptr<Renderer> __renderer, std::shared_ptr<ECS_Manager> __ECS_manager, const std::string sceneFileName)
+	: _renderer { __renderer }
+	, _ECS_manager { __ECS_manager }
 	{
 		tinygltf::Model model;
+		_readModel(model, sceneFileName);
+		_generateEntities(model);
+	}
+
+
+private:
+	void _readModel(tinygltf::Model& __model, const std::string __fileName) const
+	{
 		tinygltf::TinyGLTF loader;
 		std::string err;
 		std::string warn;
-		bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, "scene.gltf");
-		if (!warn.empty()) {
-			printf("Warn: %s\n", warn.c_str());
-		}
-		if (!err.empty()) {
-			printf("Err: %s\n", err.c_str());
-		}
-		if (!ret) {
-			printf("Failed to parse glTF\n");
-			exit(-1);
-		}
-
-		std::map<int, GLuint> vbos;
-
-		const tinygltf::Scene &scene = model.scenes[model.defaultScene];
-		for (size_t i = 0; i < scene.nodes.size(); ++i) {
-			assert((scene.nodes[i] >= 0) && (scene.nodes[i] < model.nodes.size()));
-			bindModelNodes(vbos, model, model.nodes[scene.nodes[i]]);
-		}
-
-	}
-
-	void bindModelNodes(std::map<int, GLuint> vbos, tinygltf::Model &model, tinygltf::Node &node)
-	{
-		if ((node.mesh >= 0) && (node.mesh < model.meshes.size())) {
-			bindMesh(vbos, model, model.meshes[node.mesh]);
-		}
-		for (size_t i = 0; i < node.children.size(); i++) {
-			assert((node.children[i] >= 0) && (node.children[i] < model.nodes.size()));
-			bindModelNodes(vbos, model, model.nodes[node.children[i]]);
-		}
-	}
-
-	template<typename T>
-	void getIndicesFromBuffer(std::vector<GLuint>& indices, unsigned char* buffer, const size_t count)
-	{
-		T* indicesBuffer = reinterpret_cast<T*>(buffer);
-		for (std::uint64_t i = 0; i < count; ++i)
+		bool ret = loader.LoadASCIIFromFile(&__model, &err, &warn, __fileName);
+		if (!warn.empty())
 		{
-			indices.emplace_back(static_cast<GLuint>(indicesBuffer[i]));
+			WARNING(warn.c_str());
+		}
+		if (!err.empty()) 
+		{
+			ERROR(err.c_str());
+		}
+		if (!ret)
+		{
+			ERROR("Failed to parse glTF file");
 		}
 	}
 
-	std::map<int, GLuint> bindMesh(std::map<int, GLuint> vbos, tinygltf::Model &model, tinygltf::Mesh &mesh)
+	void _generateEntities(tinygltf::Model& __model)
 	{
-		for (const auto& primitive : mesh.primitives)
+		const tinygltf::Scene &scene = __model.scenes[__model.defaultScene];
+		// TODO handle multiples scenes
+		for (size_t i = 0; i < scene.nodes.size(); ++i)
 		{
-			std::cout << "new entity" << std::endl;
+			ASSERT((scene.nodes[i] >= 0) && (scene.nodes[i] < __model.nodes.size()), "");
+			_nodeLoop(__model, __model.nodes[scene.nodes[i]]);
+		}
+	}
+
+	void _nodeLoop(tinygltf::Model& __model, tinygltf::Node& __node)
+	{
+		if ((__node.mesh >= 0) && (__node.mesh < (int)__model.meshes.size())) {
+			_meshLoop(__model, __model.meshes[__node.mesh]);
+		}
+		for (size_t i = 0; i < __node.children.size(); i++) {
+			ASSERT((node.children[i] >= 0) && (node.children[i] < model.nodes.size()), "");
+			_nodeLoop(__model, __model.nodes[__node.children[i]]);
+		}
+	}
+
+
+	void _meshLoop(tinygltf::Model& __model, tinygltf::Mesh& __mesh)
+	{
+		for (const auto& primitive : __mesh.primitives)
+		{
 			std::vector<GLfloat> vertices;
 			std::vector<GLfloat> normals;
 			std::vector<GLuint> indices;
     		for (const auto& attribute : primitive.attributes)
 			{
-        		const auto& accessor = model.accessors[attribute.second];
-				const auto& bufferView = model.bufferViews[accessor.bufferView];
-            	auto& bufferArray = model.buffers[bufferView.buffer];
+        		const auto& accessor = __model.accessors[attribute.second];
+				const auto& bufferView = __model.bufferViews[accessor.bufferView];
+            	auto& bufferArray = __model.buffers[bufferView.buffer];
 				unsigned char* buffer = &bufferArray.data.at(0)+bufferView.byteOffset+accessor.byteOffset;
         		if (attribute.first.compare("POSITION") == 0)
 				{
@@ -94,59 +103,55 @@ public:
     		}
 			
 			// Indices
-			const auto& indicesAccessor = model.accessors[primitive.indices];
-			auto& type = indicesAccessor.componentType;
-			std::cout << type << std::endl;
-			auto& indicesArray = model.buffers[model.bufferViews[indicesAccessor.bufferView].buffer];
-			auto& indicesBufferView = model.bufferViews[indicesAccessor.bufferView];
+			const auto& indicesAccessor = __model.accessors[primitive.indices];
+			const auto& type = indicesAccessor.componentType;
+			auto& indicesArray = __model.buffers[__model.bufferViews[indicesAccessor.bufferView].buffer];
+			const auto& indicesBufferView = __model.bufferViews[indicesAccessor.bufferView];
 			unsigned char* buffer = &indicesArray.data.at(0) + indicesBufferView.byteOffset + indicesAccessor.byteOffset;
 			switch (type)
 			{
 				case TINYGLTF_COMPONENT_TYPE_BYTE:
-					getIndicesFromBuffer<std::int8_t>(indices, buffer, indicesAccessor.count);
+					_getIndicesFromBuffer<std::int8_t>(indices, buffer, indicesAccessor.count);
 					break;
 				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
-					getIndicesFromBuffer<std::uint8_t>(indices, buffer, indicesAccessor.count);
+					_getIndicesFromBuffer<std::uint8_t>(indices, buffer, indicesAccessor.count);
 					break;
 				case TINYGLTF_COMPONENT_TYPE_SHORT:
-					getIndicesFromBuffer<std::int16_t>(indices, buffer, indicesAccessor.count);
+					_getIndicesFromBuffer<std::int16_t>(indices, buffer, indicesAccessor.count);
 					break;
 				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-					getIndicesFromBuffer<std::uint16_t>(indices, buffer, indicesAccessor.count);
+					_getIndicesFromBuffer<std::uint16_t>(indices, buffer, indicesAccessor.count);
 					break;
 				case TINYGLTF_COMPONENT_TYPE_INT:
-					getIndicesFromBuffer<std::int32_t>(indices, buffer, indicesAccessor.count);
+					_getIndicesFromBuffer<std::int32_t>(indices, buffer, indicesAccessor.count);
 					break;
 				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-					getIndicesFromBuffer<std::uint32_t>(indices, buffer, indicesAccessor.count);
+					_getIndicesFromBuffer<std::uint32_t>(indices, buffer, indicesAccessor.count);
 					break;
 				case TINYGLTF_COMPONENT_TYPE_FLOAT:
 				case TINYGLTF_COMPONENT_TYPE_DOUBLE:
 					ERROR("Indices componentType can't be a float or a double");
 					break;
 			}
-
-			std::cout << "Vertices : " << std::endl;
-			for (auto v : vertices)
-			{
-				std::cout << v << " ";
-			}
-			std::cout << std::endl;
-			std::cout << "Normals : " << std::endl;
-			for (auto v : normals)
-			{
-				std::cout << v << " ";
-			}
-			std::cout << std::endl;
-			std::cout << "Indices : " << std::endl;
-			for (auto v : indices)
-			{
-				std::cout << v << " ";
-			}
-			std::cout << std::endl;
+			
+			std::cout << "new entity" << std::endl;
+			auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
+			auto& entity = _ECS_manager->addEntity();
+			entity.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{20.0f, 20.0f, 20.0f});
+			entity.addComponent<DrawableComponent>(_renderer, shader, vertices, normals, indices, GL_TRIANGLES);
  		} 
-		return vbos;
 	}
 
-private:
+	template<typename T>
+	void _getIndicesFromBuffer(std::vector<GLuint>& __indices, unsigned char* __buffer, const std::uint64_t __count) const
+	{
+		T* indicesBuffer = reinterpret_cast<T*>(__buffer);
+		for (std::uint64_t i = 0; i < __count; ++i)
+		{
+			__indices.emplace_back(static_cast<GLuint>(indicesBuffer[i]));
+		}
+	}
+	
+	std::shared_ptr<Renderer> _renderer;
+	std::shared_ptr<ECS_Manager> _ECS_manager;
 };
