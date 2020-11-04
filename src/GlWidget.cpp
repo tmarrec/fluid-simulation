@@ -228,7 +228,7 @@ void GlWidget::paintGL()
 	_renderer->startFrame();
 	_ECS_manager->update(_deltaTime);
 	_ECS_manager->draw();
-	_renderer->endFrame();
+	_renderer->endFrame(context()->defaultFramebufferObject());
 
 	//#####################################
 	// Compte les FPS chaque secondes
