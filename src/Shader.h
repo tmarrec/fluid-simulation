@@ -99,7 +99,7 @@ private:
 		}
 		catch (const std::ifstream::failure & e)
 		{
-			std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+			ERROR("Shader file not found");
 		}
 
 		const char* vShaderCode = vertexCode.c_str();

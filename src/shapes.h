@@ -11,6 +11,20 @@ struct Shape
 	std::vector<GLuint> indices;
 };
 
+struct Quad
+{
+	std::vector<GLfloat> vertices =
+	{
+		-1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
+	};
+};
+
 struct Cube
 {
 	std::vector<GLfloat> vertices =

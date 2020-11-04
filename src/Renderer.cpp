@@ -1,25 +1,81 @@
 #include "Renderer.h"
 
+#include <GL/gl.h>
+#include <GL/glext.h>
+#include <memory>
+#include <qopenglext.h>
+#include <thread>
+
 #include "src/DrawableComponent.h"
 #include "src/CameraComponent.h"
 #include "src/LightComponent.h"
+#include "Shader.h"
+#include "shapes.h"
 
-#include <GL/gl.h>
-#include <memory>
-#include <thread>
-
-void Renderer::initGl() const
+Renderer::Renderer()
+: _screenquadShader { new Shader{"shaders/screen.vert", "shaders/screen.frag"} } 
 {
-	resizeGl(0, 0);
+
 }
 
-void Renderer::resizeGl(int __w, int __h) const
+void Renderer::initGl()
+{
+	resizeGl(0, 0);
+
+	Quad quad;
+    glGenVertexArrays(1, &_screenquadVAO);
+    glGenBuffers(1, &_screenquadVBO);
+    glBindVertexArray(_screenquadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, _screenquadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quad.vertices), &quad.vertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
+	glBindVertexArray(0);
+
+}
+
+void Renderer::_screenbufferInit(int __w, int __h)
+{
+	_screenquadShader->use();
+	//_screenquadShader->set_1i("screenTexture", 0);
+	glGenFramebuffers(1, &_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+
+	// Color attachment texture
+    glGenTextures(1, &_textureColorbuffer);
+    glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, __w, __h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _textureColorbuffer, 0);
+
+    // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+    GLuint rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, __w, __h);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		ERROR("Framebuffer is not complete");
+	}
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	exit(0);
+}
+
+void Renderer::resizeGl(int __w, int __h)
 {
 	if (_activeCamera)
 	{
 		_activeCamera->setProjection(__w, __h);
 	}
 	glViewport(0, 0, __w, __h);
+
+	_screenbufferInit(__w, __h);
+	_init = true;
+	std::cout << "INIT" << _init << std::endl;
 }
 
 void Renderer::initDrawable(DrawableComponent* __drawableComponent)
@@ -107,10 +163,30 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 	}
 }
 
-void Renderer::clear() const
+void Renderer::startFrame()
 {
+	if (!_init) return;
+	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.85f, 0.9f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Renderer::endFrame()
+{
+	if (!_init) return;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST);
+	glClearColor(1.00f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	ASSERT(_screenquadShader, "_screenquadShader should not be nullptr");
+	_screenquadShader->use();
+	glBindVertexArray(_screenquadVAO);
+	glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glFinish();
 }
 
 void Renderer::drawDrawable(DrawableComponent* __drawableComponent)
