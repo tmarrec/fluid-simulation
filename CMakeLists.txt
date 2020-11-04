@@ -16,7 +16,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -Wall -fopenmp -pedantic -Wextra -pthread -DGL_GLEXT_PROTOTYPES")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -fopenmp -pedantic -Wextra -pthread -DGL_GLEXT_PROTOTYPES")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 

@@ -202,6 +202,7 @@ void GlWidget::initializeGL()
 	glDebugMessageCallback(MessageCallback, 0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	
+	_renderer->initGl();
 	_init();
 	//std::thread t ((Test(_ECS_manager)));
 	//t.detach();
@@ -225,10 +226,10 @@ void GlWidget::switchPolygonmode()
 
 void GlWidget::paintGL()
 {
-	_renderer->clear();
+	_renderer->startFrame();
 	_ECS_manager->update(_deltaTime);
 	_ECS_manager->draw();
-	glFinish();
+	_renderer->endFrame();
 
 	//#####################################
 	// Compte les FPS chaque secondes
@@ -252,7 +253,12 @@ void GlWidget::paintGL()
 	update();
 }
 
-void GlWidget::resizeGL(int w, int h) { _renderer->resizeGl(w, h); }
+void GlWidget::resizeGL(int w, int h)
+{
+	makeCurrent();
+	_renderer->resizeGl(w, h);
+	doneCurrent();
+}
 void GlWidget::keyPressEvent(QKeyEvent *event) { _InputManager->keyPressEvent(event); }
 void GlWidget::keyReleaseEvent(QKeyEvent *event) { _InputManager->keyReleaseEvent(event); }
 void GlWidget::mousePressEvent(QMouseEvent *event) { _InputManager->mousePressEvent(event); }
