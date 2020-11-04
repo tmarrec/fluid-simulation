@@ -75,6 +75,32 @@ void Renderer::resizeGl(int __w, int __h)
 	_screenbufferInit(__w, __h);
 }
 
+void Renderer::startFrame()
+{
+	if (!_init) return;
+	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+	glEnable(GL_DEPTH_TEST);
+	glClearColor(0.85f, 0.9f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Renderer::endFrame(GLuint qtFramebuffer)
+{
+	if (!_init) return;
+	std::cout << "qtfb: " << qtFramebuffer << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, qtFramebuffer);
+	glDisable(GL_DEPTH_TEST);
+	glClearColor(1.00f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	ASSERT(_screenquadShader, "_screenquadShader should not be nullptr");
+	_screenquadShader->use();
+	glBindVertexArray(_screenquadVAO);
+	glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glFinish();
+}
+
 void Renderer::initDrawable(DrawableComponent* __drawableComponent)
 {
 	glGenVertexArrays(1, &__drawableComponent->VAO());
@@ -160,30 +186,6 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 	}
 }
 
-void Renderer::startFrame()
-{
-	if (!_init) return;
-	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
-	glEnable(GL_DEPTH_TEST);
-	glClearColor(0.85f, 0.9f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void Renderer::endFrame()
-{
-	if (!_init) return;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_DEPTH_TEST);
-	glClearColor(1.00f, 1.0f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	ASSERT(_screenquadShader, "_screenquadShader should not be nullptr");
-	_screenquadShader->use();
-	glBindVertexArray(_screenquadVAO);
-	glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glFinish();
-}
 
 void Renderer::drawDrawable(DrawableComponent* __drawableComponent)
 {

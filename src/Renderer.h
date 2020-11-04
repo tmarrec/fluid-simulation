@@ -28,7 +28,7 @@ public:
 	void setActiveCamera(CameraComponent* __cameraComponent);
 	void addLight(LightComponent* __lightComponent);
 	void startFrame();
-	void endFrame();
+	void endFrame(GLuint qtFramebuffer);
 
 
 private:
