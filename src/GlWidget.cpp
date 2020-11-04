@@ -201,7 +201,6 @@ void GlWidget::initializeGL()
 	glEnable(GL_DEPTH_TEST);
 	glDebugMessageCallback(MessageCallback, 0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	
 	_renderer->initGl();
 	_init();
 	//std::thread t ((Test(_ECS_manager)));

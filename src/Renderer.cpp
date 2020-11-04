@@ -13,7 +13,7 @@
 #include "shapes.h"
 
 Renderer::Renderer()
-: _screenquadShader { new Shader{"shaders/screen.vert", "shaders/screen.frag"} } 
+: _screenquadShader { nullptr } 
 {
 
 }
@@ -34,12 +34,15 @@ void Renderer::initGl()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
 	glBindVertexArray(0);
 
+	_screenquadShader = new Shader("shaders/screen.vert", "shaders/screen.frag");
 }
 
 void Renderer::_screenbufferInit(int __w, int __h)
 {
+	if (!_screenquadShader) return; // initGl must be called before _screenbufferInit
 	_screenquadShader->use();
-	//_screenquadShader->set_1i("screenTexture", 0);
+	_screenquadShader->set_1i("screenTexture", 0);
+
 	glGenFramebuffers(1, &_fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 
@@ -62,7 +65,6 @@ void Renderer::_screenbufferInit(int __w, int __h)
 		ERROR("Framebuffer is not complete");
 	}
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	exit(0);
 }
 
 void Renderer::resizeGl(int __w, int __h)
