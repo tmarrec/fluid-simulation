@@ -12,12 +12,6 @@
 #include "Shader.h"
 #include "shapes.h"
 
-Renderer::Renderer()
-: _screenquadShader { nullptr } 
-{
-
-}
-
 void Renderer::initGl()
 {
 	resizeGl(0, 0);
@@ -43,11 +37,9 @@ void Renderer::_screenbufferInit(int __w, int __h)
 	_screenquadShader->use();
 	_screenquadShader->set_1i("screenTexture", 0);
 
-	glGenFramebuffers(1, &_fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
 
 	// Color attachment texture
-    glGenTextures(1, &_textureColorbuffer);
     glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, __w, __h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -55,11 +47,9 @@ void Renderer::_screenbufferInit(int __w, int __h)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _textureColorbuffer, 0);
 
     // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-    GLuint rbo;
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, _rbo);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, __w, __h);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _rbo);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
 		ERROR("Framebuffer is not complete");
@@ -75,9 +65,14 @@ void Renderer::resizeGl(int __w, int __h)
 	}
 	glViewport(0, 0, __w, __h);
 
+	if (!_init)
+	{
+		_init = true;
+		glGenFramebuffers(1, &_fbo);
+    	glGenTextures(1, &_textureColorbuffer);
+    	glGenRenderbuffers(1, &_rbo);
+	}
 	_screenbufferInit(__w, __h);
-	_init = true;
-	std::cout << "INIT" << _init << std::endl;
 }
 
 void Renderer::initDrawable(DrawableComponent* __drawableComponent)
@@ -187,7 +182,6 @@ void Renderer::endFrame()
 	glBindVertexArray(_screenquadVAO);
 	glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	glFinish();
 }
 

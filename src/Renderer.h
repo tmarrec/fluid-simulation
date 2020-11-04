@@ -18,8 +18,6 @@ class Shader;
 class Renderer
 {
 public:
-	Renderer();
-
 	void initGl();
 	void resizeGl(int __w, int __h);
 
@@ -43,6 +41,7 @@ private:
 	void _useShader(DrawableComponent* __drawableComponent);
 	Shader* _screenquadShader = nullptr;
 	GLuint _fbo;
+	GLuint _rbo;
 	GLuint _screenquadVAO;
 	GLuint _screenquadVBO;
 	GLuint _textureColorbuffer;
