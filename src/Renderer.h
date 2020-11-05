@@ -30,6 +30,8 @@ public:
 	void startFrame();
 	void endFrame(GLuint qtFramebuffer);
 
+	void switchPolygonmode();
+
 
 private:
 	void _screenbufferInit(int __w, int __h);
@@ -46,5 +48,6 @@ private:
 	GLuint _screenquadVBO;
 	GLuint _textureColorbuffer;
 	bool _init = false;
+	GLenum _polygonMode = GL_FILL;
 };
 

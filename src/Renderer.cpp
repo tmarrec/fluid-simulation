@@ -14,6 +14,7 @@
 
 void Renderer::initGl()
 {
+	glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
 	resizeGl(0, 0);
 
 	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
@@ -96,6 +97,7 @@ void Renderer::startFrame()
 void Renderer::endFrame(GLuint qtFramebuffer)
 {
 	if (!_init) return;
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBindFramebuffer(GL_FRAMEBUFFER, qtFramebuffer);
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(1.0f, 0.8f, 1.0f, 1.0f);
@@ -107,6 +109,20 @@ void Renderer::endFrame(GLuint qtFramebuffer)
 	glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glFinish();
+	glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
+}
+
+void Renderer::switchPolygonmode()
+{
+	if (_polygonMode == GL_FILL)
+	{
+		_polygonMode = GL_LINE;
+	}
+	else
+	{
+		_polygonMode = GL_FILL;
+	}
+	glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
 }
 
 void Renderer::initDrawable(DrawableComponent* __drawableComponent)

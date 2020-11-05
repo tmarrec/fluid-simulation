@@ -200,7 +200,6 @@ void GlWidget::initializeGL()
 	glEnable(GL_DEBUG_OUTPUT);
 	glEnable(GL_DEPTH_TEST);
 	glDebugMessageCallback(MessageCallback, 0);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	_renderer->initGl();
 	_init();
 	//std::thread t ((Test(_ECS_manager)));
@@ -210,16 +209,7 @@ void GlWidget::initializeGL()
 void GlWidget::switchPolygonmode()
 {
 	makeCurrent();
-	if (_polygonFillMode)
-	{
-		_polygonFillMode = false;
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
-	else
-	{
-		_polygonFillMode = true;
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
+	_renderer->switchPolygonmode();
 	doneCurrent();
 }
 
