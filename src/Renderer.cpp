@@ -16,12 +16,21 @@ void Renderer::initGl()
 {
 	resizeGl(0, 0);
 
-	Quad quad;
+	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+        // positions   // texCoords
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
+    };
     glGenVertexArrays(1, &_screenquadVAO);
     glGenBuffers(1, &_screenquadVBO);
     glBindVertexArray(_screenquadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, _screenquadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quad.vertices), &quad.vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
@@ -87,10 +96,9 @@ void Renderer::startFrame()
 void Renderer::endFrame(GLuint qtFramebuffer)
 {
 	if (!_init) return;
-	std::cout << "qtfb: " << qtFramebuffer << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, qtFramebuffer);
 	glDisable(GL_DEPTH_TEST);
-	glClearColor(1.00f, 1.0f, 1.0f, 1.0f);
+	glClearColor(1.0f, 0.8f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	ASSERT(_screenquadShader, "_screenquadShader should not be nullptr");
