@@ -58,7 +58,7 @@ private:
 	std::uint64_t _start_timer_fps = 0;
 	std::uint64_t _start_timer_frame = 0;
 	double _deltaTime;
-	bool _polygonFillMode = false;
+	bool _polygonFillMode = true;
 
 };
 
