@@ -11,14 +11,20 @@
 #include "src/LightComponent.h"
 #include "Shader.h"
 #include "shapes.h"
+#include "ECS.h"
+
+Renderer::Renderer(std::shared_ptr<ECS_Manager> __ECS_manager)
+: _ECS_manager { __ECS_manager }
+{}
 
 void Renderer::initGl()
 {
 	glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
 	resizeGl(0, 0);
 
-	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-        // positions   // texCoords
+	// Screen quad framebuffer init
+	float quadVertices[] =
+	{
         -1.0f,  1.0f,  0.0f, 1.0f,
         -1.0f, -1.0f,  0.0f, 0.0f,
          1.0f, -1.0f,  1.0f, 0.0f,
@@ -37,8 +43,23 @@ void Renderer::initGl()
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
 	glBindVertexArray(0);
-
 	_screenquadShader = new Shader("shaders/screen.vert", "shaders/screen.frag");
+
+	// Depth Map framebuffer init
+	glGenFramebuffers(1, &_depthMapFBO);
+	glGenTextures(1, &_depthMapTexture);
+	glBindTexture(GL_TEXTURE_2D, _depthMapTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, _depthShadowWidth, _depthShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, _depthMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthMapTexture, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); 
 }
 
 void Renderer::_screenbufferInit(int __w, int __h)
@@ -47,7 +68,7 @@ void Renderer::_screenbufferInit(int __w, int __h)
 	_screenquadShader->use();
 	_screenquadShader->set_1i("screenTexture", 0);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, _screenquadFBO);
 
 	// Color attachment texture
     glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
@@ -57,9 +78,9 @@ void Renderer::_screenbufferInit(int __w, int __h)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _textureColorbuffer, 0);
 
     // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-    glBindRenderbuffer(GL_RENDERBUFFER, _rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, _screenquadRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, __w, __h);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _rbo);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _screenquadRBO);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
 		ERROR("Framebuffer is not complete");
@@ -78,27 +99,38 @@ void Renderer::resizeGl(int __w, int __h)
 	if (!_init)
 	{
 		_init = true;
-		glGenFramebuffers(1, &_fbo);
+		glGenFramebuffers(1, &_screenquadFBO);
     	glGenTextures(1, &_textureColorbuffer);
-    	glGenRenderbuffers(1, &_rbo);
+    	glGenRenderbuffers(1, &_screenquadRBO);
 	}
 	_screenbufferInit(__w, __h);
+	_glWidth = __w;
+	_glHeight = __h;
 }
 
-void Renderer::startFrame()
+void Renderer::draw(double __deltaTime, int __qtFramebuffer)
 {
 	if (!_init) return;
-	glBindFramebuffer(GL_FRAMEBUFFER, _fbo);
+
+	_deltaTime = __deltaTime;
+	_ECS_manager->update(_deltaTime);
+
+	_depthMapPass();
+	_colorPass(__qtFramebuffer);
+}
+
+void Renderer::_colorPass(int __qtFramebuffer)
+{
+	// Render to the screenquad framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, _screenquadFBO);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.85f, 0.9f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
 
-void Renderer::endFrame(GLuint qtFramebuffer)
-{
-	if (!_init) return;
+	_ECS_manager->draw();
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glBindFramebuffer(GL_FRAMEBUFFER, qtFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, __qtFramebuffer);
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(1.0f, 0.8f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -110,6 +142,17 @@ void Renderer::endFrame(GLuint qtFramebuffer)
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glFinish();
 	glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
+}
+
+void Renderer::_depthMapPass()
+{
+	glViewport(0, 0, _depthShadowWidth, _depthShadowHeight);
+	glBindFramebuffer(GL_FRAMEBUFFER, _depthMapFBO);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	_ECS_manager->draw();
+
+	glViewport(0, 0, _glWidth, _glHeight);
 }
 
 void Renderer::switchPolygonmode()
