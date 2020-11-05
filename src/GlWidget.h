@@ -49,7 +49,7 @@ protected:
 
 private:
 	void _init();
-	const Renderer__ _renderer;
+	Renderer__ _renderer;
 	const ECS_Manager__ _ECS_manager;
 	const InputManager__ _InputManager;
 	Entity* _activeCamera; //TODO Change that

@@ -25,10 +25,10 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 
 GlWidget::GlWidget(QWidget *parent)
 : QOpenGLWidget{parent}
-, _renderer { std::shared_ptr<Renderer>(new Renderer) }
 , _ECS_manager { std::shared_ptr<ECS_Manager>(new ECS_Manager) }
 , _InputManager { std::shared_ptr<InputManager>(new InputManager(static_cast<GlWidget*>(this))) }
 {
+	_renderer = std::shared_ptr<Renderer>(new Renderer(_ECS_manager));
 	setFocus();
 	//_currentTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
@@ -215,10 +215,8 @@ void GlWidget::switchPolygonmode()
 
 void GlWidget::paintGL()
 {
-	_renderer->startFrame();
-	_ECS_manager->update(_deltaTime);
-	_ECS_manager->draw();
-	_renderer->endFrame(context()->defaultFramebufferObject());
+
+	_renderer->draw(_deltaTime, context()->defaultFramebufferObject());
 
 	//#####################################
 	// Compte les FPS chaque secondes
