@@ -53,7 +53,7 @@ public:
 	glm::mat4 getLightSpaceMatrix() const
 	{
 		// TODO add near plane and far plane ------------------------------->~~~~~~~~~~~~~~~~
-		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f, 7000000.5f);
+		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 700000.0f);
 		glm::mat4 lightView = glm::lookAt(getPosition(), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		return lightProjection*lightView;
 	}

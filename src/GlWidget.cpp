@@ -57,7 +57,7 @@ void GlWidget::_init()
 	auto & light2(_ECS_manager->addEntity());
 	light2.addComponent<TransformComponent>(glm::vec3{0.0f, 45.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{20.0f, 20.0f, 20.0f});
 	light2.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES, RD_DEBUG);
-	light2.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 4.f);
+	//light2.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 4.f);
 
 	/*
 	auto & cube(_ECS_manager->addEntity());
