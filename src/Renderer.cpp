@@ -2,6 +2,7 @@
 
 #include <GL/gl.h>
 #include <GL/glext.h>
+#include <cstdint>
 #include <memory>
 #include <qopenglext.h>
 #include <thread>
@@ -45,21 +46,7 @@ void Renderer::initGl()
 	glBindVertexArray(0);
 	_screenquadShader = new Shader("shaders/screen.vert", "shaders/screen.frag");
 
-	// Depth Map framebuffer init
-	glGenFramebuffers(1, &_depthMapFBO);
-	glGenTextures(1, &_depthMapTexture);
-	glBindTexture(GL_TEXTURE_2D, _depthMapTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, _depthShadowWidth, _depthShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, _depthMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthMapTexture, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+	_depthMapShader = new Shader("shaders/depthMap.vert", "shaders/depthMap.frag");
 }
 
 void Renderer::_screenbufferInit(int __w, int __h)
@@ -108,19 +95,60 @@ void Renderer::resizeGl(int __w, int __h)
 	_glHeight = __h;
 }
 
-void Renderer::draw(double __deltaTime, int __qtFramebuffer)
+void Renderer::draw(int __qtFramebuffer)
 {
 	if (!_init) return;
-
-	_deltaTime = __deltaTime;
-	_ECS_manager->update(_deltaTime);
 
 	_depthMapPass();
 	_colorPass(__qtFramebuffer);
 }
 
+void Renderer::_depthMapPass()
+{
+	_rdState = RD_LIGHT_SPACE;
+	glEnable(GL_DEPTH_TEST);
+	glViewport(0, 0, _depthShadowWidth, _depthShadowHeight);
+	for (std::uint64_t i = 0; i < _lights.size(); ++i)
+	{
+		if (_depthMapFBOs.size() < i+1)
+		{
+			// Light Depth Map framebuffer init
+			GLuint depthMapFBO;
+			GLuint depthMapTexture;
+			glGenFramebuffers(1, &depthMapFBO);
+			glGenTextures(1, &depthMapTexture);
+			glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, _depthShadowWidth, _depthShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		
+			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
+			glDrawBuffer(GL_NONE);
+			glReadBuffer(GL_NONE);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+
+			_depthMapFBOs.emplace_back(depthMapFBO);
+			_depthMapTextures.emplace_back(depthMapTexture);
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, _depthMapFBOs[i]);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glActiveTexture(GL_TEXTURE0+i);
+		glBindTexture(GL_TEXTURE_2D, _depthMapTextures[i]);
+		
+		_currentLightDepthMapPass = _lights[i];
+		_ECS_manager->draw();
+
+	}
+	glViewport(0, 0, _glWidth, _glHeight);
+}
+
 void Renderer::_colorPass(int __qtFramebuffer)
 {
+	_rdState = RD_CAMERA_SPACE;
 	// Render to the screenquad framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, _screenquadFBO);
 	glEnable(GL_DEPTH_TEST);
@@ -138,22 +166,13 @@ void Renderer::_colorPass(int __qtFramebuffer)
 	ASSERT(_screenquadShader, "_screenquadShader should not be nullptr");
 	_screenquadShader->use();
 	glBindVertexArray(_screenquadVAO);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glFinish();
 	glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
 }
 
-void Renderer::_depthMapPass()
-{
-	glViewport(0, 0, _depthShadowWidth, _depthShadowHeight);
-	glBindFramebuffer(GL_FRAMEBUFFER, _depthMapFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
-
-	_ECS_manager->draw();
-
-	glViewport(0, 0, _glWidth, _glHeight);
-}
 
 void Renderer::switchPolygonmode()
 {
@@ -166,6 +185,80 @@ void Renderer::switchPolygonmode()
 		_polygonMode = GL_FILL;
 	}
 	glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
+}
+
+
+void Renderer::_useShader(DrawableComponent* __drawableComponent)
+{
+	ASSERT(_activeCamera, "_activeCamera should not be nullptr");
+
+	auto shader = __drawableComponent->shader();
+	auto color = __drawableComponent->color();
+	shader->use();
+	shader->set_mat4("model", __drawableComponent->getModel());
+	shader->set_mat4("view", _activeCamera->getView());
+	shader->set_mat4("projection", _activeCamera->projection());
+
+	shader->set_3f("_object_color", color);
+	shader->set_3f("_view_pos", _activeCamera->getView()[3]);
+	shader->set_1i("_light_nb", _lights.size());
+
+	// Envoie les uniforms pour toutes les lumieres
+	for (size_t i = 0; i < _lights.size(); ++i) {
+		auto light = static_cast<LightComponent*>(_lights[i]);
+		auto temp = std::string("_point_lights[") + std::to_string(i) + "].position";
+		shader->set_3f(temp.c_str(), light->getPosition());
+		temp = std::string("_point_lights[") + std::to_string(i) + "].color";
+		shader->set_3f(temp.c_str(), light->color());
+		temp = std::string("_point_lights[") + std::to_string(i) + "].intensity";
+		shader->set_1f(temp.c_str(), light->intensity());
+		temp = std::string("_point_lights[") + std::to_string(i) + "].constant";
+		shader->set_1f(temp.c_str(), 1.0f);
+		temp = std::string("_point_lights[") + std::to_string(i) + "].linear";
+		shader->set_1f(temp.c_str(), 0.0014f);
+		temp = std::string("_point_lights[") + std::to_string(i) + "].quadratic";
+		shader->set_1f(temp.c_str(), 0.000007f);
+	}
+}
+
+void Renderer::_useShaderLightSpace(DrawableComponent* __drawableComponent)
+{
+	ASSERT(_currentLightDepthMapPass, "_currentLightDepthMapPass should not be nullptr");
+
+	_depthMapShader->use();
+	_depthMapShader->set_mat4("lightSpaceMatrix", _currentLightDepthMapPass->getLightSpaceMatrix());
+	_depthMapShader->set_mat4("model", __drawableComponent->getModel());
+}
+
+void Renderer::drawDrawable(DrawableComponent* __drawableComponent)
+{
+	switch (_rdState)
+	{
+		case RD_CAMERA_SPACE:
+			_useShader(__drawableComponent);
+			break;
+		case RD_LIGHT_SPACE:
+			if (__drawableComponent->debug() == RD_DEBUG) return;
+			_useShaderLightSpace(__drawableComponent);
+			break;
+		default:
+			break;
+	}
+	glBindVertexArray(__drawableComponent->VAO());
+	glDrawElements(__drawableComponent->drawMode(), __drawableComponent->indices()->size(), GL_UNSIGNED_INT, nullptr);
+	glBindVertexArray(0);
+}
+
+void Renderer::setActiveCamera(CameraComponent* __cameraComponent)
+{
+	ASSERT(__cameraComponent, "__cameraComponent should not be nullptr");
+	_activeCamera = __cameraComponent;	
+}
+
+void Renderer::addLight(LightComponent* __lightComponent)
+{
+	ASSERT(__lightComponent, "__lightComponent should not be nullptr");
+	_lights.emplace_back(__lightComponent);
 }
 
 void Renderer::initDrawable(DrawableComponent* __drawableComponent)
@@ -218,58 +311,4 @@ void Renderer::freeDrawable(DrawableComponent* __drawableComponent)
 	glDeleteBuffers(1, &__drawableComponent->VBO());
 	glDeleteBuffers(1, &__drawableComponent->NBO());
 	glDeleteBuffers(1, &__drawableComponent->EBO());
-}
-
-void Renderer::_useShader(DrawableComponent* __drawableComponent)
-{
-	ASSERT(_activeCamera, "_activeCamera should not be nullptr");
-
-	auto shader = __drawableComponent->shader();
-	auto color = __drawableComponent->color();
-	shader->use();
-	shader->set_mat4("model", __drawableComponent->getModel());
-	shader->set_mat4("view", _activeCamera->getView());
-	shader->set_mat4("projection", _activeCamera->projection());
-
-	shader->set_3f("_object_color", color);
-	shader->set_3f("_view_pos", _activeCamera->getView()[3]);
-	shader->set_1i("_light_nb", _lights.size());
-
-	// Envoie les uniforms pour toutes les lumieres
-	for (size_t i = 0; i < _lights.size(); ++i) {
-		auto light = static_cast<LightComponent*>(_lights[i]);
-		auto temp = std::string("_point_lights[") + std::to_string(i) + "].position";
-		shader->set_3f(temp.c_str(), light->getPosition());
-		temp = std::string("_point_lights[") + std::to_string(i) + "].color";
-		shader->set_3f(temp.c_str(), light->color());
-		temp = std::string("_point_lights[") + std::to_string(i) + "].intensity";
-		shader->set_1f(temp.c_str(), light->intensity());
-		temp = std::string("_point_lights[") + std::to_string(i) + "].constant";
-		shader->set_1f(temp.c_str(), 1.0f);
-		temp = std::string("_point_lights[") + std::to_string(i) + "].linear";
-		shader->set_1f(temp.c_str(), 0.0014f);
-		temp = std::string("_point_lights[") + std::to_string(i) + "].quadratic";
-		shader->set_1f(temp.c_str(), 0.000007f);
-	}
-}
-
-
-void Renderer::drawDrawable(DrawableComponent* __drawableComponent)
-{
-	_useShader(__drawableComponent);
-	glBindVertexArray(__drawableComponent->VAO());
-	glDrawElements(__drawableComponent->drawMode(), __drawableComponent->indices()->size(), GL_UNSIGNED_INT, nullptr);
-	glBindVertexArray(0);
-}
-
-void Renderer::setActiveCamera(CameraComponent* __cameraComponent)
-{
-	ASSERT(__cameraComponent, "__cameraComponent should not be nullptr");
-	_activeCamera = __cameraComponent;	
-}
-
-void Renderer::addLight(LightComponent* __lightComponent)
-{
-	ASSERT(__lightComponent, "__lightComponent should not be nullptr");
-	_lights.emplace_back(__lightComponent);
 }
