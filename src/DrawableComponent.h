@@ -13,7 +13,7 @@ using Renderer__ = std::shared_ptr<Renderer>;
 class DrawableComponent : public Component
 {
 public:
-	DrawableComponent(Renderer__ __renderer, std::shared_ptr<Shader> __shader, std::vector<GLfloat> __vertices, std::vector<GLfloat> __normals, std::vector<GLuint> __indices, GLenum __drawMode)
+	DrawableComponent(Renderer__ __renderer, std::shared_ptr<Shader> __shader, std::vector<GLfloat> __vertices, std::vector<GLfloat> __normals, std::vector<GLuint> __indices, GLenum __drawMode, RD __debug=RD_NORMAL)
 	: Component{}
 	, _renderer { __renderer }
 	, _vertices { std::make_shared<std::vector<GLfloat>>(__vertices) }
@@ -21,6 +21,7 @@ public:
 	, _indices { std::make_shared<std::vector<GLuint>>(__indices) }
 	, _shader { __shader }
 	, _drawMode { __drawMode }
+	, _debug { __debug }
 	{}
 
 	void init() override
@@ -69,6 +70,7 @@ public:
 	GLuint& VBO() { return _VBO; }
 	GLuint& NBO() { return _NBO; }
 	GLuint& EBO() { return _EBO; }
+	RD debug() { return _debug; }
 	glm::mat4 getModel()
 	{
 		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");
@@ -89,4 +91,5 @@ private:
 	glm::vec3 _color = {1.0f, 0.5f, 0.5f};
 	std::shared_ptr<Shader> _shader;
 	GLenum _drawMode;
+	RD _debug;
 };
