@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <qopenglext.h>
+#include <string>
 #include <thread>
 
 #include "src/DrawableComponent.h"
@@ -202,9 +203,10 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 	shader->set_3f("_object_color", color);
 	shader->set_3f("_view_pos", _activeCamera->getView()[3]);
 	shader->set_1i("_light_nb", _lights.size());
-
+	shader->set_1i("shadowMapNb", _lights.size());
 	// Envoie les uniforms pour toutes les lumieres
 	for (size_t i = 0; i < _lights.size(); ++i) {
+
 		auto light = static_cast<LightComponent*>(_lights[i]);
 		auto temp = std::string("_point_lights[") + std::to_string(i) + "].position";
 		shader->set_3f(temp.c_str(), light->getPosition());
@@ -218,6 +220,10 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 		shader->set_1f(temp.c_str(), 0.0014f);
 		temp = std::string("_point_lights[") + std::to_string(i) + "].quadratic";
 		shader->set_1f(temp.c_str(), 0.000007f);
+
+		temp = std::string("shadowMaps["+std::to_string(i)+"]");
+		shader->set_1i(temp, i); //TODO CHANGE
+		shader->set_mat4("lightSpaceMatrix", _lights[i]->getLightSpaceMatrix());
 	}
 }
 
