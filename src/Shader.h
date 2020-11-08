@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -12,9 +13,17 @@ class Shader {
 
 public:
 
-	Shader(const char* vertPath, const char* fragPath)
-		: _vertPath{vertPath}
-		, _fragPath{fragPath}
+	Shader(const char* __vertPath, const char* __fragPath)
+		: _vertPath { __vertPath }
+		, _fragPath { __fragPath }
+	{
+		_init();	
+	}
+
+	Shader(const char* __vertPath, const char* __fragPath, const char* __geoPath)
+		: _vertPath { __vertPath }
+		, _fragPath { __fragPath }
+		, _geoPath { __geoPath }
 	{
 		_init();	
 	}
@@ -24,8 +33,6 @@ public:
 	void set_4f(const std::string &name, glm::vec4 values) const { glUniform4f(_getLocation(name), values.x, values.y, values.z, values.w); }
 	void set_3f(const std::string &name, glm::vec3 values) const { glUniform3f(_getLocation(name), values.x, values.y, values.z); }
 	void set_mat4(const std::string &name, glm::mat4 values) const { glUniformMatrix4fv(_getLocation(name), 1, GL_FALSE, glm::value_ptr(values)); }
-	std::string vertPath() const { return _vertPath; }
-	std::string fragPath() const { return _fragPath; }
 
 	void use() const
 	{
@@ -36,8 +43,9 @@ public:
 
 private:
 	std::uint64_t _id;
-	std::string _vertPath;
-	std::string _fragPath;
+	const std::string _vertPath;
+	const std::string _fragPath;
+	const std::string _geoPath;
 
 	void _checkCompilation(std::uint64_t shader, std::string type)
 	{
@@ -76,11 +84,14 @@ private:
 		// 1. retrieve the vertex/fragment source code from filePath
 		std::string vertexCode;
 		std::string fragmentCode;
+		std::string geoCode;
 		std::ifstream vShaderFile;
 		std::ifstream fShaderFile;
+		std::ifstream gShaderFile;
 		// ensure ifstream objects can throw exceptions:
 		vShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
 		fShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
+		gShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
 		try
 		{
 			// open files
@@ -94,8 +105,16 @@ private:
 			vShaderFile.close();
 			fShaderFile.close();
 			// convert stream into string
-			vertexCode   = vShaderStream.str();
+			vertexCode = vShaderStream.str();
 			fragmentCode = fShaderStream.str();
+			if (!_geoPath.empty())
+			{
+				gShaderFile.open(_geoPath);
+				std::stringstream gShaderStream;
+				gShaderStream << gShaderFile.rdbuf();
+				gShaderFile.close();
+				geoCode = gShaderStream.str();
+			}
 		}
 		catch (const std::ifstream::failure & e)
 		{
@@ -116,14 +135,33 @@ private:
 		glShaderSource(fragment, 1, &fShaderCode, NULL);
 		glCompileShader(fragment);
 		_checkCompilation(fragment, "FRAGMENT");
+
+		std::uint64_t geometry;
+		if (!_geoPath.empty())
+		{
+			const char* gShaderCode = geoCode.c_str();
+			geometry = glCreateShader(GL_GEOMETRY_SHADER);
+			glShaderSource(geometry, 1, &gShaderCode, NULL);
+			glCompileShader(geometry);
+			_checkCompilation(geometry, "GEOMETRY");
+		}
+
 		// shader Program
 		_id = glCreateProgram();
 		glAttachShader(_id, vertex);
 		glAttachShader(_id, fragment);
+		if (!_geoPath.empty())
+		{
+			glAttachShader(_id, geometry);
+		}
 		glLinkProgram(_id);
 		_checkCompilation(_id, "PROGRAM");
 		// delete the shaders as they're linked into our program now and no longer necessary
 		glDeleteShader(vertex);
 		glDeleteShader(fragment);
+		if (!_geoPath.empty())
+		{
+			glDeleteShader(geometry);
+		}
 	}
 };

@@ -8,6 +8,7 @@
 #include <string>
 #include <thread>
 
+#include "glm/glm/gtx/string_cast.hpp"
 #include "src/DrawableComponent.h"
 #include "src/CameraComponent.h"
 #include "src/LightComponent.h"
@@ -30,7 +31,6 @@ void Renderer::initGl()
         -1.0f,  1.0f,  0.0f, 1.0f,
         -1.0f, -1.0f,  0.0f, 0.0f,
          1.0f, -1.0f,  1.0f, 0.0f,
-
         -1.0f,  1.0f,  0.0f, 1.0f,
          1.0f, -1.0f,  1.0f, 0.0f,
          1.0f,  1.0f,  1.0f, 1.0f
@@ -47,7 +47,7 @@ void Renderer::initGl()
 	glBindVertexArray(0);
 	_screenquadShader = new Shader("shaders/screen.vert", "shaders/screen.frag");
 
-	_depthMapShader = new Shader("shaders/depthMap.vert", "shaders/depthMap.frag");
+	_depthMapShader = new Shader("shaders/depthMap.vert", "shaders/depthMap.frag", "shaders/depthMap.geo");
 }
 
 void Renderer::_screenbufferInit(int __w, int __h)
@@ -114,34 +114,36 @@ void Renderer::_depthMapPass()
 	{
 		if (_depthMapFBOs.size() < i+1)
 		{
-			// Light Depth Map framebuffer init
+			GLuint depthCubeMapTexture;
 			GLuint depthMapFBO;
-			GLuint depthMapTexture;
 			glGenFramebuffers(1, &depthMapFBO);
-			glGenTextures(1, &depthMapTexture);
-			glBindTexture(GL_TEXTURE_2D, depthMapTexture);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, _depthShadowWidth, _depthShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-			float borderColor[] { 1.0f, 1.0f, 1.0f, 1.0f };
-			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+			glGenTextures(1, &depthCubeMapTexture);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMapTexture);
+			// Generating the 6 faces of the depth cube map
+			for (std::uint64_t i = 0; i < 6; ++i)
+			{
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, GL_DEPTH_COMPONENT, _depthShadowWidth, _depthShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+			}
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
+			glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubeMapTexture, 0);
 			glDrawBuffer(GL_NONE);
 			glReadBuffer(GL_NONE);
-			glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			_depthMapFBOs.emplace_back(depthMapFBO);
-			_depthMapTextures.emplace_back(depthMapTexture);
+			_depthMapTextures.emplace_back(depthCubeMapTexture);
 		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, _depthMapFBOs[i]);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		glActiveTexture(GL_TEXTURE0+i);
-		glBindTexture(GL_TEXTURE_2D, _depthMapTextures[i]);
+		//glActiveTexture(GL_TEXTURE0+i);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, _depthMapTextures[i]);
 		
 		_currentLightDepthMapPass = _lights[i];
 		_ECS_manager->draw();
@@ -159,6 +161,10 @@ void Renderer::_colorPass(int __qtFramebuffer)
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.85f, 0.9f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Depth Cube Map
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, _depthMapTextures.back());
 
 	_ECS_manager->draw();
 
@@ -207,10 +213,10 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 	shader->set_3f("_object_color", color);
 	shader->set_3f("_view_pos", _activeCamera->getView()[3]);
 	shader->set_1i("_light_nb", _lights.size());
-	shader->set_1i("shadowMapNb", _lights.size());
+	shader->set_1f("farPlane", 50.0f);
+	
 	// Envoie les uniforms pour toutes les lumieres
 	for (size_t i = 0; i < _lights.size(); ++i) {
-
 		auto light = static_cast<LightComponent*>(_lights[i]);
 		auto temp = std::string("_point_lights[") + std::to_string(i) + "].position";
 		shader->set_3f(temp.c_str(), light->getPosition());
@@ -227,8 +233,6 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 
 		temp = std::string("shadowMaps["+std::to_string(i)+"]");
 		shader->set_1i(temp, i);
-		temp = std::string("lightSpaceMatrix["+std::to_string(i)+"]");
-		shader->set_mat4(temp, _lights[i]->getLightSpaceMatrix());
 	}
 }
 
@@ -237,7 +241,13 @@ void Renderer::_useShaderLightSpace(DrawableComponent* __drawableComponent)
 	ASSERT(_currentLightDepthMapPass, "_currentLightDepthMapPass should not be nullptr");
 
 	_depthMapShader->use();
-	_depthMapShader->set_mat4("lightSpaceMatrix", _currentLightDepthMapPass->getLightSpaceMatrix());
+	auto lightSpaceMatrices = _currentLightDepthMapPass->getLightSpaceMatrices(_depthShadowWidth, _depthShadowHeight);
+	for (std::uint64_t i = 0; i < 6; ++i)
+	{
+		_depthMapShader->set_mat4("lightSpaceMatrices["+std::to_string(i)+"]", lightSpaceMatrices[i]);
+	}
+	_depthMapShader->set_1f("farPlane", 50.0f);
+	_depthMapShader->set_3f("lightPos", _currentLightDepthMapPass->getPosition());
 	_depthMapShader->set_mat4("model", __drawableComponent->getModel());
 }
 
