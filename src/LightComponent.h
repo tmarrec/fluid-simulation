@@ -4,6 +4,9 @@
 #include "ECS.h"
 #include "Renderer.h"
 #include "TransformComponent.h"
+#include "glm/glm/ext/matrix_clip_space.hpp"
+#include "glm/glm/ext/matrix_transform.hpp"
+#include <cstdint>
 
 using Renderer__ = std::shared_ptr<Renderer>; 
 
@@ -37,7 +40,7 @@ public:
 		auto pos = entity->getComponent<TransformComponent>().position();
 		pos.x = cos(angle)*radius;
 		pos.z = sin(angle)*radius;
-		entity->getComponent<TransformComponent>().setPosition(pos);
+	//	entity->getComponent<TransformComponent>().setPosition(pos);
 	}
 	~LightComponent() override
 	{
@@ -50,12 +53,20 @@ public:
 		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");
 		return entity->getComponent<TransformComponent>().position();
 	}
-	glm::mat4 getLightSpaceMatrix() const
+	std::vector<glm::mat4> getLightSpaceMatrices(std::uint64_t __depthShadowWidth, std::uint64_t __depthShadowHeight) const
 	{
-		// TODO add near plane and far plane ------------------------------->~~~~~~~~~~~~~~~~
-		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 700000.0f);
-		glm::mat4 lightView = glm::lookAt(getPosition(), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		return lightProjection*lightView;
+		glm::mat4 lightProjection = glm::infinitePerspective(glm::radians(90.0f), (float)__depthShadowWidth/(float)__depthShadowHeight, 0.1f);
+
+		std::vector<glm::mat4> lightSpaceMatrices;
+		auto lightPos = getPosition();
+		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+
+		return lightSpaceMatrices;
 	}
 
 
