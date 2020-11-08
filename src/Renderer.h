@@ -67,8 +67,8 @@ private:
 	Shader* _depthMapShader = nullptr;
 	std::vector<GLuint> _depthMapFBOs;
 	std::vector<GLuint> _depthMapTextures;
-	std::uint64_t _depthShadowWidth = 4096;
-	std::uint64_t _depthShadowHeight = 4096;
+	std::uint64_t _depthShadowWidth = 1024;
+	std::uint64_t _depthShadowHeight = 1024;
 
 	// Screen quad framebuffer
 	Shader* _screenquadShader = nullptr;

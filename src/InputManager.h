@@ -3,6 +3,7 @@
 #include <QKeyEvent>
 #include <QTimer>
 #include <QObject>
+#include <qevent.h>
 
 class GlWidget;
 
@@ -15,6 +16,7 @@ public:
 	void keyReleaseEvent(QKeyEvent *event);
 	void mousePressEvent(QMouseEvent *event);
 	void mouseMoveEvent(QMouseEvent *event);
+	void wheelEvent(QWheelEvent *event);
 	
 
 private:

@@ -31,9 +31,16 @@ public:
 	void setYaw(float __yaw) { _yaw = __yaw; }
 	void setPitch(float __pitch) { _pitch = __pitch; }
 	void setFront(glm::vec3 __front) { _front = __front; }
+	void changeFOV(float inc)
+	{
+		_FOV += inc;
+		setProjection(_lastWidth, _lastHeight);
+	}
 	void setProjection(int __width, int __height)
 	{
 		_projection = glm::infinitePerspective(glm::radians(_FOV), (float)__width/(float)__height, 0.1f);
+		_lastWidth = __width;
+		_lastHeight = __height;
 	}
 
 private:
@@ -41,6 +48,8 @@ private:
 	float _pitch;
 	float _speed;
 	float _FOV;
+	float _lastWidth = 0;
+	float _lastHeight = 0;
 	glm::vec3 _front = {1.0f, 0.0f, 0.0f};
 	glm::vec3 _up = {0.0f, 1.0f, 0.0f};
 	glm::mat4 _projection;

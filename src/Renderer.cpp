@@ -48,6 +48,7 @@ void Renderer::initGl()
 	_screenquadShader = new Shader("shaders/screen.vert", "shaders/screen.frag");
 
 	_depthMapShader = new Shader("shaders/depthMap.vert", "shaders/depthMap.frag", "shaders/depthMap.geo");
+	glEnable(GL_CULL_FACE);
 }
 
 void Renderer::_screenbufferInit(int __w, int __h)
@@ -163,8 +164,11 @@ void Renderer::_colorPass(int __qtFramebuffer)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Depth Cube Map
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, _depthMapTextures.back());
+	for (std::uint64_t i = 0; i < _depthMapTextures.size(); ++i)
+	{
+		glActiveTexture(GL_TEXTURE0+i);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, _depthMapTextures[i]);
+	}
 
 	_ECS_manager->draw();
 
