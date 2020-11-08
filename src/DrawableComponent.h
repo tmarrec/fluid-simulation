@@ -22,7 +22,10 @@ public:
 	, _shader { __shader }
 	, _drawMode { __drawMode }
 	, _debug { __debug }
-	{}
+	{
+		//TODO temp
+		_color = {((double) rand() / (RAND_MAX)) + 1, ((double) rand() / (RAND_MAX)) + 1, ((double) rand() / (RAND_MAX)) + 1};
+	}
 
 	void init() override
 	{
@@ -54,6 +57,10 @@ public:
 	void setIndices(std::vector<GLuint> __indices)
 	{
 		_indices = std::make_shared<std::vector<GLuint>>(__indices); 
+	}
+	void setColor(glm::vec3 __color)
+	{
+		_color = __color;
 	}
 	void updateGeometry()
 	{
@@ -88,7 +95,7 @@ private:
 	GLuint _NBO;
 	GLuint _EBO;
 
-	glm::vec3 _color = {1.0f, 0.5f, 0.5f};
+	glm::vec3 _color = {1.0f, 1.0f, 1.0f};
 	std::shared_ptr<Shader> _shader;
 	GLenum _drawMode;
 	RD _debug;

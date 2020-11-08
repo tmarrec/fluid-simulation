@@ -50,143 +50,15 @@ void GlWidget::_init()
 	Cube c;
 
 	auto & light(_ECS_manager->addEntity());
-	light.addComponent<TransformComponent>(glm::vec3{0.0f, 30.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{20.0f, 20.0f, 20.0f});
+	light.addComponent<TransformComponent>(glm::vec3{0.0f, 10.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	light.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES, RD_DEBUG);
-	light.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 0.0f, 0.0f}, 1.f);
+	light.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.2f);
 
 	auto & light2(_ECS_manager->addEntity());
-	light2.addComponent<TransformComponent>(glm::vec3{0.0f, 45.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{20.0f, 20.0f, 20.0f});
+	light2.addComponent<TransformComponent>(glm::vec3{0.0f, 15.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	light2.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES, RD_DEBUG);
-	//light2.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 4.f);
+	light2.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.3f);
 
-	/*
-	auto & cube(_ECS_manager->addEntity());
-	cube.addComponent<TransformComponent>(glm::vec3{-50.0f, -20.0f, -50.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
-	cube.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices, GL_TRIANGLES);
-
-	auto & cube2(_ECS_manager->addEntity());
-	cube2.addComponent<TransformComponent>(glm::vec3{20.0f, 10.0f, 80.0f}, glm::vec3{30.0f, 10.0f, 60.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
-	//cube2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", c.vertices, c.normals, c.indices, GL_TRIANGLES);
-
-	auto & bsplineline(_ECS_manager->addEntity());
-	std::vector<glm::vec3> controls = 
-	{
-			{0, 0, 0},
-			{1, 1.5f, 0},
-			{2, -1.5f, 0},
-			{3, 0, 0},
-			{4, 1.5f, 0},
-	};
-	auto bsp = BSplineShape(3, controls, true, 0.1f).shape();
-	bsplineline.addComponent<TransformComponent>(glm::vec3{0.0f, 50.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
-	//bsplineline.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bsp.vertices, bsp.normals, bsp.indices, GL_LINE_STRIP);
-
-	auto & bsplineline2(_ECS_manager->addEntity());
-	std::vector<glm::vec3> controls2 =
-	{
-			{0, 0, 0},
-			{0, 2, 0},
-			{1, 2, 0},
-			{4, 0, 0},
-			{5, 0, 0},
-			{5, 2, 0},
-	};
-	auto bsp2 = BSplineShape(3, controls2, true, 0.01f, {0,0,0,0.25f,0.5f,0.75f,1,1,1}).shape();
-	bsplineline2.addComponent<TransformComponent>(glm::vec3{-200.0f, 0.0f, 400.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
-	//bsplineline2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bsp2.vertices, bsp2.normals, bsp2.indices, GL_LINE_STRIP);
-
-
-
-	auto & bsplinetensor(_ECS_manager->addEntity());
-	std::vector<std::vector<glm::vec3>> test =
-	{
-		{
-			{0, 0, 0},
-			{1, 1.5f, 0},
-			{2, -1.5f, 0},
-			{3, 0, 0},
-			{4, 1, 0},
-		},
-		{
-			{0, 0, 1},
-			{1, 1.5f, 1},
-			{2, -1.5f, 1},
-			{3, 0, 1},
-			{4, 1, 1},
-		},
-		{
-			{0, 0, 2},
-			{1, 1.5f, 2},
-			{2, -1.5f, 2},
-			{3, 0, 2},
-			{4, 1, 2},
-		}
-	};	
-	auto bspt = BSplineTensorShape(3, test, 0.15f).shape();
-	bsplinetensor.addComponent<TransformComponent>(glm::vec3{0.0f, 50.0f, -150.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
-	//bsplinetensor.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bspt.vertices, bspt.normals, bspt.indices, GL_TRIANGLES);
-
-	auto & bsplinetensorknots(_ECS_manager->addEntity());
-	std::vector<std::vector<glm::vec3>> test2 =
-	{
-		{
-			{0, 0, 0},
-			{0, 2, 0},
-			{1, 2, 0},
-			{4, 0, 0},
-			{5, 0, 0},
-			{5, 2, 0},
-		},
-		{
-			{0, 0, 2},
-			{0, 2, 2},
-			{1, 2, 2},
-			{4, 0, 2},
-			{5, 0, 2},
-			{5, 2, 2},
-		},
-		{
-			{0, 0, 4},
-			{0, 2, 4},
-			{1, 2, 4},
-			{4, 0, 4},
-			{5, 0, 4},
-			{5, 2, 4},
-		}
-	};	
-	std::vector<std::vector<float>> knots =
-	{
-		{0,0,0,0.25f,0.5f,0.75f,1,1,1},
-		{0,0,0,0,0,0,1.0f,1,1},
-		{0,0,0,0.25f,0.5f,0.75f,1,1,1},
-	};
-	auto bsptknots = BSplineTensorShape(3, test2, 0.004f, knots).shape();
-	bsplinetensorknots.addComponent<TransformComponent>(glm::vec3{-200.0f, 0.0f, 150.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
-	//bsplinetensorknots.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bsptknots.vertices, bsptknots.normals, bsptknots.indices, GL_TRIANGLES);
-
-	auto & bsplinetensor2(_ECS_manager->addEntity());
-	std::vector<std::vector<glm::vec3>> randomControls;
-	for (int i = 0; i < 40; ++i) {
-		std::vector<glm::vec3> temp;
-		for (int j = 0; j < 40; ++j) {
-			temp.push_back({j, rand()%4, i});
-		}
-		randomControls.emplace_back(temp);
-	}
-	auto bspt2 = BSplineTensorShape(4, randomControls, 0.20f).shape();
-	bsplinetensor2.addComponent<TransformComponent>(glm::vec3{-1000.0f, -200.0f, -1000.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{50.0f, 50.0f, 50.0f});
-	//bsplinetensor2.addComponent<DrawableComponent>(_renderer, "shaders/vert.vert", "shaders/frag.frag", bspt2.vertices, bspt2.normals, bspt2.indices, GL_TRIANGLES);
-	
-
-	auto & CUBE(_ECS_manager->addEntity());
-	CUBE.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{150.0f, 150.0f, 150.0f});
-	CUBE.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES);
-	CUBE.addComponent<SubdivideComponent>();
-
-	auto & floor(_ECS_manager->addEntity());
-	floor.addComponent<TransformComponent>(glm::vec3{0.0f, -200.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1000.0f, 10.0f, 1000.0f});
-	floor.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES);
-	*/
 }
 
 void GlWidget::initializeGL()

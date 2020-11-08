@@ -108,6 +108,7 @@ void Renderer::_depthMapPass()
 {
 	_rdState = RD_LIGHT_SPACE;
 	glEnable(GL_DEPTH_TEST);
+	glCullFace(GL_FRONT);
 	glViewport(0, 0, _depthShadowWidth, _depthShadowHeight);
 	for (std::uint64_t i = 0; i < _lights.size(); ++i)
 	{
@@ -122,9 +123,11 @@ void Renderer::_depthMapPass()
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, _depthShadowWidth, _depthShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+			float borderColor[] { 1.0f, 1.0f, 1.0f, 1.0f };
+			glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
 			glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
 			glDrawBuffer(GL_NONE);
@@ -145,6 +148,7 @@ void Renderer::_depthMapPass()
 
 	}
 	glViewport(0, 0, _glWidth, _glHeight);
+	glCullFace(GL_BACK);
 }
 
 void Renderer::_colorPass(int __qtFramebuffer)
@@ -222,8 +226,9 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 		shader->set_1f(temp.c_str(), 0.000007f);
 
 		temp = std::string("shadowMaps["+std::to_string(i)+"]");
-		shader->set_1i(temp, i); //TODO CHANGE
-		shader->set_mat4("lightSpaceMatrix", _lights[i]->getLightSpaceMatrix());
+		shader->set_1i(temp, i);
+		temp = std::string("lightSpaceMatrix["+std::to_string(i)+"]");
+		shader->set_mat4(temp, _lights[i]->getLightSpaceMatrix());
 	}
 }
 
