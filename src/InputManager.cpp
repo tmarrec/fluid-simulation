@@ -4,6 +4,7 @@
 
 #include "InputManager.h"
 #include "GlWidget.h"
+#include <qnamespace.h>
 
 InputManager::InputManager(GlWidget* __glWidget)
 {
@@ -57,6 +58,22 @@ void InputManager::_process_inputs()
 	if (_moveFront || _moveBack || _moveLeft || _moveRight || _moveUp || _moveDown)
 	{
 		activeCameraEntity->getComponent<TransformComponent>().move(directionVec*activeCameraEntity->getComponent<CameraComponent>().speed());
+	}
+}
+
+void InputManager::wheelEvent(QWheelEvent *event)
+{
+	Entity* activeCameraEntity = nullptr;
+	activeCameraEntity = _glWidget->getActiveCamera();
+	ASSERT(activeCameraEntity->hasComponent<TransformComponent>(), "activeCameraEntity should have a TransformComponent");
+	ASSERT(activeCameraEntity->hasComponent<CameraComponent>(), "activeCameraEntity should have a CameraComponent");
+	if (event->angleDelta().y() > 0)
+	{
+		activeCameraEntity->getComponent<CameraComponent>().changeFOV(-5.0f);
+	}
+	else
+	{
+		activeCameraEntity->getComponent<CameraComponent>().changeFOV(5.0f);
 	}
 }
 

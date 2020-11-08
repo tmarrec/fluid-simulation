@@ -30,17 +30,45 @@ uniform samplerCube shadowMaps[N_MAX_LIGHT];
 
 uniform Point_Light _point_lights[N_MAX_LIGHT];
 
+vec3 gridSamplingDisk[20] = vec3[]
+(
+   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1),
+   vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+   vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
+   vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
+   vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+);
 
 float ShadowMap(vec3 normal, vec3 lightDir, vec3 lightPos, samplerCube shadowMap)
 {
 	// Perspective divide
-
 	vec3 fragToLight = fs_in.FragPos - lightPos;
-	float closestDepth = texture(shadowMap, fragToLight).r;
-	closestDepth *= farPlane;
+
+	int samples = 20;
+	float viewDistance = length(_view_pos - fs_in.FragPos);
+	float diskRadius = (1.0 + (viewDistance / farPlane))/25.0;
+	float acneeBias = max(0.1*(1.0-dot(normal, lightDir)), 0.05);
 	float currentDepth = length(fragToLight);
-	float acneeBias = max(0.05*(1.0-dot(normal, lightDir)), 0.005);
-	float shadow = (currentDepth - acneeBias) > closestDepth ? 1.0 : 0.0;
+	float shadow = 0.0;
+	for(int i = 0; i < samples; ++i)
+	{
+		float closestDepth = texture(shadowMap, fragToLight + gridSamplingDisk[i]*diskRadius).r;
+		closestDepth *= farPlane;
+		if ((currentDepth - acneeBias) > closestDepth)
+		{
+			shadow += 1.0;
+		}
+	}
+	shadow /= float(samples);
+
+	/*
+	float acneeBias = max(0.05*(1.0-dot(normal, lightDir)), 0.05);
+	float closestDepth = texture(shadowMap, fragToLight).r;
+	float currentDepth = length(fragToLight);
+	closestDepth *= farPlane;
+	float shadow = currentDepth - acneeBias > closestDepth ? 1.0 : 0.0;
+	*/
+
 	return shadow;
 }
 

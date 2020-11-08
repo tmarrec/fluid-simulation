@@ -52,15 +52,14 @@ void GlWidget::_init()
 	auto & light(_ECS_manager->addEntity());
 	light.addComponent<TransformComponent>(glm::vec3{0.0f, 1.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.5f, 0.5f, 0.5f});
 	light.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES, RD_DEBUG);
-	light.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.2f);
+	light.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.15f);
 
 	/*
 	auto & light2(_ECS_manager->addEntity());
-	light2.addComponent<TransformComponent>(glm::vec3{0.0f, 15.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	light2.addComponent<TransformComponent>(glm::vec3{0.0f, -2.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	light2.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES, RD_DEBUG);
-	light2.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.3f);
+	light2.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.2f);
 	*/
-
 }
 
 void GlWidget::initializeGL()
@@ -125,6 +124,7 @@ void GlWidget::keyPressEvent(QKeyEvent *event) { _InputManager->keyPressEvent(ev
 void GlWidget::keyReleaseEvent(QKeyEvent *event) { _InputManager->keyReleaseEvent(event); }
 void GlWidget::mousePressEvent(QMouseEvent *event) { _InputManager->mousePressEvent(event); }
 void GlWidget::mouseMoveEvent(QMouseEvent *event) { _InputManager->mouseMoveEvent(event); }
+void GlWidget::wheelEvent(QWheelEvent *event) { _InputManager->wheelEvent(event); }
 
 void GlWidget::cleanup()
 {

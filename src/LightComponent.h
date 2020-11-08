@@ -40,7 +40,8 @@ public:
 		auto pos = entity->getComponent<TransformComponent>().position();
 		pos.x = cos(angle)*radius;
 		pos.z = sin(angle)*radius;
-	//	entity->getComponent<TransformComponent>().setPosition(pos);
+		entity->getComponent<TransformComponent>().setPosition(pos);
+		
 	}
 	~LightComponent() override
 	{

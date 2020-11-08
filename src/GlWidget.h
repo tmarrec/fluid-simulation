@@ -5,6 +5,7 @@
 #include <QKeyEvent>
 #include <chrono>
 #include <cstdint>
+#include <qevent.h>
 #include <thread>
 
 #include "utils.h"
@@ -46,6 +47,7 @@ protected:
 	void keyReleaseEvent(QKeyEvent *event) override;
 	void mousePressEvent(QMouseEvent *event) override;
 	void mouseMoveEvent(QMouseEvent *event) override;
+	void wheelEvent(QWheelEvent *event) override;
 
 private:
 	void _init();
