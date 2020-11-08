@@ -1,6 +1,6 @@
 #version 460 core
 
-#define N_MAX_LIGHT 128
+#define N_MAX_LIGHT 24
 
 struct Point_Light
 {
@@ -17,7 +17,7 @@ in VS_OUT
 {
 	vec3 FragPos;
 	vec3 Normal;
-	vec4 FragPosLightSpace;
+	vec4 FragPosLightSpace[N_MAX_LIGHT];
 } fs_in;
 
 out vec4 FragColor;
@@ -32,7 +32,7 @@ uniform sampler2D shadowMaps[N_MAX_LIGHT];
 uniform Point_Light _point_lights[N_MAX_LIGHT];
 
 // Functions
-vec3 calc_point_light(Point_Light light, vec3 normal, vec3 frag_pos, vec3 view_dir);
+vec3 calc_point_light(int lightInd, Point_Light light, vec3 normal, vec3 frag_pos, vec3 view_dir, vec4 fragPosLightSpace);
 
 void main(void)
 {
@@ -51,37 +51,41 @@ void main(void)
 	// Compute light impact
 	for (int i = 0; i < light_nb; i++)
 	{
-		result += calc_point_light(_point_lights[i], norm, fs_in.FragPos, view_dir);
+		result += calc_point_light(i, _point_lights[i], norm, fs_in.FragPos, view_dir, fs_in.FragPosLightSpace[i]);
 	}
 
 	FragColor = vec4(result * _object_color, 1.0);
 }
 
-float ShadowMap(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
+float ShadowMap(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir, sampler2D shadowMap)
 {
 	// Perspective divide
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 	projCoords = projCoords * 0.5 + 0.5; // [-1;1] -> [0;1]
+	if (projCoords.z > 1.0)
+	{
+		return 0.0f;
+	}
 
-
-	float closestDepth = texture(shadowMaps[0], projCoords.xy).r;
+	float closestDepth = texture(shadowMap, projCoords.xy).r;
 	float currentDepth = projCoords.z;
-	float acneeBias = 0.000005;
-	return (currentDepth - acneeBias) > closestDepth ? 1.0 : 0.0;
+	float acneeBias = max(0.000005*(1.0-dot(normal, lightDir)), 0.0000005);
 
-	//for (int i = 0; i < shadowMapNb; i++)
-	//{
-	//	float closestDepth = texture(shadowMaps[i], projCoords.xy).r;
-	//	float currentDepth = projCoords.z;
-	//	if (currentDepth > closestDepth)
-	//	{
-	//		return 1.0;
-	//	}
-	//}
-	//return 0.0;
+	float shadow = 0.0;
+	vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+	for (int x = -1; x <= 1; ++x)
+	{
+		for (int y = -1; y <= 1; ++y)
+		{
+			float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x,y) * texelSize).r;
+			shadow += (currentDepth - acneeBias) > pcfDepth ? 1.0 : 0.0;
+		}
+	}
+
+	return shadow /= 9.0;
 }
 
-vec3 calc_point_light(Point_Light light, vec3 normal, vec3 frag_pos, vec3 view_dir)
+vec3 calc_point_light(int lightInd, Point_Light light, vec3 normal, vec3 frag_pos, vec3 view_dir, vec4 fragPosLightSpace)
 {
 	// Attenuation
 	float distance    = length(light.position - frag_pos);
@@ -103,7 +107,7 @@ vec3 calc_point_light(Point_Light light, vec3 normal, vec3 frag_pos, vec3 view_d
 	vec3 specular = specular_strength * spec * light.color * light.intensity;
 
 	// Shadow Map
-	float shadow = ShadowMap(fs_in.FragPosLightSpace, normal, light_dir);
+	float shadow = ShadowMap(fragPosLightSpace, normal, light_dir, shadowMaps[lightInd]);
 
 	ambient *= attenuation;
 	diffuse *= attenuation;
