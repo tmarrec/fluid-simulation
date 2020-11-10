@@ -75,8 +75,8 @@ float ShadowMap(vec3 normal, vec3 lightDir, vec3 lightPos, samplerCube shadowMap
 vec3 calc_point_light(int lightInd, Point_Light light, vec3 normal, vec3 frag_pos, vec3 view_dir)
 {
 	// Attenuation
-	float distance	= length(light.position - frag_pos);
-	float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));	
+	float dist = length(light.position - frag_pos);
+	float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * (dist * dist));	
 
 	// Ambient
 	float ambient_amp = 0.1;
