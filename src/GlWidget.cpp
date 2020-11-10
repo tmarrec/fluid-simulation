@@ -41,7 +41,7 @@ void GlWidget::_initScene()
 
 	auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
 
-	auto s = Scene(_renderer, _ECS_manager, "TEST.gltf");
+	auto s = Scene(_renderer, _ECS_manager, "models/inside-cube.gltf");
 
 	Cube c;
 

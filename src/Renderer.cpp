@@ -8,7 +8,7 @@
 #include <string>
 #include <thread>
 
-#include "glm/glm/gtx/string_cast.hpp"
+#include "glm/gtx/string_cast.hpp"
 #include "src/DrawableComponent.h"
 #include "src/CameraComponent.h"
 #include "src/LightComponent.h"
