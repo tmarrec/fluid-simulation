@@ -22,6 +22,8 @@ Renderer::Renderer(std::shared_ptr<ECS_Manager> __ECS_manager)
 
 void Renderer::initGl()
 {
+	glEnable(GL_DEBUG_OUTPUT);
+	glEnable(GL_DEPTH_TEST);
 	glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
 	resizeGl(0, 0);
 
@@ -35,6 +37,9 @@ void Renderer::initGl()
          1.0f, -1.0f,  1.0f, 0.0f,
          1.0f,  1.0f,  1.0f, 1.0f
     };
+	glGenFramebuffers(1, &_screenquadFBO);
+    glGenTextures(1, &_textureColorbuffer);
+    glGenRenderbuffers(1, &_screenquadRBO);
     glGenVertexArrays(1, &_screenquadVAO);
     glGenBuffers(1, &_screenquadVBO);
     glBindVertexArray(_screenquadVAO);
@@ -49,16 +54,15 @@ void Renderer::initGl()
 
 	_depthMapShader = new Shader("shaders/depthMap.vert", "shaders/depthMap.frag", "shaders/depthMap.geo");
 	glEnable(GL_CULL_FACE);
+	_init = true;
 }
 
 void Renderer::_screenbufferInit(int __w, int __h)
 {
-	if (!_screenquadShader) return; // initGl must be called before _screenbufferInit
 	_screenquadShader->use();
 	_screenquadShader->set_1i("screenTexture", 0);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, _screenquadFBO);
-
 	// Color attachment texture
     glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, __w, __h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -66,7 +70,7 @@ void Renderer::_screenbufferInit(int __w, int __h)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _textureColorbuffer, 0);
 
-    // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	// Renderbuffer for depth and stencil
     glBindRenderbuffer(GL_RENDERBUFFER, _screenquadRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, __w, __h);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _screenquadRBO);
@@ -75,6 +79,7 @@ void Renderer::_screenbufferInit(int __w, int __h)
 		ERROR("Framebuffer is not complete");
 	}
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, __w, __h);
 }
 
 void Renderer::resizeGl(int __w, int __h)
@@ -83,16 +88,10 @@ void Renderer::resizeGl(int __w, int __h)
 	{
 		_activeCamera->setProjection(__w, __h);
 	}
-	glViewport(0, 0, __w, __h);
-
-	if (!_init)
+	if (_init)
 	{
-		_init = true;
-		glGenFramebuffers(1, &_screenquadFBO);
-    	glGenTextures(1, &_textureColorbuffer);
-    	glGenRenderbuffers(1, &_screenquadRBO);
+		_screenbufferInit(__w, __h);
 	}
-	_screenbufferInit(__w, __h);
 	_glWidth = __w;
 	_glHeight = __h;
 }
@@ -100,7 +99,6 @@ void Renderer::resizeGl(int __w, int __h)
 void Renderer::draw(int __qtFramebuffer)
 {
 	if (!_init) return;
-
 	_depthMapPass();
 	_colorPass(__qtFramebuffer);
 }
@@ -143,12 +141,9 @@ void Renderer::_depthMapPass()
 
 		glBindFramebuffer(GL_FRAMEBUFFER, _depthMapFBOs[i]);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		//glActiveTexture(GL_TEXTURE0+i);
-		//glBindTexture(GL_TEXTURE_CUBE_MAP, _depthMapTextures[i]);
 		
 		_currentLightDepthMapPass = _lights[i];
 		_ECS_manager->draw();
-
 	}
 	glViewport(0, 0, _glWidth, _glHeight);
 	glCullFace(GL_BACK);
@@ -172,19 +167,16 @@ void Renderer::_colorPass(int __qtFramebuffer)
 
 	_ECS_manager->draw();
 
+	// Screenquad
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glBindFramebuffer(GL_FRAMEBUFFER, __qtFramebuffer);
 	glDisable(GL_DEPTH_TEST);
-	glClearColor(1.0f, 0.8f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
 	ASSERT(_screenquadShader, "_screenquadShader should not be nullptr");
 	_screenquadShader->use();
 	glBindVertexArray(_screenquadVAO);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glFinish();
 	glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
 }
 
@@ -217,7 +209,7 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 	shader->set_3f("_object_color", color);
 	shader->set_3f("_view_pos", _activeCamera->getView()[3]);
 	shader->set_1i("_light_nb", _lights.size());
-	shader->set_1f("farPlane", 50.0f);
+	shader->set_1f("farPlane", _shadowFarPlane);
 	
 	// Envoie les uniforms pour toutes les lumieres
 	for (size_t i = 0; i < _lights.size(); ++i) {
@@ -250,7 +242,7 @@ void Renderer::_useShaderLightSpace(DrawableComponent* __drawableComponent)
 	{
 		_depthMapShader->set_mat4("lightSpaceMatrices["+std::to_string(i)+"]", lightSpaceMatrices[i]);
 	}
-	_depthMapShader->set_1f("farPlane", 50.0f);
+	_depthMapShader->set_1f("farPlane", _shadowFarPlane);
 	_depthMapShader->set_3f("lightPos", _currentLightDepthMapPass->getPosition());
 	_depthMapShader->set_mat4("model", __drawableComponent->getModel());
 }
@@ -285,6 +277,11 @@ void Renderer::addLight(LightComponent* __lightComponent)
 	ASSERT(__lightComponent, "__lightComponent should not be nullptr");
 	_lights.emplace_back(__lightComponent);
 }
+
+CameraComponent* Renderer::getActiveCamera() const
+{
+	return _activeCamera;
+}	
 
 void Renderer::initDrawable(DrawableComponent* __drawableComponent)
 {

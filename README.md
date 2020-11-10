@@ -10,5 +10,6 @@
 </div>
 
 <div align="center" margin="12px">
+  <img src="https://i.imgur.com/dDlbtfr.png"/>
   <img src="https://i.imgur.com/ief9gPl.png"/>
 </div>

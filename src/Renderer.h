@@ -9,7 +9,7 @@
 #include "Shader.h"
 #include "src/ECS.h"
 
-enum RD
+enum RDenum
 {
 	RD_CAMERA_SPACE,
 	RD_LIGHT_SPACE,
@@ -40,6 +40,7 @@ public:
 	void addLight(LightComponent* __lightComponent);
 
 	void switchPolygonmode();
+	CameraComponent* getActiveCamera() const;
 
 
 private:
@@ -60,7 +61,7 @@ private:
 	int _glHeight = 0;
 
 	// STATES
-	RD _rdState;
+	RDenum _rdState;
 	LightComponent* _currentLightDepthMapPass = nullptr;
 
 	// Depth Map framebuffer
@@ -69,6 +70,7 @@ private:
 	std::vector<GLuint> _depthMapTextures;
 	std::uint64_t _depthShadowWidth = 1024;
 	std::uint64_t _depthShadowHeight = 1024;
+	float _shadowFarPlane = 64.0f;
 
 	// Screen quad framebuffer
 	Shader* _screenquadShader = nullptr;

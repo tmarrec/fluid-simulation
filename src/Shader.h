@@ -125,18 +125,18 @@ private:
 		const char* fShaderCode = fragmentCode.c_str();
 		// 2. compile shaders
 		std::uint64_t vertex, fragment;
-		// vertex shader
+		// Vertex shader
 		vertex = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertex, 1, &vShaderCode, NULL);
 		glCompileShader(vertex);
 		_checkCompilation(vertex, "VERTEX");
-		// fragment Shader
+		// Fragment Shader
 		fragment = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragment, 1, &fShaderCode, NULL);
 		glCompileShader(fragment);
 		_checkCompilation(fragment, "FRAGMENT");
-
-		std::uint64_t geometry;
+		// Geometry Shader
+		std::uint64_t geometry = -1;
 		if (!_geoPath.empty())
 		{
 			const char* gShaderCode = geoCode.c_str();
@@ -145,8 +145,7 @@ private:
 			glCompileShader(geometry);
 			_checkCompilation(geometry, "GEOMETRY");
 		}
-
-		// shader Program
+		// Shader Program linking
 		_id = glCreateProgram();
 		glAttachShader(_id, vertex);
 		glAttachShader(_id, fragment);
@@ -156,7 +155,7 @@ private:
 		}
 		glLinkProgram(_id);
 		_checkCompilation(_id, "PROGRAM");
-		// delete the shaders as they're linked into our program now and no longer necessary
+		// Delete shaders as they're linked into our program
 		glDeleteShader(vertex);
 		glDeleteShader(fragment);
 		if (!_geoPath.empty())

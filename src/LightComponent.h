@@ -35,7 +35,7 @@ public:
 	void update([[maybe_unused]] double _deltaTime) override
 	{
 		radius = _intensity*30;
-		speed = (2*M_PI)/_intensity*0.01;
+		speed = (2*M_PI)/_intensity*0.005;
 		angle += speed*_deltaTime;
 		auto pos = entity->getComponent<TransformComponent>().position();
 		pos.x = cos(angle)*radius;
@@ -57,16 +57,14 @@ public:
 	std::vector<glm::mat4> getLightSpaceMatrices(std::uint64_t __depthShadowWidth, std::uint64_t __depthShadowHeight) const
 	{
 		glm::mat4 lightProjection = glm::infinitePerspective(glm::radians(90.0f), (float)__depthShadowWidth/(float)__depthShadowHeight, 0.1f);
-
 		std::vector<glm::mat4> lightSpaceMatrices;
 		auto lightPos = getPosition();
 		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
 		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
 		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
-		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)));
 		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
 		lightSpaceMatrices.emplace_back(lightProjection*glm::lookAt(lightPos, lightPos+glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
-
 		return lightSpaceMatrices;
 	}
 

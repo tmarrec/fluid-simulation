@@ -26,22 +26,18 @@ void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum se
 GlWidget::GlWidget(QWidget *parent)
 : QOpenGLWidget{parent}
 , _ECS_manager { std::shared_ptr<ECS_Manager>(new ECS_Manager) }
-, _InputManager { std::shared_ptr<InputManager>(new InputManager(static_cast<GlWidget*>(this))) }
+, _renderer { std::shared_ptr<Renderer>(new Renderer(_ECS_manager)) }
+, _InputManager { std::shared_ptr<InputManager>(new InputManager(static_cast<GlWidget*>(this), _renderer)) }
 {
-	_renderer = std::shared_ptr<Renderer>(new Renderer(_ECS_manager));
 	setFocus();
-	//_currentTime = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
-Entity* GlWidget::getActiveCamera() const { return _activeCamera; }	
-
-void GlWidget::_init()
+void GlWidget::_initScene()
 {
-
-	_activeCamera = &_ECS_manager->addEntity();
-	_activeCamera->addComponent<CameraComponent>(0.0f, 0.0f, 0.05f, 90.0f);
-	_activeCamera->addComponent<TransformComponent>(glm::vec3{-5.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
-	_renderer->setActiveCamera(&_activeCamera->getComponent<CameraComponent>());
+	auto camera = &_ECS_manager->addEntity();
+	camera->addComponent<CameraComponent>(0.0f, 0.0f, 0.05f, 90.0f);
+	camera->addComponent<TransformComponent>(glm::vec3{-5.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	_renderer->setActiveCamera(&camera->getComponent<CameraComponent>());
 
 	auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
 
@@ -50,68 +46,59 @@ void GlWidget::_init()
 	Cube c;
 
 	auto & light(_ECS_manager->addEntity());
-	light.addComponent<TransformComponent>(glm::vec3{0.0f, 1.5f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.5f, 0.5f, 0.5f});
+	light.addComponent<TransformComponent>(glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.5f, 0.5f, 0.5f});
 	light.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES, RD_DEBUG);
 	light.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.15f);
 
-	/*
 	auto & light2(_ECS_manager->addEntity());
 	light2.addComponent<TransformComponent>(glm::vec3{0.0f, -2.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	light2.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES, RD_DEBUG);
 	light2.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.2f);
-	*/
 }
 
 void GlWidget::initializeGL()
 {
 	connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &GlWidget::cleanup);
-
 	if (!initializeOpenGLFunctions()) {
 		exit(1);
 	}
-
-	glEnable(GL_DEBUG_OUTPUT);
-	glEnable(GL_DEPTH_TEST);
 	glDebugMessageCallback(MessageCallback, 0);
 	_renderer->initGl();
-	_init();
-	//std::thread t ((Test(_ECS_manager)));
-	//t.detach();
-}
-
-void GlWidget::switchPolygonmode()
-{
-	makeCurrent();
-	_renderer->switchPolygonmode();
-	doneCurrent();
+	_initScene();
 }
 
 void GlWidget::paintGL()
 {
-
 	_ECS_manager->update(_deltaTime);
 	_renderer->draw(context()->defaultFramebufferObject());
-
-	//#####################################
-	// Compte les FPS chaque secondes
-	std::uint64_t end_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	if (end_timer_fps-_start_timer_fps > 1000) {
-		//_main_window->update_title_infos("FPS: " + std::to_string(_frame_count));
-		std::cout << _frame_count << std::endl;
-		_frame_count = 0;
-		_start_timer_fps = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	}
-
-	// Calcule le Time Delta
-	if (_start_timer_frame != 0) {
-		std::uint64_t end_timer_frame = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		_deltaTime = 1e-9*(end_timer_frame-_start_timer_frame);
-	}
-	_start_timer_frame = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-	_frame_count++;
-	//#####################################
-
+	_endFrame();
 	update();
+}
+
+void GlWidget::_endFrame()
+{
+	_printFPS();
+	_computeDelta();
+}
+
+void GlWidget::_printFPS()
+{
+	std::uint64_t endTimerFPS = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	if (endTimerFPS-_startTimerFPS > 1000) {
+		std::cout << "FPS: " << _frameCountSecond << std::endl;
+		_frameCountSecond = 0;
+		_startTimerFPS = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	}
+	_frameCountSecond++;
+}
+
+void GlWidget::_computeDelta()
+{
+	if (_startTimerFrame != 0) {
+		std::uint64_t endTimerFrame = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		_deltaTime = 1e-9*(endTimerFrame-_startTimerFrame);
+	}
+	_startTimerFrame = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 void GlWidget::resizeGL(int w, int h)
@@ -120,6 +107,7 @@ void GlWidget::resizeGL(int w, int h)
 	_renderer->resizeGl(w, h);
 	doneCurrent();
 }
+
 void GlWidget::keyPressEvent(QKeyEvent *event) { _InputManager->keyPressEvent(event); }
 void GlWidget::keyReleaseEvent(QKeyEvent *event) { _InputManager->keyReleaseEvent(event); }
 void GlWidget::mousePressEvent(QMouseEvent *event) { _InputManager->mousePressEvent(event); }
