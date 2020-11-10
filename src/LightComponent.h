@@ -4,8 +4,8 @@
 #include "ECS.h"
 #include "Renderer.h"
 #include "TransformComponent.h"
-#include "glm/glm/ext/matrix_clip_space.hpp"
-#include "glm/glm/ext/matrix_transform.hpp"
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
 #include <cstdint>
 
 using Renderer__ = std::shared_ptr<Renderer>; 

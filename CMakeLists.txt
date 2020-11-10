@@ -16,7 +16,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -fopenmp -pedantic -Wextra -pthread -DGL_GLEXT_PROTOTYPES")
+set(CMAKE_CXX_FLAGS "-w")
+add_subdirectory("externals/OpenMesh")
+
+set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -pedantic -fopenmp -pthread -DGL_GLEXT_PROTOTYPES")
+set(CMAKE_CXX_FLAGS_DEBUG_INIT "${CMAKE_CXX_FLAGS} -O0")
+set(CMAKE_CXX_FLAGS_RELEASE_INIT "${CMAKE_CXX_FLAGS} -O3")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 
@@ -68,14 +73,15 @@ add_executable(${PROJECT_NAME}
 	src/BSpline.h
 	src/BSplineTensor.h
 )
-
 set(EXT_LIBS Qt5::OpenGL ${OPENGL_LIBRARIES})
 
-add_subdirectory("OpenMesh")
+
 target_include_directories(${PROJECT_NAME}
-	PUBLIC "${OPENMESH_INCLUDE_DIRS}"
-	PUBLIC "tinygltf/"
+	PUBLIC "externals/${OPENMESH_INCLUDE_DIRS}"
+	PUBLIC "externals/tinygltf"
+	PUBLIC "externals/glm"
 )
+
 target_link_libraries(${PROJECT_NAME}
 	PRIVATE "${OPENMESH_LIBRARIES}"
 	${EXT_LIBS}
@@ -83,7 +89,8 @@ target_link_libraries(${PROJECT_NAME}
 
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
-
 file(COPY ${CMAKE_SOURCE_DIR}/src/shaders DESTINATION ${EXECUTABLE_OUTPUT_PATH})
-#file(COPY ${CMAKE_SOURCE_DIR}/src/models DESTINATION ${EXECUTABLE_OUTPUT_PATH})
-#file(COPY ${CMAKE_SOURCE_DIR}/src/images DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+message("-- Shaders copied to the build directory")
+file(COPY ${CMAKE_SOURCE_DIR}/src/models DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+message("-- Models copied to the build directory")
+

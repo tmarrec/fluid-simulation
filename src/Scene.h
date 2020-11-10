@@ -1,10 +1,10 @@
 #pragma once
 
-#include "glm/glm/ext/scalar_constants.hpp"
-#include "glm/glm/gtc/quaternion.hpp"
-#include "glm/glm/gtc/type_ptr.hpp"
-#include "glm/glm/gtx/matrix_decompose.hpp"
-#include "glm/glm/gtx/string_cast.hpp"
+#include "glm/ext/scalar_constants.hpp"
+#include "glm/gtc/quaternion.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/gtx/matrix_decompose.hpp"
+#include "glm/gtx/string_cast.hpp"
 #include <GL/gl.h>
 #include <cmath>
 #include <cstddef>
@@ -17,7 +17,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define TINYGLTF_USE_CPP14
 
-#include "tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 
 #include "utils.h"
 #include "shapes.h"
@@ -113,7 +113,7 @@ private:
 
 		}
 		for (size_t i = 0; i < __node.children.size(); i++) {
-			ASSERT((node.children[i] >= 0) && (node.children[i] < model.nodes.size()), "");
+			ASSERT((__node.children[i] >= 0) && (__node.children[i] < __model.nodes.size()), "");
 			_nodeLoop(__model, __model.nodes[__node.children[i]]);
 		}
 	}
@@ -182,7 +182,7 @@ private:
 			else
 			{
 				std::cout << "no indices tf" << std::endl;
-				ASSERT(vertices.size%3==0, "vertices must be power of 3");
+				ASSERT(vertices.size()%3==0, "vertices must be power of 3");
 				indices.resize(vertices.size()/3);
 				std::iota(indices.begin(), indices.end(), 0);
 			}
