@@ -1,7 +1,7 @@
 <h1 align="center">Cowboy Engine</h1>
 <div align="center">
   <strong>OpenGL 4.6 Rendering Engine - Computer Graphics student project @ Paul Sabatier University - :fr:</strong>
-  <p>ECS, .obj loading, simple geometry mesh generation, basic model transformations, Blinn-Phong lighting, B-Spline Surfaces, meshes Loop Subdivision<p>
+  <p>ECS, .glTF loading, simple geometry mesh generation, basic model transformations, Blinn-Phong lighting, B-Spline Surfaces, meshes Loop Subdivision<p>
 </div>
 <br />
 <div align="center" margin="12px">
