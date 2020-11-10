@@ -13,7 +13,7 @@ using Renderer__ = std::shared_ptr<Renderer>;
 class DrawableComponent : public Component
 {
 public:
-	DrawableComponent(Renderer__ __renderer, std::shared_ptr<Shader> __shader, std::vector<GLfloat> __vertices, std::vector<GLfloat> __normals, std::vector<GLuint> __indices, GLenum __drawMode, RD __debug=RD_NORMAL)
+	DrawableComponent(Renderer__ __renderer, std::shared_ptr<Shader> __shader, std::vector<GLfloat> __vertices, std::vector<GLfloat> __normals, std::vector<GLuint> __indices, GLenum __drawMode, RDenum __debug=RD_NORMAL)
 	: Component{}
 	, _renderer { __renderer }
 	, _vertices { std::make_shared<std::vector<GLfloat>>(__vertices) }
@@ -36,36 +36,16 @@ public:
 		_renderer->drawDrawable(this);	
 	}
 	void update([[maybe_unused]] double _deltaTime) override
-	{
-		//entity->getComponent<TransformComponent>().rotate({0.0f, 0.01f, 0.0f});
-		//auto test = glm::vec3{0.0f, 0.0f, 100.0f}*(float)_deltaTime;
-		//entity->getComponent<TransformComponent>().move(test);
-	}
-	~DrawableComponent() override
-	{
-		_renderer->freeDrawable(this);
-	}
-
-	void setVertices(std::vector<GLfloat> __vertices)
-	{
-		_vertices = std::make_shared<std::vector<GLfloat>>(__vertices); 
-	}
-	void setNormals(std::vector<GLfloat> __normals)
-	{
-		_normals = std::make_shared<std::vector<GLfloat>>(__normals); 
-	}
-	void setIndices(std::vector<GLuint> __indices)
-	{
-		_indices = std::make_shared<std::vector<GLuint>>(__indices); 
-	}
-	void setColor(glm::vec3 __color)
-	{
-		_color = __color;
-	}
+	{}
 	void updateGeometry()
 	{
 		_renderer->initDrawable(this);
 	}
+
+	void setVertices(std::vector<GLfloat> __vertices) {	_vertices = std::make_shared<std::vector<GLfloat>>(__vertices);	}
+	void setNormals(std::vector<GLfloat> __normals)	{ _normals = std::make_shared<std::vector<GLfloat>>(__normals);	}
+	void setIndices(std::vector<GLuint> __indices) { _indices = std::make_shared<std::vector<GLuint>>(__indices); }
+	void setColor(glm::vec3 __color) { _color = __color; }
 
 	std::shared_ptr<std::vector<GLfloat>> vertices() const { return _vertices; }
 	std::shared_ptr<std::vector<GLfloat>> normals() const { return _normals; }
@@ -77,11 +57,16 @@ public:
 	GLuint& VBO() { return _VBO; }
 	GLuint& NBO() { return _NBO; }
 	GLuint& EBO() { return _EBO; }
-	RD debug() { return _debug; }
+	RDenum debug() { return _debug; }
 	glm::mat4 getModel()
 	{
 		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");
 		return entity->getComponent<TransformComponent>().getModel();
+	}
+
+	~DrawableComponent() override
+	{
+		_renderer->freeDrawable(this);
 	}
 
 private:
@@ -95,8 +80,8 @@ private:
 	GLuint _NBO;
 	GLuint _EBO;
 
-	glm::vec3 _color = {1.0f, 1.0f, 1.0f};
+	glm::vec3 _color;
 	std::shared_ptr<Shader> _shader;
 	GLenum _drawMode;
-	RD _debug;
+	RDenum _debug;
 };

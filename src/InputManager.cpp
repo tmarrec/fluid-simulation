@@ -4,30 +4,29 @@
 
 #include "InputManager.h"
 #include "GlWidget.h"
+#include "Renderer.h"
 #include <qnamespace.h>
 
-InputManager::InputManager(GlWidget* __glWidget)
+InputManager::InputManager(GlWidget* __glWidget, std::shared_ptr<Renderer> __renderer)
+: _glWidget { __glWidget }
+, _renderer { __renderer }
 {
-	_glWidget = __glWidget;	
-	_input_timer = new QTimer(nullptr);
-	connect(_input_timer, &QTimer::timeout, this, &InputManager::_process_inputs);
-	_input_timer->start((1.0f/128.0f)*1000.0f);
+	_inputTimer = new QTimer(nullptr);
+	connect(_inputTimer, &QTimer::timeout, this, &InputManager::_process_inputs);
+	_inputTimer->start((1.0f/128.0f)*1000.0f);
 }
 
 void InputManager::_process_inputs()
 {
-	Entity* activeCameraEntity = nullptr;
+	CameraComponent* cameraComponent = _renderer->getActiveCamera();
+	ASSERT(cameraComponent, "cameraComponent should not be nullptr");
 	glm::vec3 cameraFrontVec;
 	glm::vec3 cameraUpVec;
 	glm::vec3 directionVec;
 	if (_moveFront || _moveBack || _moveLeft || _moveRight || _moveUp || _moveDown)
 	{
-		activeCameraEntity = _glWidget->getActiveCamera();
-		ASSERT(activeCameraEntity->hasComponent<TransformComponent>(), "activeCameraEntity should have a TransformComponent");
-		ASSERT(activeCameraEntity->hasComponent<CameraComponent>(), "activeCameraEntity should have a CameraComponent");
-		auto cameraComponent = activeCameraEntity->getComponent<CameraComponent>();
-		cameraFrontVec = cameraComponent.front();
-		cameraUpVec = cameraComponent.up();
+		cameraFrontVec = cameraComponent->front();
+		cameraUpVec = cameraComponent->up();
 	}
 
 	if (_moveFront)
@@ -57,28 +56,27 @@ void InputManager::_process_inputs()
 
 	if (_moveFront || _moveBack || _moveLeft || _moveRight || _moveUp || _moveDown)
 	{
-		activeCameraEntity->getComponent<TransformComponent>().move(directionVec*activeCameraEntity->getComponent<CameraComponent>().speed());
+		cameraComponent->entity->getComponent<TransformComponent>().move(directionVec*cameraComponent->entity->getComponent<CameraComponent>().speed());
 	}
 }
 
 void InputManager::wheelEvent(QWheelEvent *event)
 {
-	Entity* activeCameraEntity = nullptr;
-	activeCameraEntity = _glWidget->getActiveCamera();
-	ASSERT(activeCameraEntity->hasComponent<TransformComponent>(), "activeCameraEntity should have a TransformComponent");
-	ASSERT(activeCameraEntity->hasComponent<CameraComponent>(), "activeCameraEntity should have a CameraComponent");
+	CameraComponent* cameraComponent = _renderer->getActiveCamera();
+	ASSERT(cameraComponent, "cameraComponent should not be nullptr");
 	if (event->angleDelta().y() > 0)
 	{
-		activeCameraEntity->getComponent<CameraComponent>().changeFOV(-5.0f);
+		cameraComponent->changeFOV(-5.0f);
 	}
 	else
 	{
-		activeCameraEntity->getComponent<CameraComponent>().changeFOV(5.0f);
+		cameraComponent->changeFOV(5.0f);
 	}
 }
 
 void InputManager::keyPressEvent(QKeyEvent *event)
 {
+	_glWidget->makeCurrent();
 	switch(event->key())
 	{
 		case Qt::Key_Z:
@@ -99,13 +97,13 @@ void InputManager::keyPressEvent(QKeyEvent *event)
 		case Qt::Key_Control:
 			_moveDown = true;
 			break;
-
 		case Qt::Key_P:
-			_glWidget->switchPolygonmode();	
-
+			_renderer->switchPolygonmode();
+			break;
 		default:
 			break;
 	}
+	_glWidget->doneCurrent();
 }
 
 void InputManager::keyReleaseEvent(QKeyEvent *event)
@@ -138,8 +136,8 @@ void InputManager::keyReleaseEvent(QKeyEvent *event)
 
 void InputManager::mousePressEvent(QMouseEvent *event)
 {
-	_last_mouse_x = event->x();
-	_last_mouse_y = event->y();
+	_lastMouseX = event->x();
+	_lastMouseY = event->y();
 }
 
 void InputManager::mouseMoveEvent(QMouseEvent *event)
@@ -147,30 +145,29 @@ void InputManager::mouseMoveEvent(QMouseEvent *event)
 	int x = event->x();
 	int y = event->y();
 
-	auto activeCameraEntity = _glWidget->getActiveCamera();
-	ASSERT(activeCameraEntity->hasComponent<CameraComponent>(), "activeCameraEntity should have a CameraComponent");
-	auto& activeCamera = activeCameraEntity->getComponent<CameraComponent>();
-	float yaw = activeCamera.yaw();
-	float pitch = activeCamera.pitch();
+	CameraComponent* cameraComponent = _renderer->getActiveCamera();
+	ASSERT(cameraComponent, "cameraComponent should not be nullptr");
+	float yaw = cameraComponent->yaw();
+	float pitch = cameraComponent->pitch();
 
 	float sensitivity = 0.3f;
-	float offset_x = (x-_last_mouse_x)*sensitivity;
-	float offset_y = (y-_last_mouse_y)*sensitivity;
+	float offset_x = (x-_lastMouseX)*sensitivity;
+	float offset_y = (y-_lastMouseY)*sensitivity;
 
 	yaw += offset_x;
 	pitch -= offset_y;
 	pitch = glm::clamp(pitch, -89.9f, 89.9f);
 
-	activeCamera.setYaw(yaw);
-	activeCamera.setPitch(pitch);
+	cameraComponent->setYaw(yaw);
+	cameraComponent->setPitch(pitch);
 
 	glm::vec3 dir;
 	dir.x = cos(glm::radians(yaw))*cos(glm::radians(pitch));
 	dir.y = sin(glm::radians(pitch));
 	dir.z = sin(glm::radians(yaw))*cos(glm::radians(pitch));
 	dir = glm::normalize(dir);
-	activeCamera.setFront(dir);
+	cameraComponent->setFront(dir);
 
-	_last_mouse_x = x;
-	_last_mouse_y = y;
+	_lastMouseX = x;
+	_lastMouseY = y;
 }
