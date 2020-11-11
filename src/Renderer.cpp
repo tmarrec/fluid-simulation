@@ -53,7 +53,6 @@ void Renderer::initGl()
 	_screenquadShader = new Shader("shaders/screen.vert", "shaders/screen.frag");
 
 	_depthMapShader = new Shader("shaders/depthMap.vert", "shaders/depthMap.frag", "shaders/depthMap.geo");
-	glEnable(GL_CULL_FACE);
 	_init = true;
 }
 
@@ -107,6 +106,7 @@ void Renderer::_depthMapPass()
 {
 	_rdState = RD_LIGHT_SPACE;
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glViewport(0, 0, _depthShadowWidth, _depthShadowHeight);
 	for (std::uint64_t i = 0; i < _lights.size(); ++i)
@@ -146,7 +146,6 @@ void Renderer::_depthMapPass()
 		_ECS_manager->draw();
 	}
 	glViewport(0, 0, _glWidth, _glHeight);
-	glCullFace(GL_BACK);
 }
 
 void Renderer::_colorPass(int __qtFramebuffer)
@@ -155,6 +154,7 @@ void Renderer::_colorPass(int __qtFramebuffer)
 	// Render to the screenquad framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, _screenquadFBO);
 	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
 	glClearColor(0.85f, 0.9f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
