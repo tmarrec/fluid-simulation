@@ -15,6 +15,7 @@
 #include "DrawableComponent.h"
 #include "LightComponent.h"
 #include "SubdivideComponent.h"
+#include "MetaballComponent.h"
 
 #include "BSpline.h"
 #include "BSplineTensor.h"
@@ -41,19 +42,28 @@ void GlWidget::_initScene()
 
 	auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
 
+	/*
 	auto s = Scene(_renderer, _ECS_manager, "models/inside-cube.gltf");
-
+	*/
 	Cube c;
 
-	auto & light(_ECS_manager->addEntity());
+	auto& light(_ECS_manager->addEntity());
 	light.addComponent<TransformComponent>(glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.5f, 0.5f, 0.5f});
 	light.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES, RD_DEBUG);
 	light.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.15f);
 
+	auto& metaball(_ECS_manager->addEntity());
+	metaball.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	metaball.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES);
+	metaball.addComponent<MetaballComponent>(5.0f);
+
+
+	/*
 	auto & light2(_ECS_manager->addEntity());
 	light2.addComponent<TransformComponent>(glm::vec3{0.0f, -2.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	light2.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES, RD_DEBUG);
 	light2.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.2f);
+	*/
 }
 
 void GlWidget::initializeGL()
@@ -136,10 +146,12 @@ MessageCallback
 	[[maybe_unused]] const void* userParam
 )
 {
+	/*
 	if (severity != 33387)
 	{
 		fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
 			(type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
 	}
+	*/
 }
 
