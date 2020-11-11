@@ -11,8 +11,9 @@
 
 enum RDenum
 {
-	RD_CAMERA_SPACE,
-	RD_LIGHT_SPACE,
+	RD_COLOR_PASS,
+	RD_DEPTHMAP_PASS,
+	RD_SHOWNORMAL_PASS,
 	RD_NORMAL,
 	RD_DEBUG
 };
@@ -40,12 +41,14 @@ public:
 	void addLight(LightComponent* __lightComponent);
 
 	void switchPolygonmode();
+	void switchShowNormals();
 	CameraComponent* getActiveCamera() const;
 
 
 private:
 	void _depthMapPass();
 	void _colorPass(int __qtFramebuffer);
+	void _showNormalsPass();
 	void _screenbufferInit(int __w, int __h);
 	void _useShader(DrawableComponent* __drawableComponent);
 	void _useShaderLightSpace(DrawableComponent* __drawableComponent);
@@ -79,6 +82,9 @@ private:
 	GLuint _screenquadVAO;
 	GLuint _screenquadVBO;
 	GLuint _textureColorbuffer;
+
+	Shader* _normalShader = nullptr;
+	bool _showNormals = false;
 
 };
 

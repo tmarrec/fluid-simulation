@@ -24,10 +24,14 @@ public:
 		if (entity->getEntityID() == 3)
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
-			transformComponent.move({0.0f, 0.0f, 0.01f});
+			//transformComponent.move({0.0f, 0.0f, 0.01f});
+			//_needUpdate = true;
 		}
 		
 		auto pos = entity->getComponent<TransformComponent>().position();
+		if (!_needUpdate) return;
+		_needUpdate = false;
+
 		float isoLevel = 1.0f;
 		auto& grid = _marchingCubeComponent->grid();
 		for (std::uint64_t x = 0; x < grid.size(); ++x)
@@ -39,10 +43,11 @@ public:
 					// loop cell points	
 					for (std::uint64_t i = 0; i < 8; ++i)
 					{
-						float inside = std::pow(_radius, 2)/(std::pow(grid[x][y][z].points[i].x-pos.x, 2)+std::pow(grid[x][y][z].points[i].y-pos.y, 2)+std::pow(grid[x][z][z].points[i].z-pos.z, 2));
+						float inside = std::pow(_radius, 2)/(std::pow(grid[x][y][z].points[i].x-pos.x, 2)+std::pow(grid[x][y][z].points[i].y-pos.y, 2)+std::pow(grid[x][y][z].points[i].z-pos.z, 2));
 						if (inside >= 1.0f)
 						{
-							grid[x][y][z].val[i] = isoLevel;
+							glm::vec3 center = pos;
+							_marchingCubeComponent->changeGrid(x, y, z, i, isoLevel, center);
 						}
 					}
 				}
@@ -57,4 +62,5 @@ public:
 private:
 	MarchingCubeComponent* _marchingCubeComponent;
 	float _radius;
+	bool _needUpdate = true;
 };

@@ -100,6 +100,8 @@ void InputManager::keyPressEvent(QKeyEvent *event)
 		case Qt::Key_P:
 			_renderer->switchPolygonmode();
 			break;
+		case Qt::Key_N:
+			_renderer->switchShowNormals();
 		default:
 			break;
 	}

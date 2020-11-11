@@ -52,7 +52,9 @@ void Renderer::initGl()
 	glBindVertexArray(0);
 	_screenquadShader = new Shader("shaders/screen.vert", "shaders/screen.frag");
 
-	_depthMapShader = new Shader("shaders/depthMap.vert", "shaders/depthMap.frag", "shaders/depthMap.geo");
+	_depthMapShader = new Shader("shaders/depthMap.vert", "shaders/depthMap.frag", "shaders/depthMap.geom");
+	_normalShader = new Shader("shaders/normals.vert", "shaders/normals.frag", "shaders/normals.geom");
+
 	_init = true;
 }
 
@@ -100,11 +102,18 @@ void Renderer::draw(int __qtFramebuffer)
 	if (!_init) return;
 	_depthMapPass();
 	_colorPass(__qtFramebuffer);
+	if (_showNormals) _showNormalsPass();
+}
+
+void Renderer::_showNormalsPass()
+{
+	_rdState = RD_SHOWNORMAL_PASS;
+	_ECS_manager->draw();
 }
 
 void Renderer::_depthMapPass()
 {
-	_rdState = RD_LIGHT_SPACE;
+	_rdState = RD_DEPTHMAP_PASS;
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
@@ -146,16 +155,16 @@ void Renderer::_depthMapPass()
 		_ECS_manager->draw();
 	}
 	glViewport(0, 0, _glWidth, _glHeight);
+	glDisable(GL_CULL_FACE);
 }
 
 void Renderer::_colorPass(int __qtFramebuffer)
 {
-	_rdState = RD_CAMERA_SPACE;
+	_rdState = RD_COLOR_PASS;
 	// Render to the screenquad framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, _screenquadFBO);
 	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glClearColor(0.85f, 0.9f, 1.0f, 1.0f);
+	glClearColor(0.65f, 0.7f, 0.8f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Depth Cube Map
@@ -194,6 +203,18 @@ void Renderer::switchPolygonmode()
 	glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
 }
 
+void Renderer::switchShowNormals()
+{
+	if (_showNormals == false)
+	{
+		_showNormals = true;
+	}
+	else
+	{
+		_showNormals = false;
+	}
+}
+
 
 void Renderer::_useShader(DrawableComponent* __drawableComponent)
 {
@@ -230,6 +251,7 @@ void Renderer::_useShader(DrawableComponent* __drawableComponent)
 		temp = std::string("shadowMaps["+std::to_string(i)+"]");
 		shader->set_1i(temp, i);
 	}
+
 }
 
 void Renderer::_useShaderLightSpace(DrawableComponent* __drawableComponent)
@@ -251,12 +273,18 @@ void Renderer::drawDrawable(DrawableComponent* __drawableComponent)
 {
 	switch (_rdState)
 	{
-		case RD_CAMERA_SPACE:
+		case RD_COLOR_PASS:
 			_useShader(__drawableComponent);
 			break;
-		case RD_LIGHT_SPACE:
+		case RD_DEPTHMAP_PASS:
 			if (__drawableComponent->debug() == RD_DEBUG) return;
 			_useShaderLightSpace(__drawableComponent);
+			break;
+		case RD_SHOWNORMAL_PASS:
+			_normalShader->use();
+			_normalShader->set_mat4("model", __drawableComponent->getModel());
+			_normalShader->set_mat4("view", _activeCamera->getView());
+			_normalShader->set_mat4("projection", _activeCamera->projection());
 			break;
 		default:
 			break;

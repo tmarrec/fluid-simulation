@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ECS.h"
+#include "glm/gtx/dual_quaternion.hpp"
 #include "utils.h"
 #include <cstdint>
 #include "DrawableComponent.h"
@@ -9,6 +10,7 @@ struct Cell
 {
 	glm::vec3 points[8];
 	float val[8];
+	glm::vec3 center;
 };
 
 class MarchingCubeComponent : public Component
@@ -21,6 +23,17 @@ public:
 	, _zsize { __zsize }
 	, _cellSize { __cellSize }
 	{}
+
+	void changeGrid(std::uint64_t __x, std::uint64_t __y, std::uint64_t __z, std::uint64_t __i, float __value, glm::vec3 __center)
+	{
+		if (_grid[__x][__y][__z].val[__i] != __value)
+		{
+			_grid[__x][__y][__z].val[__i] = __value;
+			_grid[__x][__y][__z].center = __center;
+			_updated = true;
+		}
+	}
+
 	void init() override
 	{
 		// Grid initialization loop in middle of cell
@@ -56,8 +69,15 @@ public:
 
 	void draw() override
 	{
+		if (!_updated)
+		{
+			return;
+		}
+			
 		float isoLevel = 1.0f;
 		std::vector<GLfloat> vertices;
+		std::vector<GLfloat> normals;
+		std::vector<GLuint> indices;
 		for (std::uint64_t x = 0; x < _grid.size(); ++x)
 		{
 			for (std::uint64_t y = 0; y < _grid[x].size(); ++y)
@@ -75,24 +95,25 @@ public:
 					if (_grid[x][y][z].val[7] < isoLevel) cubeIndex |= 128;
 
 					std::array<glm::vec3, 12> vertList;
-					if (edgeTable[cubeIndex] & 1) vertList[0] = VertexInterp(isoLevel, _grid[x][y][z].points[0], _grid[x][y][z].points[1], _grid[x][y][z].val[0], _grid[x][y][z].val[1]);
-					if (edgeTable[cubeIndex] & 2) vertList[1] = VertexInterp(isoLevel, _grid[x][y][z].points[1], _grid[x][y][z].points[2], _grid[x][y][z].val[1], _grid[x][y][z].val[2]);
-					if (edgeTable[cubeIndex] & 4) vertList[2] = VertexInterp(isoLevel, _grid[x][y][z].points[2], _grid[x][y][z].points[3], _grid[x][y][z].val[2], _grid[x][y][z].val[3]);
-					if (edgeTable[cubeIndex] & 8) vertList[3] = VertexInterp(isoLevel, _grid[x][y][z].points[3], _grid[x][y][z].points[0], _grid[x][y][z].val[3], _grid[x][y][z].val[0]);
-					if (edgeTable[cubeIndex] & 16) vertList[4] = VertexInterp(isoLevel, _grid[x][y][z].points[4], _grid[x][y][z].points[5], _grid[x][y][z].val[4], _grid[x][y][z].val[5]);
-					if (edgeTable[cubeIndex] & 32) vertList[5] = VertexInterp(isoLevel, _grid[x][y][z].points[5], _grid[x][y][z].points[6], _grid[x][y][z].val[5], _grid[x][y][z].val[6]);
-					if (edgeTable[cubeIndex] & 64) vertList[6] = VertexInterp(isoLevel, _grid[x][y][z].points[6], _grid[x][y][z].points[7], _grid[x][y][z].val[6], _grid[x][y][z].val[7]);
-					if (edgeTable[cubeIndex] & 128) vertList[7] = VertexInterp(isoLevel, _grid[x][y][z].points[7], _grid[x][y][z].points[4], _grid[x][y][z].val[7], _grid[x][y][z].val[4]);
-					if (edgeTable[cubeIndex] & 256) vertList[8] = VertexInterp(isoLevel, _grid[x][y][z].points[0], _grid[x][y][z].points[4], _grid[x][y][z].val[0], _grid[x][y][z].val[4]);
-					if (edgeTable[cubeIndex] & 512) vertList[9] = VertexInterp(isoLevel, _grid[x][y][z].points[1], _grid[x][y][z].points[5], _grid[x][y][z].val[1], _grid[x][y][z].val[5]);
-					if (edgeTable[cubeIndex] & 1024) vertList[10] = VertexInterp(isoLevel, _grid[x][y][z].points[2], _grid[x][y][z].points[6], _grid[x][y][z].val[2], _grid[x][y][z].val[6]);
-					if (edgeTable[cubeIndex] & 2048) vertList[11] = VertexInterp(isoLevel, _grid[x][y][z].points[3], _grid[x][y][z].points[7], _grid[x][y][z].val[3], _grid[x][y][z].val[7]);
+					if (edgeTable[cubeIndex] & 1) vertList[0] = _vertexInterp(isoLevel, _grid[x][y][z].points[0], _grid[x][y][z].points[1], _grid[x][y][z].val[0], _grid[x][y][z].val[1]);
+					if (edgeTable[cubeIndex] & 2) vertList[1] = _vertexInterp(isoLevel, _grid[x][y][z].points[1], _grid[x][y][z].points[2], _grid[x][y][z].val[1], _grid[x][y][z].val[2]);
+					if (edgeTable[cubeIndex] & 4) vertList[2] = _vertexInterp(isoLevel, _grid[x][y][z].points[2], _grid[x][y][z].points[3], _grid[x][y][z].val[2], _grid[x][y][z].val[3]);
+					if (edgeTable[cubeIndex] & 8) vertList[3] = _vertexInterp(isoLevel, _grid[x][y][z].points[3], _grid[x][y][z].points[0], _grid[x][y][z].val[3], _grid[x][y][z].val[0]);
+					if (edgeTable[cubeIndex] & 16) vertList[4] = _vertexInterp(isoLevel, _grid[x][y][z].points[4], _grid[x][y][z].points[5], _grid[x][y][z].val[4], _grid[x][y][z].val[5]);
+					if (edgeTable[cubeIndex] & 32) vertList[5] = _vertexInterp(isoLevel, _grid[x][y][z].points[5], _grid[x][y][z].points[6], _grid[x][y][z].val[5], _grid[x][y][z].val[6]);
+					if (edgeTable[cubeIndex] & 64) vertList[6] = _vertexInterp(isoLevel, _grid[x][y][z].points[6], _grid[x][y][z].points[7], _grid[x][y][z].val[6], _grid[x][y][z].val[7]);
+					if (edgeTable[cubeIndex] & 128) vertList[7] = _vertexInterp(isoLevel, _grid[x][y][z].points[7], _grid[x][y][z].points[4], _grid[x][y][z].val[7], _grid[x][y][z].val[4]);
+					if (edgeTable[cubeIndex] & 256) vertList[8] = _vertexInterp(isoLevel, _grid[x][y][z].points[0], _grid[x][y][z].points[4], _grid[x][y][z].val[0], _grid[x][y][z].val[4]);
+					if (edgeTable[cubeIndex] & 512) vertList[9] = _vertexInterp(isoLevel, _grid[x][y][z].points[1], _grid[x][y][z].points[5], _grid[x][y][z].val[1], _grid[x][y][z].val[5]);
+					if (edgeTable[cubeIndex] & 1024) vertList[10] = _vertexInterp(isoLevel, _grid[x][y][z].points[2], _grid[x][y][z].points[6], _grid[x][y][z].val[2], _grid[x][y][z].val[6]);
+					if (edgeTable[cubeIndex] & 2048) vertList[11] = _vertexInterp(isoLevel, _grid[x][y][z].points[3], _grid[x][y][z].points[7], _grid[x][y][z].val[3], _grid[x][y][z].val[7]);
 
 					for (std::uint64_t i = 0; triTable[cubeIndex][i] != -1; i += 3)
 					{
 						glm::vec3 p1 = vertList[triTable[cubeIndex][i]];	
 						glm::vec3 p2 = vertList[triTable[cubeIndex][i+1]];	
 						glm::vec3 p3 = vertList[triTable[cubeIndex][i+2]];	
+
 						vertices.emplace_back(p1.x);
 						vertices.emplace_back(p1.y);
 						vertices.emplace_back(p1.z);
@@ -102,18 +123,33 @@ public:
 						vertices.emplace_back(p3.x);
 						vertices.emplace_back(p3.y);
 						vertices.emplace_back(p3.z);
+
+						glm::vec3 n1 = glm::normalize(p1 - _grid[x][y][z].center);
+						glm::vec3 n2 = glm::normalize(p2 - _grid[x][y][z].center);
+						glm::vec3 n3 = glm::normalize(p3 - _grid[x][y][z].center);
+						normals.emplace_back(n1.x);
+						normals.emplace_back(n1.y);
+						normals.emplace_back(n1.z);
+						normals.emplace_back(n2.x);
+						normals.emplace_back(n2.y);
+						normals.emplace_back(n2.z);
+						normals.emplace_back(n3.x);
+						normals.emplace_back(n3.y);
+						normals.emplace_back(n3.z);
 					}
 				}
 			}
 		}
+			
 		auto& drawable = entity->getComponent<DrawableComponent>();
 		drawable.setVertices(vertices);
 		ASSERT(vertices.size()%3==0, "vertices must be power of 3");
-		std::vector<GLuint> indices;
 		indices.resize(vertices.size()/3);
 		std::iota(indices.begin(), indices.end(), 0);
 		drawable.setIndices(indices);
+		drawable.setNormals(normals);
 		drawable.updateGeometry();
+		
 		// reset 
 		for (std::uint64_t x = 0; x < _grid.size(); ++x)
 		{
@@ -126,9 +162,11 @@ public:
 					{
 						_grid[x][y][z].val[i] = 0.0f;
 					}
+					_grid[x][y][z].center = {0.0f, 0.0f, 0.0f};
 				}
 			}
 		}
+		_updated = false;
 	}
 
 	std::vector<std::vector<std::vector<Cell>>>& grid() { return _grid; }
@@ -139,8 +177,9 @@ private:
 	float _zsize;
 	float _cellSize;
 	std::vector<std::vector<std::vector<Cell>>> _grid;
+	bool _updated = false;
 
-	glm::vec3 VertexInterp(float isolevel, glm::vec3 p1, glm::vec3 p2, float valp1, float valp2)
+	glm::vec3 _vertexInterp(float isolevel, glm::vec3 p1, glm::vec3 p2, float valp1, float valp2)
 	{
 		float mu;
 		glm::vec3 p;
@@ -456,6 +495,4 @@ private:
 		{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
 	};
 };
-
-
 
