@@ -42,29 +42,29 @@ void GlWidget::_initScene()
 	_renderer->setActiveCamera(&camera->getComponent<CameraComponent>());
 
 	auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
-
-	//auto s = Scene(_renderer, _ECS_manager, "models/inside-cube.gltf");
+	/*
+	auto s = Scene(_renderer, _ECS_manager, "models/inside-cube-empty.gltf");
+	*/
 	Cube c;
 
 	auto& light(_ECS_manager->addEntity());
 	light.addComponent<TransformComponent>(glm::vec3{0.0f, 1.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.5f, 0.5f, 0.5f});
 	light.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES, RD_DEBUG);
-	light.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.2f);
+	light.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.3f);
 
 
 	auto& mc(_ECS_manager->addEntity());
 	mc.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	mc.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES);
-	auto& marchingCubeComponent = mc.addComponent<MarchingCubeComponent>(20.0f, 20.0f, 20.0f, 0.25f);
+	auto& marchingCubeComponent = mc.addComponent<MarchingCubeComponent>(6.0f, 4.0f, 6.0f, 0.20f);
 
 	auto& metaball(_ECS_manager->addEntity());
-	metaball.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, -5.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
-	metaball.addComponent<MetaballComponent>(&marchingCubeComponent, 3.0f);
+	metaball.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, -16.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	metaball.addComponent<MetaballComponent>(&marchingCubeComponent, 2.0f);
 
 	auto& metaball2(_ECS_manager->addEntity());
-	metaball2.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
-	metaball2.addComponent<MetaballComponent>(&marchingCubeComponent, 4.0f);
-
+	metaball2.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 16.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	metaball2.addComponent<MetaballComponent>(&marchingCubeComponent, 2.0f);
 
 	/*
 	auto & light2(_ECS_manager->addEntity());

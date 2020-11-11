@@ -5,6 +5,7 @@
 #include "utils.h"
 #include <cstdint>
 #include "DrawableComponent.h"
+#include <chrono>
 
 struct Cell
 {
@@ -36,6 +37,7 @@ public:
 
 	void init() override
 	{
+		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		// Grid initialization loop in middle of cell
 		for (float x = -_xsize/2; x < _xsize/2; x += _cellSize)
 		{
@@ -65,10 +67,13 @@ public:
 			}
 			_grid.emplace_back(grid2D);
 		}
+		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		//std::cout << "MarchingCube init: " << end-start << std::endl;
 	}
 
 	void draw() override
 	{
+		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		if (!_updated)
 		{
 			return;
@@ -151,6 +156,7 @@ public:
 		drawable.updateGeometry();
 		
 		// reset 
+		#pragma omp parallel for
 		for (std::uint64_t x = 0; x < _grid.size(); ++x)
 		{
 			for (std::uint64_t y = 0; y < _grid[x].size(); ++y)
@@ -162,10 +168,11 @@ public:
 					{
 						_grid[x][y][z].val[i] = 0.0f;
 					}
-					_grid[x][y][z].center = {0.0f, 0.0f, 0.0f};
 				}
 			}
 		}
+		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		//std::cout << "MarchingCube: " << end-start << std::endl;
 		_updated = false;
 	}
 
