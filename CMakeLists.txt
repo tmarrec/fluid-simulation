@@ -20,7 +20,7 @@ set(CMAKE_CXX_FLAGS "-w")
 add_subdirectory("externals/OpenMesh")
 
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -pedantic -fopenmp -pthread -DGL_GLEXT_PROTOTYPES")
-set(CMAKE_CXX_FLAGS_DEBUG_INIT "${CMAKE_CXX_FLAGS} -O0")
+set(CMAKE_CXX_FLAGS_DEBUG_INIT "${CMAKE_CXX_FLAGS} -O0 -g")
 set(CMAKE_CXX_FLAGS_RELEASE_INIT "${CMAKE_CXX_FLAGS} -O3")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
@@ -54,11 +54,15 @@ add_executable(${PROJECT_NAME}
 
 	src/ECS.h
 	src/ECS.cpp
+
+	src/MarchingCube.h
+
 	src/DrawableComponent.h
 	src/CameraComponent.h
 	src/TransformComponent.h
 	src/LightComponent.h
 	src/SubdivideComponent.h
+	src/MetaballComponent.h
 
 	src/ui/MainWindow.h
 	src/ui/MainWindow.cpp

@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "ECS.h"
 #include "Renderer.h"
 #include "TransformComponent.h"
@@ -8,12 +7,10 @@
 #include "glm/ext/matrix_transform.hpp"
 #include <cstdint>
 
-using Renderer__ = std::shared_ptr<Renderer>; 
-
 class LightComponent : public Component
 {
 public:
-	LightComponent(Renderer__ __renderer, glm::vec3 __color, double __intensity)
+	LightComponent(std::shared_ptr<Renderer> __renderer, glm::vec3 __color, double __intensity)
 	: Component{}
 	, _renderer { __renderer }
 	, _color { __color }
@@ -70,7 +67,7 @@ public:
 
 
 private:
-	Renderer__ _renderer;
+	std::shared_ptr<Renderer> _renderer;
 	glm::vec3 _color;
 	double _intensity;
 };
