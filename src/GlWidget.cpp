@@ -1,4 +1,5 @@
 #include "GlWidget.h"
+#include "src/MarchingCube.h"
 #include "src/ui/MainWindow.h"
 
 #include <GL/gl.h>
@@ -42,6 +43,7 @@ void GlWidget::_initScene()
 
 	auto shader = std::make_shared<Shader>(Shader{"shaders/vert.vert", "shaders/frag.frag"});
 
+
 	/*
 	auto s = Scene(_renderer, _ECS_manager, "models/inside-cube.gltf");
 	*/
@@ -52,10 +54,21 @@ void GlWidget::_initScene()
 	light.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES, RD_DEBUG);
 	light.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.15f);
 
+
+	auto& mc(_ECS_manager->addEntity());
+	mc.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	mc.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES);
+	auto& marchingCubeComponent = mc.addComponent<MarchingCubeComponent>(20.0f, 20.0f, 20.0f, 0.5f);
+
+
 	auto& metaball(_ECS_manager->addEntity());
-	metaball.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
-	metaball.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES);
-	metaball.addComponent<MetaballComponent>(5.0f);
+	metaball.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, -5.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	metaball.addComponent<MetaballComponent>(&marchingCubeComponent, 3.0f);
+
+	auto& metaball2(_ECS_manager->addEntity());
+	metaball2.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 2.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	metaball2.addComponent<MetaballComponent>(&marchingCubeComponent, 4.0f);
+
 
 
 	/*
