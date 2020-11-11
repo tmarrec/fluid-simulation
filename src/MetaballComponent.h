@@ -4,6 +4,7 @@
 #include "TransformComponent.h"
 #include "MarchingCube.h"
 #include <cstdint>
+#include <chrono>
 
 class MetaballComponent : public Component
 {
@@ -16,7 +17,7 @@ public:
 
 	void init() override
 	{
-		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");
+
 	}
 
 	void update([[maybe_unused]] double _deltaTime) override
@@ -24,16 +25,21 @@ public:
 		if (entity->getEntityID() == 3)
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
-			//transformComponent.move({0.0f, 0.0f, 0.01f});
-			//_needUpdate = true;
+			transformComponent.move({0.0f, 0.0f, 0.005f});
 		}
-		
+		else 
+		{
+			auto& transformComponent = entity->getComponent<TransformComponent>();
+			transformComponent.move({0.0f, 0.0f, -0.005f});
+		}
+		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");
 		auto pos = entity->getComponent<TransformComponent>().position();
-		if (!_needUpdate) return;
-		_needUpdate = false;
 
 		float isoLevel = 1.0f;
 		auto& grid = _marchingCubeComponent->grid();
+
+		#pragma omp parallel for
 		for (std::uint64_t x = 0; x < grid.size(); ++x)
 		{
 			for (std::uint64_t y = 0; y < grid[x].size(); ++y)
@@ -46,13 +52,15 @@ public:
 						float inside = std::pow(_radius, 2)/(std::pow(grid[x][y][z].points[i].x-pos.x, 2)+std::pow(grid[x][y][z].points[i].y-pos.y, 2)+std::pow(grid[x][y][z].points[i].z-pos.z, 2));
 						if (inside >= 1.0f)
 						{
-							glm::vec3 center = pos;
-							_marchingCubeComponent->changeGrid(x, y, z, i, isoLevel, center);
+							_marchingCubeComponent->changeGrid(x, y, z, i, isoLevel, pos);
 						}
 					}
 				}
 			}
 		}
+		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		//std::cout << "Metaball: " << end-start << std::endl;
+		
 	}
 
 	~MetaballComponent() override
@@ -62,5 +70,4 @@ public:
 private:
 	MarchingCubeComponent* _marchingCubeComponent;
 	float _radius;
-	bool _needUpdate = true;
 };
