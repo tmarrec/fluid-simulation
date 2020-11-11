@@ -9,6 +9,26 @@ struct Cell
 	float val[8];
 };
 
+glm::vec3 VertexInterp(float isolevel, glm::vec3 p1, glm::vec3 p2, float valp1, float valp2)
+{
+	float mu;
+	glm::vec3 p;
+
+	if (std::abs(isolevel-valp1) < 0.00001)
+		return(p1);
+	if (std::abs(isolevel-valp2) < 0.00001)
+		return(p2);
+	if (std::abs(valp1-valp2) < 0.00001)
+		return(p1);
+	mu = (isolevel - valp1) / (valp2 - valp1);
+	p.x = p1.x + mu * (p2.x - p1.x);
+	p.y = p1.y + mu * (p2.y - p1.y);
+	p.z = p1.z + mu * (p2.z - p1.z);
+
+	return(p);
+}
+
+
 constexpr static std::array<std::uint16_t, 256> edgeTable =
 {
 	0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,

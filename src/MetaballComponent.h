@@ -80,8 +80,28 @@ public:
 					if (_grid[x][y][z].val[5] < isoLevel) cubeIndex |= 32;
 					if (_grid[x][y][z].val[6] < isoLevel) cubeIndex |= 64;
 					if (_grid[x][y][z].val[7] < isoLevel) cubeIndex |= 128;
-					std::cout << cubeIndex << std::endl << std::endl;
 
+					if (edgeTable[cubeIndex] == 0) break;
+					std::cout << cubeIndex << std::endl << std::endl;
+					std::array<glm::vec3, 12> vertList;
+					if (edgeTable[cubeIndex] & 1) vertList[0] = VertexInterp(isoLevel, _grid[x][y][z].points[0], _grid[x][y][z].points[1], _grid[x][y][z].val[0], _grid[x][y][z].val[1]);
+					if (edgeTable[cubeIndex] & 2) vertList[1] = VertexInterp(isoLevel, _grid[x][y][z].points[1], _grid[x][y][z].points[2], _grid[x][y][z].val[1], _grid[x][y][z].val[2]);
+					if (edgeTable[cubeIndex] & 4) vertList[2] = VertexInterp(isoLevel, _grid[x][y][z].points[2], _grid[x][y][z].points[3], _grid[x][y][z].val[2], _grid[x][y][z].val[3]);
+					if (edgeTable[cubeIndex] & 8) vertList[3] = VertexInterp(isoLevel, _grid[x][y][z].points[3], _grid[x][y][z].points[0], _grid[x][y][z].val[3], _grid[x][y][z].val[0]);
+					if (edgeTable[cubeIndex] & 16) vertList[4] = VertexInterp(isoLevel, _grid[x][y][z].points[4], _grid[x][y][z].points[5], _grid[x][y][z].val[4], _grid[x][y][z].val[5]);
+					if (edgeTable[cubeIndex] & 32) vertList[5] = VertexInterp(isoLevel, _grid[x][y][z].points[5], _grid[x][y][z].points[6], _grid[x][y][z].val[5], _grid[x][y][z].val[6]);
+					if (edgeTable[cubeIndex] & 64) vertList[6] = VertexInterp(isoLevel, _grid[x][y][z].points[6], _grid[x][y][z].points[7], _grid[x][y][z].val[6], _grid[x][y][z].val[7]);
+					if (edgeTable[cubeIndex] & 128) vertList[7] = VertexInterp(isoLevel, _grid[x][y][z].points[7], _grid[x][y][z].points[4], _grid[x][y][z].val[7], _grid[x][y][z].val[4]);
+					if (edgeTable[cubeIndex] & 256) vertList[8] = VertexInterp(isoLevel, _grid[x][y][z].points[0], _grid[x][y][z].points[4], _grid[x][y][z].val[0], _grid[x][y][z].val[4]);
+					if (edgeTable[cubeIndex] & 512) vertList[9] = VertexInterp(isoLevel, _grid[x][y][z].points[1], _grid[x][y][z].points[5], _grid[x][y][z].val[1], _grid[x][y][z].val[5]);
+					if (edgeTable[cubeIndex] & 1024) vertList[10] = VertexInterp(isoLevel, _grid[x][y][z].points[2], _grid[x][y][z].points[6], _grid[x][y][z].val[2], _grid[x][y][z].val[6]);
+					if (edgeTable[cubeIndex] & 2048) vertList[11] = VertexInterp(isoLevel, _grid[x][y][z].points[3], _grid[x][y][z].points[7], _grid[x][y][z].val[3], _grid[x][y][z].val[7]);
+
+					std::vector<std::array<glm::vec3, 3>> triangles;
+					for (std::uint64_t i = 0; triTable[cubeIndex][i] != -1; i += 3)
+					{
+
+					}
 				}
 			}
 		}
