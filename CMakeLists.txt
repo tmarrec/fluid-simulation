@@ -93,8 +93,8 @@ target_link_libraries(${PROJECT_NAME}
 
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
-file(COPY ${CMAKE_SOURCE_DIR}/src/shaders DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+file(COPY ${CMAKE_SOURCE_DIR}/shaders DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 message("-- Shaders copied to the build directory")
-file(COPY ${CMAKE_SOURCE_DIR}/src/models DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+file(COPY ${CMAKE_SOURCE_DIR}/models DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 message("-- Models copied to the build directory")
 
