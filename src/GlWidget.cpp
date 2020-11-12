@@ -1,6 +1,5 @@
 #include "GlWidget.h"
-#include "src/MarchingCube.h"
-#include "src/ui/MainWindow.h"
+#include "ui/MainWindow.h"
 
 #include <GL/gl.h>
 #include <cstdint>
@@ -17,6 +16,7 @@
 #include "LightComponent.h"
 #include "SubdivideComponent.h"
 #include "MetaballComponent.h"
+#include "MarchingCubeComponent.h"
 
 #include "BSpline.h"
 #include "BSplineTensor.h"
@@ -56,14 +56,13 @@ void GlWidget::_initScene()
 	auto& mc(_ECS_manager->addEntity());
 	mc.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	mc.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES);
-	auto& marchingCubeComponent = mc.addComponent<MarchingCubeComponent>(6.0f, 4.0f, 6.0f, 0.20f);
+	auto& marchingCubeComponent = mc.addComponent<MarchingCubeComponent>(6.0f, 6.0f, 6.0f, 0.40f);
 
 	auto& metaball(_ECS_manager->addEntity());
-	metaball.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, -16.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	metaball.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, -2.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	metaball.addComponent<MetaballComponent>(&marchingCubeComponent, 2.0f);
-
 	auto& metaball2(_ECS_manager->addEntity());
-	metaball2.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 16.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	metaball2.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 2.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	metaball2.addComponent<MetaballComponent>(&marchingCubeComponent, 2.0f);
 
 	/*
