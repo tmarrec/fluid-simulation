@@ -89,22 +89,23 @@ public:
 				{
 					std::uint64_t cubeIndex = _getCubeIndex(_grid[x][y][z].val);
 					std::array<glm::vec3, 12> vertList = _getVertList(cubeIndex, _grid[x][y][z].points, _grid[x][y][z].val);
-
 					for (std::uint64_t i = 0; _triTable[cubeIndex][i] != -1; i += 3)
 					{
 						std::uint64_t oldSize = vertices.size();
-						vertices.resize(oldSize+9);
-						memcpy(&vertices[oldSize], &vertList[_triTable[cubeIndex][i]], sizeof(float)*3);
-						memcpy(&vertices[oldSize]+3, &vertList[_triTable[cubeIndex][i+1]], sizeof(float)*3);
-						memcpy(&vertices[oldSize]+6, &vertList[_triTable[cubeIndex][i+2]], sizeof(float)*3);
 
-						glm::vec3 n1 = glm::normalize(vertList[_triTable[cubeIndex][i]] - _grid[x][y][z].center);
-						glm::vec3 n2 = glm::normalize(vertList[_triTable[cubeIndex][i+1]] - _grid[x][y][z].center);
-						glm::vec3 n3 = glm::normalize(vertList[_triTable[cubeIndex][i+2]] - _grid[x][y][z].center);
+						glm::vec3 p[3];
+						p[0] = vertList[_triTable[cubeIndex][i]];
+						p[1] = vertList[_triTable[cubeIndex][i+1]];
+						p[2] = vertList[_triTable[cubeIndex][i+2]];
+						vertices.resize(oldSize+9);
+						memcpy(&vertices[oldSize], &p, sizeof(float)*9);
+
+						glm::vec3 n[3];
+						n[0] = glm::normalize(p[0] - _grid[x][y][z].center);
+						n[1] = glm::normalize(p[1] - _grid[x][y][z].center);
+						n[2] = glm::normalize(p[2] - _grid[x][y][z].center);
 						normals.resize(oldSize+9); // Vert and Norm vectors are the same size
-						memcpy(&normals[oldSize], &n1, sizeof(float)*3);
-						memcpy(&normals[oldSize+3], &n2, sizeof(float)*3);
-						memcpy(&normals[oldSize+6], &n3, sizeof(float)*3);
+						memcpy(&normals[oldSize], &n, sizeof(float)*9);
 					}
 				}
 			}
