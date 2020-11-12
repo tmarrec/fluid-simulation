@@ -55,7 +55,6 @@ add_executable(${PROJECT_NAME}
 	src/ECS.h
 	src/ECS.cpp
 
-	src/MarchingCube.h
 
 	src/DrawableComponent.h
 	src/CameraComponent.h
@@ -63,6 +62,7 @@ add_executable(${PROJECT_NAME}
 	src/LightComponent.h
 	src/SubdivideComponent.h
 	src/MetaballComponent.h
+	src/MarchingCubeComponent.h
 
 	src/ui/MainWindow.h
 	src/ui/MainWindow.cpp

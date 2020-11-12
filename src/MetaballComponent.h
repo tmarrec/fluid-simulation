@@ -2,7 +2,7 @@
 
 #include "ECS.h"
 #include "TransformComponent.h"
-#include "MarchingCube.h"
+#include "MarchingCubeComponent.h"
 #include <cstdint>
 #include <chrono>
 
@@ -14,11 +14,6 @@ public:
 	, _marchingCubeComponent { __marchingCubeComponent }
 	, _radius { __radius }
 	{}
-
-	void init() override
-	{
-
-	}
 
 	void update([[maybe_unused]] double _deltaTime) override
 	{
@@ -36,7 +31,6 @@ public:
 		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");
 		auto pos = entity->getComponent<TransformComponent>().position();
 
-		float isoLevel = 1.0f;
 		auto& grid = _marchingCubeComponent->grid();
 
 		#pragma omp parallel for
@@ -52,7 +46,7 @@ public:
 						float inside = std::pow(_radius, 2)/(std::pow(grid[x][y][z].points[i].x-pos.x, 2)+std::pow(grid[x][y][z].points[i].y-pos.y, 2)+std::pow(grid[x][y][z].points[i].z-pos.z, 2));
 						if (inside >= 1.0f)
 						{
-							_marchingCubeComponent->changeGrid(x, y, z, i, isoLevel, pos);
+							_marchingCubeComponent->changeGrid(x, y, z, i, pos);
 						}
 					}
 				}

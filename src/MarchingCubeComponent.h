@@ -3,6 +3,7 @@
 #include "ECS.h"
 #include "glm/gtx/dual_quaternion.hpp"
 #include "utils.h"
+#include <array>
 #include <cstdint>
 #include "DrawableComponent.h"
 #include <chrono>
@@ -25,11 +26,11 @@ public:
 	, _cellSize { __cellSize }
 	{}
 
-	void changeGrid(std::uint64_t __x, std::uint64_t __y, std::uint64_t __z, std::uint64_t __i, float __value, glm::vec3 __center)
+	void changeGrid(std::uint64_t __x, std::uint64_t __y, std::uint64_t __z, std::uint64_t __i, glm::vec3 __center)
 	{
-		if (_grid[__x][__y][__z].val[__i] != __value)
+		if (_grid[__x][__y][__z].val[__i] != 0.5f)
 		{
-			_grid[__x][__y][__z].val[__i] = __value;
+			_grid[__x][__y][__z].val[__i] += 0.5f;
 			_grid[__x][__y][__z].center = __center;
 			_updated = true;
 		}
@@ -67,19 +68,16 @@ public:
 			}
 			_grid.emplace_back(grid2D);
 		}
-		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		//std::cout << "MarchingCube init: " << end-start << std::endl;
 	}
 
 	void draw() override
 	{
-		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		if (!_updated)
 		{
 			return;
 		}
+		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 			
-		float isoLevel = 1.0f;
 		std::vector<GLfloat> vertices;
 		std::vector<GLfloat> normals;
 		std::vector<GLuint> indices;
@@ -89,62 +87,30 @@ public:
 			{
 				for (std::uint64_t z = 0; z < _grid[x][y].size(); ++z)
 				{
-					std::uint64_t cubeIndex = 0;
-					if (_grid[x][y][z].val[0] < isoLevel) cubeIndex |= 1;
-					if (_grid[x][y][z].val[1] < isoLevel) cubeIndex |= 2;
-					if (_grid[x][y][z].val[2] < isoLevel) cubeIndex |= 4;
-					if (_grid[x][y][z].val[3] < isoLevel) cubeIndex |= 8;
-					if (_grid[x][y][z].val[4] < isoLevel) cubeIndex |= 16;
-					if (_grid[x][y][z].val[5] < isoLevel) cubeIndex |= 32;
-					if (_grid[x][y][z].val[6] < isoLevel) cubeIndex |= 64;
-					if (_grid[x][y][z].val[7] < isoLevel) cubeIndex |= 128;
+					std::uint64_t cubeIndex = _getCubeIndex(_grid[x][y][z].val);
+					std::array<glm::vec3, 12> vertList = _getVertList(cubeIndex, _grid[x][y][z].points, _grid[x][y][z].val);
 
-					std::array<glm::vec3, 12> vertList;
-					if (edgeTable[cubeIndex] & 1) vertList[0] = _vertexInterp(isoLevel, _grid[x][y][z].points[0], _grid[x][y][z].points[1], _grid[x][y][z].val[0], _grid[x][y][z].val[1]);
-					if (edgeTable[cubeIndex] & 2) vertList[1] = _vertexInterp(isoLevel, _grid[x][y][z].points[1], _grid[x][y][z].points[2], _grid[x][y][z].val[1], _grid[x][y][z].val[2]);
-					if (edgeTable[cubeIndex] & 4) vertList[2] = _vertexInterp(isoLevel, _grid[x][y][z].points[2], _grid[x][y][z].points[3], _grid[x][y][z].val[2], _grid[x][y][z].val[3]);
-					if (edgeTable[cubeIndex] & 8) vertList[3] = _vertexInterp(isoLevel, _grid[x][y][z].points[3], _grid[x][y][z].points[0], _grid[x][y][z].val[3], _grid[x][y][z].val[0]);
-					if (edgeTable[cubeIndex] & 16) vertList[4] = _vertexInterp(isoLevel, _grid[x][y][z].points[4], _grid[x][y][z].points[5], _grid[x][y][z].val[4], _grid[x][y][z].val[5]);
-					if (edgeTable[cubeIndex] & 32) vertList[5] = _vertexInterp(isoLevel, _grid[x][y][z].points[5], _grid[x][y][z].points[6], _grid[x][y][z].val[5], _grid[x][y][z].val[6]);
-					if (edgeTable[cubeIndex] & 64) vertList[6] = _vertexInterp(isoLevel, _grid[x][y][z].points[6], _grid[x][y][z].points[7], _grid[x][y][z].val[6], _grid[x][y][z].val[7]);
-					if (edgeTable[cubeIndex] & 128) vertList[7] = _vertexInterp(isoLevel, _grid[x][y][z].points[7], _grid[x][y][z].points[4], _grid[x][y][z].val[7], _grid[x][y][z].val[4]);
-					if (edgeTable[cubeIndex] & 256) vertList[8] = _vertexInterp(isoLevel, _grid[x][y][z].points[0], _grid[x][y][z].points[4], _grid[x][y][z].val[0], _grid[x][y][z].val[4]);
-					if (edgeTable[cubeIndex] & 512) vertList[9] = _vertexInterp(isoLevel, _grid[x][y][z].points[1], _grid[x][y][z].points[5], _grid[x][y][z].val[1], _grid[x][y][z].val[5]);
-					if (edgeTable[cubeIndex] & 1024) vertList[10] = _vertexInterp(isoLevel, _grid[x][y][z].points[2], _grid[x][y][z].points[6], _grid[x][y][z].val[2], _grid[x][y][z].val[6]);
-					if (edgeTable[cubeIndex] & 2048) vertList[11] = _vertexInterp(isoLevel, _grid[x][y][z].points[3], _grid[x][y][z].points[7], _grid[x][y][z].val[3], _grid[x][y][z].val[7]);
-
-					for (std::uint64_t i = 0; triTable[cubeIndex][i] != -1; i += 3)
+					for (std::uint64_t i = 0; _triTable[cubeIndex][i] != -1; i += 3)
 					{
-						glm::vec3 p1 = vertList[triTable[cubeIndex][i]];	
-						glm::vec3 p2 = vertList[triTable[cubeIndex][i+1]];	
-						glm::vec3 p3 = vertList[triTable[cubeIndex][i+2]];	
+						std::uint64_t oldSize = vertices.size();
+						vertices.resize(oldSize+9);
+						memcpy(&vertices[oldSize], &vertList[_triTable[cubeIndex][i]], sizeof(float)*3);
+						memcpy(&vertices[oldSize]+3, &vertList[_triTable[cubeIndex][i+1]], sizeof(float)*3);
+						memcpy(&vertices[oldSize]+6, &vertList[_triTable[cubeIndex][i+2]], sizeof(float)*3);
 
-						vertices.emplace_back(p1.x);
-						vertices.emplace_back(p1.y);
-						vertices.emplace_back(p1.z);
-						vertices.emplace_back(p2.x);
-						vertices.emplace_back(p2.y);
-						vertices.emplace_back(p2.z);
-						vertices.emplace_back(p3.x);
-						vertices.emplace_back(p3.y);
-						vertices.emplace_back(p3.z);
-
-						glm::vec3 n1 = glm::normalize(p1 - _grid[x][y][z].center);
-						glm::vec3 n2 = glm::normalize(p2 - _grid[x][y][z].center);
-						glm::vec3 n3 = glm::normalize(p3 - _grid[x][y][z].center);
-						normals.emplace_back(n1.x);
-						normals.emplace_back(n1.y);
-						normals.emplace_back(n1.z);
-						normals.emplace_back(n2.x);
-						normals.emplace_back(n2.y);
-						normals.emplace_back(n2.z);
-						normals.emplace_back(n3.x);
-						normals.emplace_back(n3.y);
-						normals.emplace_back(n3.z);
+						glm::vec3 n1 = glm::normalize(vertList[_triTable[cubeIndex][i]] - _grid[x][y][z].center);
+						glm::vec3 n2 = glm::normalize(vertList[_triTable[cubeIndex][i+1]] - _grid[x][y][z].center);
+						glm::vec3 n3 = glm::normalize(vertList[_triTable[cubeIndex][i+2]] - _grid[x][y][z].center);
+						normals.resize(oldSize+9); // Vert and Norm vectors are the same size
+						memcpy(&normals[oldSize], &n1, sizeof(float)*3);
+						memcpy(&normals[oldSize+3], &n2, sizeof(float)*3);
+						memcpy(&normals[oldSize+6], &n3, sizeof(float)*3);
 					}
 				}
 			}
 		}
+		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		//std::cout << "MarchingCube draw: " << end-start << std::endl;
 			
 		auto& drawable = entity->getComponent<DrawableComponent>();
 		drawable.setVertices(vertices);
@@ -155,7 +121,7 @@ public:
 		drawable.setNormals(normals);
 		drawable.updateGeometry();
 		
-		// reset 
+		// Reset all cells
 		#pragma omp parallel for
 		for (std::uint64_t x = 0; x < _grid.size(); ++x)
 		{
@@ -163,7 +129,6 @@ public:
 			{
 				for (std::uint64_t z = 0; z < _grid[x][y].size(); ++z)
 				{
-					// loop cell points	
 					for (std::uint64_t i = 0; i < 8; ++i)
 					{
 						_grid[x][y][z].val[i] = 0.0f;
@@ -171,41 +136,67 @@ public:
 				}
 			}
 		}
-		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		//std::cout << "MarchingCube: " << end-start << std::endl;
 		_updated = false;
 	}
 
 	std::vector<std::vector<std::vector<Cell>>>& grid() { return _grid; }
 
 private:
-	float _xsize;
-	float _ysize;
-	float _zsize;
-	float _cellSize;
+	const float _xsize;
+	const float _ysize;
+	const float _zsize;
+	const float _cellSize;
 	std::vector<std::vector<std::vector<Cell>>> _grid;
 	bool _updated = false;
 
-	glm::vec3 _vertexInterp(float isolevel, glm::vec3 p1, glm::vec3 p2, float valp1, float valp2)
+	inline std::uint64_t _getCubeIndex(float __val[8]) const
+	{
+		std::uint64_t cubeIndex = 0;
+		if (__val[0] < 0.5f) cubeIndex |= 1;
+		if (__val[1] < 0.5f) cubeIndex |= 2;
+		if (__val[2] < 0.5f) cubeIndex |= 4;
+		if (__val[3] < 0.5f) cubeIndex |= 8;
+		if (__val[4] < 0.5f) cubeIndex |= 16;
+		if (__val[5] < 0.5f) cubeIndex |= 32;
+		if (__val[6] < 0.5f) cubeIndex |= 64;
+		if (__val[7] < 0.5f) cubeIndex |= 128;
+		return cubeIndex;
+	}
+
+	inline glm::vec3 _vInterp(glm::vec3 __p1, glm::vec3 __p2, float __valp1, float __valp2) const
 	{
 		float mu;
 		glm::vec3 p;
-	
-		if (std::abs(isolevel-valp1) < 0.00001)
-			return(p1);
-		if (std::abs(isolevel-valp2) < 0.00001)
-			return(p2);
-		if (std::abs(valp1-valp2) < 0.00001)
-			return(p1);
-		mu = (isolevel - valp1) / (valp2 - valp1);
-		p.x = p1.x + mu * (p2.x - p1.x);
-		p.y = p1.y + mu * (p2.y - p1.y);
-		p.z = p1.z + mu * (p2.z - p1.z);
-		
-		return(p);
+		if (std::abs(0.5f - __valp1) < 0.00001f)
+			return __p1;
+		if (std::abs(0.5f - __valp2) < 0.00001f)
+			return __p2;
+		if (std::abs(__valp1 - __valp2) < 0.00001f)
+			return __p1;
+		mu = (0.5f - __valp1) / (__valp2 - __valp1);
+		p = __p1 + mu * (__p2 - __p1);
+		return p;
 	}
 
-	constexpr static std::array<std::uint16_t, 256> edgeTable =
+	inline std::array<glm::vec3, 12> _getVertList(float __cubeIndex, glm::vec3 __p[8], float __val[8]) const
+	{
+		std::array<glm::vec3, 12> vl;
+		if (_edgeTable[__cubeIndex] & 1) vl[0] = _vInterp(__p[0], __p[1], __val[0], __val[1]);
+		if (_edgeTable[__cubeIndex] & 2) vl[1] = _vInterp(__p[1], __p[2], __val[1], __val[2]);
+		if (_edgeTable[__cubeIndex] & 4) vl[2] = _vInterp(__p[2], __p[3], __val[2], __val[3]);
+		if (_edgeTable[__cubeIndex] & 8) vl[3] = _vInterp(__p[3], __p[0], __val[3], __val[0]);
+		if (_edgeTable[__cubeIndex] & 16) vl[4] = _vInterp(__p[4], __p[5], __val[4], __val[5]);
+		if (_edgeTable[__cubeIndex] & 32) vl[5] = _vInterp(__p[5], __p[6], __val[5], __val[6]);
+		if (_edgeTable[__cubeIndex] & 64) vl[6] = _vInterp(__p[6], __p[7], __val[6], __val[7]);
+		if (_edgeTable[__cubeIndex] & 128) vl[7] = _vInterp(__p[7], __p[4], __val[7], __val[4]);
+		if (_edgeTable[__cubeIndex] & 256) vl[8] = _vInterp(__p[0], __p[4], __val[0], __val[4]);
+		if (_edgeTable[__cubeIndex] & 512) vl[9] = _vInterp(__p[1], __p[5], __val[1], __val[5]);
+		if (_edgeTable[__cubeIndex] & 1024) vl[10] = _vInterp(__p[2], __p[6], __val[2], __val[6]);
+		if (_edgeTable[__cubeIndex] & 2048) vl[11] = _vInterp(__p[3], __p[7], __val[3], __val[7]);
+		return vl;
+	}
+
+	constexpr static std::array<std::uint16_t, 256> _edgeTable =
 	{
 		0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
 		0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
@@ -242,7 +233,7 @@ private:
 	};
 
 	// TODO use std::array
-	constexpr static char triTable[256][16] =
+	constexpr static char _triTable[256][16] =
 	{
 		{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 		{0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
