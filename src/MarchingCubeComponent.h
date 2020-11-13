@@ -2,17 +2,19 @@
 
 #include "ECS.h"
 #include "glm/gtx/dual_quaternion.hpp"
+#include "glm/gtx/string_cast.hpp"
 #include "utils.h"
 #include <array>
 #include <cstdint>
 #include "DrawableComponent.h"
-#include <chrono>
 
 struct Cell
 {
 	glm::vec3 points[8];
 	float val[8];
+	std::vector<glm::vec3> centers;
 	glm::vec3 center;
+	std::function<float(glm::vec3)> f;
 };
 
 class MarchingCubeComponent : public Component
@@ -29,13 +31,17 @@ public:
 	void changeGrid(std::uint64_t __x, std::uint64_t __y, std::uint64_t __z, std::uint64_t __i, glm::vec3 __center, float __inside)
 	{
 		_grid[__x][__y][__z].val[__i] += __inside-0.5f;
-		_grid[__x][__y][__z].center = __center;
+		_grid[__x][__y][__z].centers.emplace_back(__center);
+		glm::vec3 average;
+		for (const auto& c : _grid[__x][__y][__z].centers)
+			average += c;
+		average /= _grid[__x][__y][__z].centers.size();
+		_grid[__x][__y][__z].center = average;
 		_updated = true;
 	}
 
 	void init() override
 	{
-		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		// Grid initialization loop in middle of cell
 		for (float x = -_xsize/2; x < _xsize/2; x += _cellSize)
 		{
@@ -69,12 +75,7 @@ public:
 
 	void draw() override
 	{
-		if (!_updated)
-		{
-			return;
-		}
-		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-			
+		if (!_updated) return;
 		std::vector<GLfloat> vertices;
 		std::vector<GLfloat> normals;
 		std::vector<GLuint> indices;
@@ -98,17 +99,23 @@ public:
 						memcpy(&vertices[oldSize], &p, sizeof(float)*9);
 
 						glm::vec3 n[3];
+						/*
+						n[0].x = testf(glm::vec3{p[0].x+0.1, p[0].y, p[0].z}) - testf(p[0]);
+						n[0].y = testf(glm::vec3{p[0].x, p[0].y+0.1, p[0].z}) - testf(p[0]);
+						n[0].z = testf(glm::vec3{p[0].x, p[0].y, p[0].z+0.1}) - testf(p[0]);
+						*/
+
+						/*
 						n[0] = glm::normalize(p[0] - _grid[x][y][z].center);
 						n[1] = glm::normalize(p[1] - _grid[x][y][z].center);
 						n[2] = glm::normalize(p[2] - _grid[x][y][z].center);
+						*/
 						normals.resize(oldSize+9); // Vert and Norm vectors are the same size
 						memcpy(&normals[oldSize], &n, sizeof(float)*9);
 					}
 				}
 			}
 		}
-		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		//std::cout << "MarchingCube draw: " << end-start << std::endl;
 			
 		auto& drawable = entity->getComponent<DrawableComponent>();
 		drawable.setVertices(vertices);
@@ -119,21 +126,7 @@ public:
 		drawable.setNormals(normals);
 		drawable.updateGeometry();
 		
-		// Reset all cells
-		#pragma omp parallel for
-		for (std::uint64_t x = 0; x < _grid.size(); ++x)
-		{
-			for (std::uint64_t y = 0; y < _grid[x].size(); ++y)
-			{
-				for (std::uint64_t z = 0; z < _grid[x][y].size(); ++z)
-				{
-					for (std::uint64_t i = 0; i < 8; ++i)
-					{
-						_grid[x][y][z].val[i] = 0.0f;
-					}
-				}
-			}
-		}
+		_cleanGrid();
 		_updated = false;
 	}
 
@@ -146,6 +139,27 @@ private:
 	const float _cellSize;
 	std::vector<std::vector<std::vector<Cell>>> _grid;
 	bool _updated = false;
+
+
+	inline void _cleanGrid()
+	{
+		// Reset all cells
+		#pragma omp parallel for
+		for (std::uint64_t x = 0; x < _grid.size(); ++x)
+		{
+			for (std::uint64_t y = 0; y < _grid[x].size(); ++y)
+			{
+				for (std::uint64_t z = 0; z < _grid[x][y].size(); ++z)
+				{
+					for (std::uint64_t i = 0; i < 8; ++i)
+					{
+						_grid[x][y][z].val[i] = 0.0f;
+						_grid[x][y][z].centers.clear();
+					}
+				}
+			}
+		}
+	}
 
 	inline std::uint64_t _getCubeIndex(float __val[8]) const
 	{

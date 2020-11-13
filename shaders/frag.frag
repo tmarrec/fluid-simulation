@@ -47,7 +47,7 @@ float ShadowMap(vec3 normal, vec3 lightDir, vec3 lightPos, samplerCube shadowMap
 	int samples = 20;
 	float viewDistance = length(_view_pos - fs_in.FragPos);
 	float diskRadius = (1.0 + (viewDistance / farPlane))/25.0;
-	float acneeBias = max(0.1*(1.0-dot(normal, lightDir)), 0.05);
+	float acneeBias = max(1.0*(1.0-dot(normal, lightDir)), 0.05);
 	float currentDepth = length(fragToLight);
 	float shadow = 0.0;
 	for(int i = 0; i < samples; ++i)
@@ -124,4 +124,5 @@ void main(void)
 	}
 
 	FragColor = vec4(result * _object_color, 1.0);
+	//FragColor = vec4(normalize(fs_in.Normal), 1.0);
 }

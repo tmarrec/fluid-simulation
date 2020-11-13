@@ -23,7 +23,7 @@ void main()
         gl_Position = projection * view * model * vec4(P, 1.0);
         EmitVertex();
 
-		float normalLength = 0.5;
+		float normalLength = 0.2;
         gl_Position = projection * view * model * vec4(P+N*normalLength, 1.0);
         EmitVertex();
 

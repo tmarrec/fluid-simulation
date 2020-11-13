@@ -4,7 +4,7 @@
 #include "TransformComponent.h"
 #include "MarchingCubeComponent.h"
 #include <cstdint>
-#include <chrono>
+#include <functional>
 
 class MetaballComponent : public Component
 {
@@ -15,22 +15,31 @@ public:
 	, _radius { __radius }
 	{}
 
-	void update([[maybe_unused]] double _deltaTime) override
+	void update([[maybe_unused]] double __deltaTime) override
 	{
-		if (entity->getEntityID() == 3)
+		// Testings
+		/*
+		t += 0.002f;
+		if (entity->getEntityID() == 9)
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
-			transformComponent.move({0.0f, 0.0f, 0.007f});
+			transformComponent.setPosition({0.0f, cos(t)*2.5f, sin(t)*2.5f});
 		}
-		else 
+		else if (entity->getEntityID() == 10) 
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
-			transformComponent.move({0.0f, 0.0f, -0.007f});
+			transformComponent.setPosition({0.0f, cos(t)*2.5f, -sin(t)*2.5f});
 		}
-		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		else
+		{
+			auto& transformComponent = entity->getComponent<TransformComponent>();
+			transformComponent.setPosition({0.0f, sin(-t)*2.5f, 0.0f});
+		}
+		*/
+		// End Testings
+
 		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");
 		auto pos = entity->getComponent<TransformComponent>().position();
-
 		auto& grid = _marchingCubeComponent->grid();
 
 		#pragma omp parallel for
@@ -43,7 +52,8 @@ public:
 					// loop cell points	
 					for (std::uint64_t i = 0; i < 8; ++i)
 					{
-						float inside = std::pow(_radius, 2)/glm::dot(grid[x][y][z].points[i] - pos, grid[x][y][z].points[i] - pos);
+						auto t = std::bind(&MetaballComponent::f, pos, _radius, std::placeholders::_1); 
+						float inside = t(grid[x][y][z].points[i]);
 						if (inside >= 0.5f)
 						{
 							_marchingCubeComponent->changeGrid(x, y, z, i, pos, inside);
@@ -52,9 +62,14 @@ public:
 				}
 			}
 		}
-		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		//std::cout << "Metaball: " << end-start << std::endl;
-		
+	}
+	
+	static float f(glm::vec3 __center, float __radius, glm::vec3 __pos)
+	{
+		//auto center = entity->getComponent<TransformComponent>().position();
+		float d = glm::dot(__center - __pos, __center - __pos);
+		if (d == 0.0f) return 0.0f;
+		return std::pow(__radius, 2)/d;
 	}
 
 	~MetaballComponent() override
@@ -64,4 +79,5 @@ public:
 private:
 	MarchingCubeComponent* _marchingCubeComponent;
 	float _radius;
+	double t;
 };
