@@ -26,14 +26,11 @@ public:
 	, _cellSize { __cellSize }
 	{}
 
-	void changeGrid(std::uint64_t __x, std::uint64_t __y, std::uint64_t __z, std::uint64_t __i, glm::vec3 __center)
+	void changeGrid(std::uint64_t __x, std::uint64_t __y, std::uint64_t __z, std::uint64_t __i, glm::vec3 __center, float __inside)
 	{
-		if (_grid[__x][__y][__z].val[__i] != 0.5f)
-		{
-			_grid[__x][__y][__z].val[__i] += 0.5f;
-			_grid[__x][__y][__z].center = __center;
-			_updated = true;
-		}
+		_grid[__x][__y][__z].val[__i] += __inside-0.5f;
+		_grid[__x][__y][__z].center = __center;
+		_updated = true;
 	}
 
 	void init() override
@@ -60,7 +57,7 @@ public:
 					cell.points[7] = {x-s,y-s,z+s}; 
 					for (std::uint64_t i = 0; i < 8; ++i)
 					{
-						cell.val[i] = 0;
+						cell.val[i] = 0.0f;
 					}
 					grid1D.emplace_back(cell);
 				}

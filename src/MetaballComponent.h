@@ -20,12 +20,12 @@ public:
 		if (entity->getEntityID() == 3)
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
-			transformComponent.move({0.0f, 0.0f, 0.005f});
+			transformComponent.move({0.0f, 0.0f, 0.007f});
 		}
 		else 
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
-			transformComponent.move({0.0f, 0.0f, -0.005f});
+			transformComponent.move({0.0f, 0.0f, -0.007f});
 		}
 		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");
@@ -43,10 +43,10 @@ public:
 					// loop cell points	
 					for (std::uint64_t i = 0; i < 8; ++i)
 					{
-						float inside = std::pow(_radius, 2)/(std::pow(grid[x][y][z].points[i].x-pos.x, 2)+std::pow(grid[x][y][z].points[i].y-pos.y, 2)+std::pow(grid[x][y][z].points[i].z-pos.z, 2));
-						if (inside >= 1.0f)
+						float inside = std::pow(_radius, 2)/glm::dot(grid[x][y][z].points[i] - pos, grid[x][y][z].points[i] - pos);
+						if (inside >= 0.5f)
 						{
-							_marchingCubeComponent->changeGrid(x, y, z, i, pos);
+							_marchingCubeComponent->changeGrid(x, y, z, i, pos, inside);
 						}
 					}
 				}
