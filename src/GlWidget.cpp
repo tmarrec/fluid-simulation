@@ -56,21 +56,20 @@ void GlWidget::_initScene()
 	auto& mc(_ECS_manager->addEntity());
 	mc.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	mc.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES);
-	auto& marchingCubeComponent = mc.addComponent<MarchingCubeComponent>(6.0f, 6.0f, 6.0f, 0.40f);
+	auto& marchingCubeComponent = mc.addComponent<MarchingCubeComponent>(7.0f, 5.0f, 7.0f, 0.25f);
 
 	auto& metaball(_ECS_manager->addEntity());
-	metaball.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, -2.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	metaball.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, -4.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	metaball.addComponent<MetaballComponent>(&marchingCubeComponent, 2.0f);
+
 	auto& metaball2(_ECS_manager->addEntity());
-	metaball2.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 2.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
+	metaball2.addComponent<TransformComponent>(glm::vec3{0.0f, 0.0f, 4.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	metaball2.addComponent<MetaballComponent>(&marchingCubeComponent, 2.0f);
 
-	/*
 	auto & light2(_ECS_manager->addEntity());
 	light2.addComponent<TransformComponent>(glm::vec3{0.0f, -2.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
 	light2.addComponent<DrawableComponent>(_renderer, shader, c.vertices, c.normals, c.indices, GL_TRIANGLES, RD_DEBUG);
 	light2.addComponent<LightComponent>(_renderer, glm::vec3{1.0f, 1.0f, 1.0f}, 0.2f);
-	*/
 }
 
 void GlWidget::initializeGL()
