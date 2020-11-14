@@ -3,6 +3,7 @@
 #include "ECS.h"
 #include "TransformComponent.h"
 #include "MarchingCubeComponent.h"
+#include "glm/gtx/string_cast.hpp"
 #include <cstdint>
 #include <functional>
 
@@ -18,14 +19,13 @@ public:
 	void update([[maybe_unused]] double __deltaTime) override
 	{
 		// Testings
-		/*
-		t += 0.002f;
-		if (entity->getEntityID() == 9)
+		t += 0.01f;
+		if (entity->getEntityID() == 10)
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
 			transformComponent.setPosition({0.0f, cos(t)*2.5f, sin(t)*2.5f});
 		}
-		else if (entity->getEntityID() == 10) 
+		else if (entity->getEntityID() == 11) 
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
 			transformComponent.setPosition({0.0f, cos(t)*2.5f, -sin(t)*2.5f});
@@ -35,7 +35,6 @@ public:
 			auto& transformComponent = entity->getComponent<TransformComponent>();
 			transformComponent.setPosition({0.0f, sin(-t)*2.5f, 0.0f});
 		}
-		*/
 		// End Testings
 
 		ASSERT(entity->hasComponent<TransformComponent>(), "entity should have a TransformComponent");
@@ -50,13 +49,19 @@ public:
 				for (std::uint64_t z = 0; z < grid[x][y].size(); ++z)
 				{
 					// loop cell points	
+					bool added = false;
+					std::function<float(glm::vec3)> func = std::bind(&MetaballComponent::f, pos, _radius, std::placeholders::_1); 
+					_marchingCubeComponent->addFunc(x, y, z, func);
 					for (std::uint64_t i = 0; i < 8; ++i)
 					{
-						auto t = std::bind(&MetaballComponent::f, pos, _radius, std::placeholders::_1); 
-						float inside = t(grid[x][y][z].points[i]);
+						float inside = func(grid[x][y][z].points[i]);
 						if (inside >= 0.5f)
 						{
 							_marchingCubeComponent->changeGrid(x, y, z, i, pos, inside);
+							if (!added)
+							{
+								added = true;
+							}
 						}
 					}
 				}
@@ -66,7 +71,6 @@ public:
 	
 	static float f(glm::vec3 __center, float __radius, glm::vec3 __pos)
 	{
-		//auto center = entity->getComponent<TransformComponent>().position();
 		float d = glm::dot(__center - __pos, __center - __pos);
 		if (d == 0.0f) return 0.0f;
 		return std::pow(__radius, 2)/d;

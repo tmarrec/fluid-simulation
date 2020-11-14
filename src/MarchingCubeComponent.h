@@ -12,9 +12,7 @@ struct Cell
 {
 	glm::vec3 points[8];
 	float val[8];
-	std::vector<glm::vec3> centers;
-	glm::vec3 center;
-	std::function<float(glm::vec3)> f;
+	std::vector<std::function<float(glm::vec3)>> fs;
 };
 
 class MarchingCubeComponent : public Component
@@ -31,13 +29,12 @@ public:
 	void changeGrid(std::uint64_t __x, std::uint64_t __y, std::uint64_t __z, std::uint64_t __i, glm::vec3 __center, float __inside)
 	{
 		_grid[__x][__y][__z].val[__i] += __inside-0.5f;
-		_grid[__x][__y][__z].centers.emplace_back(__center);
-		glm::vec3 average;
-		for (const auto& c : _grid[__x][__y][__z].centers)
-			average += c;
-		average /= _grid[__x][__y][__z].centers.size();
-		_grid[__x][__y][__z].center = average;
 		_updated = true;
+	}
+
+	void addFunc(std::uint64_t __x, std::uint64_t __y, std::uint64_t __z, std::function<float(glm::vec3)> f)
+	{
+		_grid[__x][__y][__z].fs.emplace_back(f);
 	}
 
 	void init() override
@@ -73,6 +70,16 @@ public:
 		}
 	}
 
+	glm::vec3 test(glm::vec3 p, std::function<float(glm::vec3)> f)
+	{
+		float eps = 0.001f;
+		glm::vec3 n;
+		n.x = f(glm::vec3{p.x-eps, p.y, p.z}) - f(glm::vec3{p.x+eps, p.y, p.z});
+		n.y = f(glm::vec3{p.x, p.y-eps, p.z}) - f(glm::vec3{p.x, p.y+eps, p.z});
+		n.z = f(glm::vec3{p.x, p.y, p.z-eps}) - f(glm::vec3{p.x, p.y, p.z+eps});
+		return n;
+	}
+
 	void draw() override
 	{
 		if (!_updated) return;
@@ -99,17 +106,20 @@ public:
 						memcpy(&vertices[oldSize], &p, sizeof(float)*9);
 
 						glm::vec3 n[3];
-						/*
-						n[0].x = testf(glm::vec3{p[0].x+0.1, p[0].y, p[0].z}) - testf(p[0]);
-						n[0].y = testf(glm::vec3{p[0].x, p[0].y+0.1, p[0].z}) - testf(p[0]);
-						n[0].z = testf(glm::vec3{p[0].x, p[0].y, p[0].z+0.1}) - testf(p[0]);
-						*/
 
-						/*
-						n[0] = glm::normalize(p[0] - _grid[x][y][z].center);
-						n[1] = glm::normalize(p[1] - _grid[x][y][z].center);
-						n[2] = glm::normalize(p[2] - _grid[x][y][z].center);
-						*/
+						n[0] = {0.0f, 0.0f, 0.0f};
+						n[1] = {0.0f, 0.0f, 0.0f};
+						n[2] = {0.0f, 0.0f, 0.0f};
+						for (const auto &f : _grid[x][y][z].fs)
+						{
+							n[0] += test(p[0], f);
+							n[1] += test(p[1], f);
+							n[2] += test(p[2], f);
+						}
+						n[0] = glm::normalize(n[0]);
+						n[1] = glm::normalize(n[1]);
+						n[2] = glm::normalize(n[2]);
+
 						normals.resize(oldSize+9); // Vert and Norm vectors are the same size
 						memcpy(&normals[oldSize], &n, sizeof(float)*9);
 					}
@@ -154,7 +164,7 @@ private:
 					for (std::uint64_t i = 0; i < 8; ++i)
 					{
 						_grid[x][y][z].val[i] = 0.0f;
-						_grid[x][y][z].centers.clear();
+						_grid[x][y][z].fs.clear();
 					}
 				}
 			}
