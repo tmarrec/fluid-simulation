@@ -35,7 +35,7 @@ using ComponentArray = std::array<Component *, maxComponents>;
 class Component
 {
 public:
-	Entity* entity;
+	Entity* entity = nullptr;
 
 	Component()
 	: _id { _counter++ }
@@ -63,8 +63,6 @@ public:
 	void update(double __deltaTime);
 	void init();
 	void draw();
-
-	void cout(std::string string) const;
 
 	bool isActive() const;
 	void destroy();

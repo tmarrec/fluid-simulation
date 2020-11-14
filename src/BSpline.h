@@ -10,14 +10,14 @@ class BSpline
 {
 public:
 	// BSpline without custom knots -> uniform knots
-	BSpline(std::uint8_t __order, std::vector<glm::vec3> __controls)
+	BSpline(std::uint8_t __order, const std::vector<glm::vec3>& __controls)
 	: _order { __order }
 	, _knots { _uniform_vector(__controls.size()+__order+1) }
 	, _controls { __controls }
 	, _range { _knots[__order-1], _knots[__controls.size()] }
 	{}
 	// BSpline with custom knots
-	BSpline(std::uint8_t __order, std::vector<glm::vec3> __controls, std::vector<float> __knots)
+	BSpline(std::uint8_t __order, const std::vector<glm::vec3>& __controls, const std::vector<float>& __knots)
 	: _order { __order }
 	, _knots { __knots }
 	, _controls { __controls }
@@ -57,7 +57,7 @@ public:
 
 private:
 	// Uniform vector generation starting from zero
-	std::vector<float> _uniform_vector(std::uint8_t __size) const
+	static inline std::vector<float> _uniform_vector(std::uint8_t __size)
 	{
 		std::vector<float> v(__size);
 		std::iota(v.begin(), v.end(), 0);
@@ -75,14 +75,14 @@ class BSplineShape
 {
 public:
 	// Unspecified knots -> uniform knots
-	BSplineShape(std::uint8_t __order, std::vector<glm::vec3> __controls, bool __show_controls, float __delta)
+	BSplineShape(std::uint8_t __order, const std::vector<glm::vec3>& __controls, bool __show_controls, float __delta)
 	: _bspline { std::make_unique<BSpline>(BSpline{__order, __controls}) }
 	, _delta { __delta }
 	, _show_controls { __show_controls }
 	, _controls { __controls }
 	{}
 	// Specified knots
-	BSplineShape(std::uint8_t __order, std::vector<glm::vec3> __controls, bool __show_controls, float __delta, std::vector<float> __knots)
+	BSplineShape(std::uint8_t __order, const std::vector<glm::vec3>& __controls, bool __show_controls, float __delta, const std::vector<float>& __knots)
 	: _bspline { std::make_unique<BSpline>(BSpline{__order, __controls, __knots}) }
 	, _delta { __delta }
 	, _show_controls { __show_controls }

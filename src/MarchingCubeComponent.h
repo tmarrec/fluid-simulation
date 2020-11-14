@@ -68,7 +68,7 @@ public:
 		}
 	}
 
-	inline std::array<glm::vec3, 3> _computeVertNormal(std::array<glm::vec3, 3> __p, float __eps)
+	inline std::array<glm::vec3, 3> _computeVertNormal(std::array<glm::vec3, 3> __p, float __eps) const
 	{
 		std::array<glm::vec3, 3> n {};
 		for (const auto &f : _fs)
@@ -160,7 +160,7 @@ private:
 		_fs.clear();
 	}
 
-	inline std::uint64_t _getCubeIndex(float __val[8]) const
+	static inline std::uint64_t _getCubeIndex(float __val[8])
 	{
 		std::uint64_t cubeIndex = 0;
 		if (__val[0] < 0.5f) cubeIndex |= 1;
@@ -174,22 +174,43 @@ private:
 		return cubeIndex;
 	}
 
-	inline glm::vec3 _vInterp(glm::vec3 __p1, glm::vec3 __p2, float __valp1, float __valp2) const
+	static inline bool check(const glm::vec3 &left, const glm::vec3 &right)
 	{
-		float mu;
+		if (left.x < right.x)
+			return true;
+		else if (left.x > right.x)
+			return false;
+		if (left.y < right.y)
+			return true;
+		else if (left.y > right.y)
+			return false;
+		if (left.z < right.z)
+			return true;
+		else if (left.z > right.z)
+			return false;
+		return false;
+	}
+
+	static inline glm::vec3 _vInterp(glm::vec3 __p1, glm::vec3 __p2, float __valp1, float __valp2)
+	{
+		if (check(__p2, __p1))
+		{
+			glm::vec3 temp = __p1;
+			__p1 = __p2;
+			__p2 = temp;
+			float temp2 = __valp1;
+			__valp1 = __valp2;
+			__valp2 = temp2;
+		}
 		glm::vec3 p;
-		if (std::abs(0.5f - __valp1) < 0.00001f)
-			return __p1;
-		if (std::abs(0.5f - __valp2) < 0.00001f)
-			return __p2;
-		if (std::abs(__valp1 - __valp2) < 0.00001f)
-			return __p1;
-		mu = (0.5f - __valp1) / (__valp2 - __valp1);
-		p = __p1 + mu * (__p2 - __p1);
+		if(fabs(__valp1 - __valp2) > 0.00001)
+			p = __p1 + (__p2 - __p1)/(__valp2 - __valp1)*(0.5f - __valp1);
+		else
+			p = __p1;
 		return p;
 	}
 
-	inline std::array<glm::vec3, 12> _getVertList(float __cubeIndex, glm::vec3 __p[8], float __val[8]) const
+	static inline std::array<glm::vec3, 12> _getVertList(float __cubeIndex, glm::vec3 __p[8], float __val[8])
 	{
 		std::array<glm::vec3, 12> vl;
 		if (_edgeTable[__cubeIndex] & 1) vl[0] = _vInterp(__p[0], __p[1], __val[0], __val[1]);

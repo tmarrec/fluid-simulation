@@ -98,3 +98,7 @@ message("-- Shaders copied to the build directory")
 file(COPY ${CMAKE_SOURCE_DIR}/models DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 message("-- Models copied to the build directory")
 
+execute_process(
+	COMMAND bash -c "cppcheck --enable=all --inconclusive --library=posix --xml --xml-version=2 --std=c++17 ../src 2>../reports/report.xml && cppcheck-htmlreport --source-dir=../src --file=../reports/report.xml --report-dir=../reports"
+)
+

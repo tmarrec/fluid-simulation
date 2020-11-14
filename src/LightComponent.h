@@ -31,18 +31,13 @@ public:
 	float radius = 100;
 	void update([[maybe_unused]] double _deltaTime) override
 	{
-		/*
 		radius = _intensity*25;
-		speed = (2*M_PI)/_intensity*0.025f;
+		speed = (2*M_PI)/_intensity*0.005f;
 		angle += speed*_deltaTime;
 		auto pos = entity->getComponent<TransformComponent>().position();
-		pos.x = cos(angle)*radius;
-		pos.z = sin(angle)*radius;
+		pos.z = cos(angle)*radius;
+		pos.y = sin(angle)*radius;
 		entity->getComponent<TransformComponent>().setPosition(pos);
-		*/
-	}
-	~LightComponent() override
-	{
 	}
 
 	glm::vec3 color() const { return _color; }

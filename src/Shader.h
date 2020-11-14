@@ -47,26 +47,33 @@ private:
 	const std::string _fragPath;
 	const std::string _geoPath;
 
-	void _checkCompilation(std::uint64_t shader, std::string type)
+	static void _checkCompilation(std::uint64_t shader, const std::string& type)
 	{
 		GLint success;
 		GLsizei infoLogLength = 0;
-		if (type != "PROGRAM") {
+		if (type != "PROGRAM")
+		{
 			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
 			char* infoLog = new char[infoLogLength];
 			glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-			if (!success) {
+			if (!success)
+			{
 				glGetShaderInfoLog(shader, infoLogLength, NULL, infoLog);
 				ERROR("Shader compilation error of type : " << type << "\n" << infoLog << "\n");
 			}
-		} else {
+			delete[] infoLog;
+		}
+		else
+		{
 			glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
 			char* infoLog = new char[infoLogLength];
 			glGetProgramiv(shader, GL_LINK_STATUS, &success);
-			if (!success) {
+			if (!success)
+			{
 				glGetProgramInfoLog(shader, infoLogLength, NULL, infoLog);
 				ERROR("Program linking error of type : " << type << "\n" << infoLog << "\n");
 			}
+			delete[] infoLog;
 		}
 	}
 
