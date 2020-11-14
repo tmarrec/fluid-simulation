@@ -12,7 +12,6 @@ struct Cell
 {
 	glm::vec3 points[8];
 	float val[8];
-	std::vector<std::function<float(glm::vec3)>> fs;
 };
 
 class MarchingCubeComponent : public Component
@@ -26,15 +25,14 @@ public:
 	, _cellSize { __cellSize }
 	{}
 
-	void changeGrid(std::uint64_t __x, std::uint64_t __y, std::uint64_t __z, std::uint64_t __i, glm::vec3 __center, float __inside)
+	inline void changeGrid(std::uint64_t __x, std::uint64_t __y, std::uint64_t __z, std::uint64_t __i, float __inside)
 	{
-		_grid[__x][__y][__z].val[__i] += __inside-0.5f;
-		_updated = true;
+		_grid[__x][__y][__z].val[__i] += __inside - 0.5f;
 	}
 
-	void addFunc(std::uint64_t __x, std::uint64_t __y, std::uint64_t __z, std::function<float(glm::vec3)> f)
+	inline void addFunc(std::function<float(glm::vec3)> __f)
 	{
-		_grid[__x][__y][__z].fs.emplace_back(f);
+		_fs.emplace_back(__f);
 	}
 
 	void init() override
@@ -70,19 +68,26 @@ public:
 		}
 	}
 
-	glm::vec3 test(glm::vec3 p, std::function<float(glm::vec3)> f)
+	inline std::array<glm::vec3, 3> _computeVertNormal(std::array<glm::vec3, 3> __p, float __eps)
 	{
-		float eps = 0.001f;
-		glm::vec3 n;
-		n.x = f(glm::vec3{p.x-eps, p.y, p.z}) - f(glm::vec3{p.x+eps, p.y, p.z});
-		n.y = f(glm::vec3{p.x, p.y-eps, p.z}) - f(glm::vec3{p.x, p.y+eps, p.z});
-		n.z = f(glm::vec3{p.x, p.y, p.z-eps}) - f(glm::vec3{p.x, p.y, p.z+eps});
+		std::array<glm::vec3, 3> n {};
+		for (const auto &f : _fs)
+		{
+			for (std::uint8_t i = 0; i < 3; ++i)
+			{
+				float fp = f(__p[i]);
+				n[i].x += f(glm::vec3{__p[i].x-__eps, __p[i].y, __p[i].z}) - fp;
+				n[i].y += f(glm::vec3{__p[i].x, __p[i].y-__eps, __p[i].z}) - fp;
+				n[i].z += f(glm::vec3{__p[i].x, __p[i].y, __p[i].z-__eps}) - fp;
+			}
+		}
+		for (std::uint8_t i = 0; i < 3; ++i)
+			n[i] = glm::normalize(n[i]);
 		return n;
 	}
 
-	void draw() override
+	void update([[maybe_unused]] double __deltaTime) override
 	{
-		if (!_updated) return;
 		std::vector<GLfloat> vertices;
 		std::vector<GLfloat> normals;
 		std::vector<GLuint> indices;
@@ -98,28 +103,14 @@ public:
 					{
 						std::uint64_t oldSize = vertices.size();
 
-						glm::vec3 p[3];
+						std::array<glm::vec3, 3> p;
 						p[0] = vertList[_triTable[cubeIndex][i]];
 						p[1] = vertList[_triTable[cubeIndex][i+1]];
 						p[2] = vertList[_triTable[cubeIndex][i+2]];
 						vertices.resize(oldSize+9);
 						memcpy(&vertices[oldSize], &p, sizeof(float)*9);
 
-						glm::vec3 n[3];
-
-						n[0] = {0.0f, 0.0f, 0.0f};
-						n[1] = {0.0f, 0.0f, 0.0f};
-						n[2] = {0.0f, 0.0f, 0.0f};
-						for (const auto &f : _grid[x][y][z].fs)
-						{
-							n[0] += test(p[0], f);
-							n[1] += test(p[1], f);
-							n[2] += test(p[2], f);
-						}
-						n[0] = glm::normalize(n[0]);
-						n[1] = glm::normalize(n[1]);
-						n[2] = glm::normalize(n[2]);
-
+						std::array<glm::vec3, 3> n = _computeVertNormal(p, 0.01f);
 						normals.resize(oldSize+9); // Vert and Norm vectors are the same size
 						memcpy(&normals[oldSize], &n, sizeof(float)*9);
 					}
@@ -137,7 +128,6 @@ public:
 		drawable.updateGeometry();
 		
 		_cleanGrid();
-		_updated = false;
 	}
 
 	std::vector<std::vector<std::vector<Cell>>>& grid() { return _grid; }
@@ -148,8 +138,7 @@ private:
 	const float _zsize;
 	const float _cellSize;
 	std::vector<std::vector<std::vector<Cell>>> _grid;
-	bool _updated = false;
-
+	std::vector<std::function<float(glm::vec3)>> _fs;
 
 	inline void _cleanGrid()
 	{
@@ -161,14 +150,14 @@ private:
 			{
 				for (std::uint64_t z = 0; z < _grid[x][y].size(); ++z)
 				{
-					for (std::uint64_t i = 0; i < 8; ++i)
+					for (std::uint8_t i = 0; i < 8; ++i)
 					{
 						_grid[x][y][z].val[i] = 0.0f;
-						_grid[x][y][z].fs.clear();
 					}
 				}
 			}
 		}
+		_fs.clear();
 	}
 
 	inline std::uint64_t _getCubeIndex(float __val[8]) const
@@ -254,9 +243,8 @@ private:
 		0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x0
 	};
 
-	// TODO use std::array
-	constexpr static char _triTable[256][16] =
-	{
+	constexpr static std::array<std::array<char, 16>, 256> _triTable =
+	{{
 		{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 		{0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 		{0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -513,6 +501,6 @@ private:
 		{0, 9, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 		{0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 		{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
-	};
+	}};
 };
 
