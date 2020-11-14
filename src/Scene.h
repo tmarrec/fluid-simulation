@@ -5,6 +5,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
 #include "glm/gtx/string_cast.hpp"
+#include "src/SubdivideComponent.h"
 #include <GL/gl.h>
 #include <cmath>
 #include <cstddef>
@@ -29,7 +30,7 @@
 class Scene
 {
 public:
-	Scene(std::shared_ptr<Renderer> __renderer, std::shared_ptr<ECS_Manager> __ECS_manager, const std::string sceneFileName)
+	Scene(std::shared_ptr<Renderer> __renderer, std::shared_ptr<ECS_Manager> __ECS_manager, const std::string& sceneFileName)
 	: _renderer { __renderer }
 	, _ECS_manager { __ECS_manager }
 	{
@@ -40,7 +41,7 @@ public:
 
 
 private:
-	void _readModel(tinygltf::Model& __model, const std::string __fileName) const
+	static void _readModel(tinygltf::Model& __model, const std::string& __fileName)
 	{
 		tinygltf::TinyGLTF loader;
 		std::string err;
@@ -119,31 +120,31 @@ private:
 	}
 
 
-	Shape _meshLoop(tinygltf::Model& __model, tinygltf::Mesh& __mesh)
+	Shape _meshLoop(tinygltf::Model& __model, tinygltf::Mesh& __mesh) const
 	{
 		std::vector<GLfloat> vertices;
 		std::vector<GLfloat> normals;
 		std::vector<GLuint> indices;
 		for (const auto& primitive : __mesh.primitives)
 		{
-    		for (const auto& attribute : primitive.attributes)
+			for (const auto& attribute : primitive.attributes)
 			{
-        		const auto& accessor = __model.accessors[attribute.second];
+				const auto& accessor = __model.accessors[attribute.second];
 				const auto& bufferView = __model.bufferViews[accessor.bufferView];
-            	auto& bufferArray = __model.buffers[bufferView.buffer];
+				auto& bufferArray = __model.buffers[bufferView.buffer];
 				unsigned char* buffer = &bufferArray.data.at(0)+bufferView.byteOffset+accessor.byteOffset;
-        		if (attribute.first.compare("POSITION") == 0)
+				if (attribute.first.compare("POSITION") == 0)
 				{
 					// Cast the vertex array to a clean float vector
 					GLfloat* verticesBuffer = reinterpret_cast<GLfloat*>(buffer);
 					vertices.insert(vertices.begin(), verticesBuffer, verticesBuffer+accessor.count*3);
-        		}
+				}
 				else if (attribute.first.compare("NORMAL") == 0)
 				{
 					GLfloat* positionBuffer = reinterpret_cast<GLfloat*>(buffer);
 					normals.insert(normals.begin(), positionBuffer, positionBuffer+accessor.count*3);
 				}
-    		}
+			}
 			
 			// Indices
 			if (primitive.indices >= 0)

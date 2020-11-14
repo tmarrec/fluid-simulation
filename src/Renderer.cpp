@@ -27,35 +27,39 @@ void Renderer::initGl()
 	glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
 	resizeGl(0, 0);
 
-	// Screen quad framebuffer init
-	float quadVertices[] =
-	{
-        -1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-        -1.0f,  1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f, 1.0f
-    };
-	glGenFramebuffers(1, &_screenquadFBO);
-    glGenTextures(1, &_textureColorbuffer);
-    glGenRenderbuffers(1, &_screenquadRBO);
-    glGenVertexArrays(1, &_screenquadVAO);
-    glGenBuffers(1, &_screenquadVBO);
-    glBindVertexArray(_screenquadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, _screenquadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
-	glBindVertexArray(0);
-	_screenquadShader = new Shader("shaders/screen.vert", "shaders/screen.frag");
-
+	_initScreenQuad();
 	_depthMapShader = new Shader("shaders/depthMap.vert", "shaders/depthMap.frag", "shaders/depthMap.geom");
 	_normalShader = new Shader("shaders/normals.vert", "shaders/normals.frag", "shaders/normals.geom");
 
 	_init = true;
+}
+
+void Renderer::_initScreenQuad()
+{
+	// Screen quad framebuffer init
+	float quadVertices[] =
+	{
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+	};
+	glGenFramebuffers(1, &_screenquadFBO);
+	glGenTextures(1, &_textureColorbuffer);
+	glGenRenderbuffers(1, &_screenquadRBO);
+	glGenVertexArrays(1, &_screenquadVAO);
+	glGenBuffers(1, &_screenquadVBO);
+	glBindVertexArray(_screenquadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, _screenquadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
+	glBindVertexArray(0);
+	_screenquadShader = new Shader("shaders/screen.vert", "shaders/screen.frag");
 }
 
 void Renderer::_screenbufferInit(int __w, int __h)
@@ -65,21 +69,21 @@ void Renderer::_screenbufferInit(int __w, int __h)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, _screenquadFBO);
 	// Color attachment texture
-    glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, __w, __h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _textureColorbuffer, 0);
+	glBindTexture(GL_TEXTURE_2D, _textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, __w, __h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _textureColorbuffer, 0);
 
 	// Renderbuffer for depth and stencil
-    glBindRenderbuffer(GL_RENDERBUFFER, _screenquadRBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, __w, __h);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _screenquadRBO);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	glBindRenderbuffer(GL_RENDERBUFFER, _screenquadRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, __w, __h);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _screenquadRBO);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
 		ERROR("Framebuffer is not complete");
 	}
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, __w, __h);
 }
 
@@ -128,9 +132,9 @@ void Renderer::_depthMapPass()
 			glGenTextures(1, &depthCubeMapTexture);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMapTexture);
 			// Generating the 6 faces of the depth cube map
-			for (std::uint64_t i = 0; i < 6; ++i)
+			for (std::uint8_t di = 0; di < 6; ++di)
 			{
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, GL_DEPTH_COMPONENT, _depthShadowWidth, _depthShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+di, 0, GL_DEPTH_COMPONENT, _depthShadowWidth, _depthShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 			}
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -260,7 +264,7 @@ void Renderer::_useShaderLightSpace(DrawableComponent* __drawableComponent)
 
 	_depthMapShader->use();
 	auto lightSpaceMatrices = _currentLightDepthMapPass->getLightSpaceMatrices(_depthShadowWidth, _depthShadowHeight);
-	for (std::uint64_t i = 0; i < 6; ++i)
+	for (std::uint8_t i = 0; i < 6; ++i)
 	{
 		_depthMapShader->set_mat4("lightSpaceMatrices["+std::to_string(i)+"]", lightSpaceMatrices[i]);
 	}
@@ -318,8 +322,6 @@ void Renderer::initDrawable(DrawableComponent* __drawableComponent)
 	glGenBuffers(1, &__drawableComponent->VBO());
 	glGenBuffers(1, &__drawableComponent->NBO());
 	glGenBuffers(1, &__drawableComponent->EBO());
-
-	_sceneIndices += __drawableComponent->indices()->size();
 
 	glBindVertexArray(__drawableComponent->VAO());
 		glBindBuffer(GL_ARRAY_BUFFER, __drawableComponent->VBO());

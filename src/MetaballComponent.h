@@ -20,12 +20,12 @@ public:
 	{
 		// Testings
 		t += 0.01f;
-		if (entity->getEntityID() == 10)
+		if (entity->getEntityID() == 14)
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
 			transformComponent.setPosition({0.0f, cos(t)*2.5f, sin(t)*2.5f});
 		}
-		else if (entity->getEntityID() == 11) 
+		else if (entity->getEntityID() == 15) 
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
 			transformComponent.setPosition({0.0f, cos(t)*2.5f, -sin(t)*2.5f});
@@ -74,5 +74,5 @@ public:
 private:
 	MarchingCubeComponent* _marchingCubeComponent;
 	float _radius;
-	double t;
+	double t = 0.0f;
 };

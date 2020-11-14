@@ -51,6 +51,6 @@ private:
 	std::uint64_t _frameCountSecond = 0;
 	std::uint64_t _startTimerFPS = 0;
 	std::uint64_t _startTimerFrame = 0;
-	double _deltaTime;
+	double _deltaTime = 0.0f;
 };
 

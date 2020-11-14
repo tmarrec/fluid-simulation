@@ -15,7 +15,8 @@ enum RDenum
 	RD_DEPTHMAP_PASS,
 	RD_SHOWNORMAL_PASS,
 	RD_NORMAL,
-	RD_DEBUG
+	RD_DEBUG,
+	RD_NULL
 };
 
 
@@ -28,14 +29,14 @@ class ECS_Manager;
 class Renderer
 {
 public:
-	Renderer(std::shared_ptr<ECS_Manager> __ECS_manager);
+	explicit Renderer(std::shared_ptr<ECS_Manager> __ECS_manager);
 	void initGl();
 	void resizeGl(int __w, int __h);
 	void draw(int __qtFramebuffer);
 
 	void drawDrawable(DrawableComponent* __drawableComponent);
-	void initDrawable(DrawableComponent* __drawableComponent);
-	void freeDrawable(DrawableComponent* __drawableComponent);
+	static void initDrawable(DrawableComponent* __drawableComponent);
+	static void freeDrawable(DrawableComponent* __drawableComponent);
 
 	void setActiveCamera(CameraComponent* __cameraComponent);
 	void addLight(LightComponent* __lightComponent);
@@ -46,6 +47,7 @@ public:
 
 
 private:
+	void _initScreenQuad();
 	void _depthMapPass();
 	void _colorPass(int __qtFramebuffer);
 	void _showNormalsPass();
@@ -55,7 +57,6 @@ private:
 
 	std::shared_ptr<ECS_Manager> _ECS_manager = nullptr;
 	CameraComponent* _activeCamera = nullptr;
-	GLsizei _sceneIndices = 0;
 	std::vector<LightComponent*> _lights;
 
 	bool _init = false;
@@ -64,7 +65,7 @@ private:
 	int _glHeight = 0;
 
 	// STATES
-	RDenum _rdState;
+	RDenum _rdState = RD_NULL;
 	LightComponent* _currentLightDepthMapPass = nullptr;
 
 	// Depth Map framebuffer

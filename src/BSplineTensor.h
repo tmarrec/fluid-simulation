@@ -7,7 +7,7 @@ class BSplineTensor
 {
 public:
 	// BSplineTensor without custom knots -> uniform knots
-	BSplineTensor(std::uint8_t __order, std::vector<std::vector<glm::vec3>> __controls)
+	BSplineTensor(std::uint8_t __order, const std::vector<std::vector<glm::vec3>>& __controls)
 	: _order { __order }
 	, _controls { __controls }
 	, _rangeV { (double)__order-1, (double)__controls.size() }
@@ -19,7 +19,7 @@ public:
 		}
 	}
 	// BSplineTensor with custom knots	
-	BSplineTensor(std::uint8_t __order, std::vector<std::vector<glm::vec3>> __controls, std::vector<std::vector<float>> __knots)
+	BSplineTensor(std::uint8_t __order, const std::vector<std::vector<glm::vec3>>& __controls, const std::vector<std::vector<float>>& __knots)
 	: _order { __order }
 	, _controls { __controls }
 	, _rangeV { (double)__order-1, (double)__controls.size() }
@@ -76,13 +76,13 @@ class BSplineTensorShape
 {
 public:
 	// No custom knots -> uniform knots
-	BSplineTensorShape(std::uint8_t __order, std::vector<std::vector<glm::vec3>> __controls, float __delta)
+	BSplineTensorShape(std::uint8_t __order, const std::vector<std::vector<glm::vec3>>& __controls, float __delta)
 	: _bsplineTensor { std::make_unique<BSplineTensor>(BSplineTensor{__order, __controls}) }
 	, _delta { __delta }
 	, _controls { __controls }
 	{}
 	// Custom knots
-	BSplineTensorShape(std::uint8_t __order, std::vector<std::vector<glm::vec3>> __controls, float __delta, std::vector<std::vector<float>> __knots)
+	BSplineTensorShape(std::uint8_t __order, const std::vector<std::vector<glm::vec3>>& __controls, float __delta, const std::vector<std::vector<float>>& __knots)
 	: _bsplineTensor { std::make_unique<BSplineTensor>(BSplineTensor{__order, __controls, __knots}) }
 	, _delta { __delta }
 	, _controls { __controls }

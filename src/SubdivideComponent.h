@@ -19,6 +19,7 @@
 
 typedef OpenMesh::TriMesh_ArrayKernelT<> MyMesh;
 
+// Vertex struct with hash function used for hash map
 struct Vertex_
 {
 	OpenMesh::VectorT<float, 3> point;
@@ -47,11 +48,12 @@ namespace std
 class SubdivideComponent : public Component
 {
 public:
-	SubdivideComponent()
+	explicit SubdivideComponent(float __n)
 	: Component{}
+	, _n { __n }
 	{}
 
-	void init()
+	void init() override
 	{
 		ASSERT(entity->hasComponent<DrawableComponent>(), "entity should have a DrawableComponent");
 		auto& drawableComponent = entity->getComponent<DrawableComponent>();
@@ -61,28 +63,22 @@ public:
 		ASSERT(indices->size()%3 == 0, "indices size should be power of 3");
 
 		_readMesh(vertices, indices);
-
-		std::uint64_t start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		// SUBDIVIDE
-		_subdivide(1);
-		std::uint64_t end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		std::cout << "Time : " << end-start << std::endl;
-
+		_subdivide(_n);
 		_writeMesh(drawableComponent);
-
 	}
 
 private:
-	void _subdivide(const std::uint64_t iterations)
+	float _n;
+
+	void _subdivide(const std::uint64_t __iterations)
 	{
 		_mesh.add_property(_edgePoint);
 		_mesh.add_property(_vertexPoint);
 
-		for (std::uint64_t i = 0; i < iterations; ++i)
+		for (std::uint64_t i = 0; i < __iterations; ++i)
 		{
 			std::unordered_map<Vertex_, MyMesh::VertexHandle> points;
 			std::vector<Vertex_> vs;
-
 			_smoothPoints();
 			_getSubdividedVertices(vs, points);
 			_updateFaces(vs, points);
@@ -121,7 +117,7 @@ private:
 			auto n = _mesh.valence(v_it);	
 			float B;
 
-			ASSERT(n >= 3, "point valency should be greater or equal to 3");
+			ASSERT(n >= 3, "point valence should be greater or equal to 3");
 			if (n > 3)
 			{
 				B = (1.0f/(float)n)*((5.0f/8.0f)-std::pow((3.0f/8.0f)+((1.0f/4.0f)*cos((2.0f*M_PIf64)/(float)n)), 2));
@@ -140,40 +136,40 @@ private:
 		}
 	}
 
-	std::vector<Vertex_> _getSubdividedVertices(std::vector<Vertex_>& vs, std::unordered_map<Vertex_, MyMesh::VertexHandle>& points)
+	std::vector<Vertex_> _getSubdividedVertices(std::vector<Vertex_>& __vs, std::unordered_map<Vertex_, MyMesh::VertexHandle>& __points)
 	{
 		// Find all faces vertices with properties on edges/points
 		for (const auto& f_it : _mesh.faces())
 		{
-			// Each edges -> odd points
+			// Each edges -> add odd points
 			for (auto fe_it = _mesh.fe_begin(f_it); fe_it.is_valid(); ++fe_it)
 			{
 				auto point = _mesh.property(_edgePoint, *fe_it);
 				Vertex_ v = {point};
-				if (points.find(v) == points.end())
+				if (__points.find(v) == __points.end())
 				{
-					points.insert({{v, _mesh.add_vertex(point)}});
+					__points.insert({{v, _mesh.add_vertex(point)}});
 				}
-				vs.emplace_back(v);
+				__vs.emplace_back(v);
 			}
 
-			// Each vertex -> even points 
+			// Each vertex -> add even points 
 			for (auto fv_it = _mesh.fv_begin(f_it); fv_it.is_valid(); ++fv_it)
 			{
 				auto point = _mesh.property(_vertexPoint, *fv_it);
 				Vertex_ v = {point};
-				if (points.find(v) == points.end())
+				if (__points.find(v) == __points.end())
 				{
-					points.insert({{v, _mesh.add_vertex(point)}});
+					__points.insert({{v, _mesh.add_vertex(point)}});
 				}
-				vs.emplace_back(v);
+				__vs.emplace_back(v);
 			}
 		}
-		return vs;
+		return __vs;
 	}
 
 
-	void _updateFaces(std::vector<Vertex_>& vs, std::unordered_map<Vertex_, MyMesh::VertexHandle>& points)
+	void _updateFaces(std::vector<Vertex_>& __vs, std::unordered_map<Vertex_, MyMesh::VertexHandle>& __points)
 	{
 		_mesh.request_face_status();
 		_mesh.request_edge_status();
@@ -184,17 +180,17 @@ private:
 			_mesh.delete_face(f_it, true);
 		}
 		// Create all new faces
-		for (std::uint64_t i = 0; i < vs.size(); i += 6)
+		for (std::uint64_t i = 0; i < __vs.size(); i += 6)
 		{
-			const auto& A = points.find(vs[i+0])->second; //         D        //
-			const auto& B = points.find(vs[i+1])->second; //        /\        //
-			const auto& C = points.find(vs[i+2])->second; //       /  \       //
-			const auto& D = points.find(vs[i+3])->second; //      /    \      //
-			const auto& E = points.find(vs[i+4])->second; //   A /_____ \ B   //
-			const auto& F = points.find(vs[i+5])->second; //    / \    / \    //
-			_mesh.add_face({A,B,C});                      //   /   \  /   \   //
-			_mesh.add_face({D,B,A});                      //  /_____\/_____\  //
-			_mesh.add_face({E,C,B});                      // F      C       E //
+			const auto& A = __points.find(__vs[i+0])->second; //         D        //
+			const auto& B = __points.find(__vs[i+1])->second; //        /\        //
+			const auto& C = __points.find(__vs[i+2])->second; //       /  \       //
+			const auto& D = __points.find(__vs[i+3])->second; //      /    \      //
+			const auto& E = __points.find(__vs[i+4])->second; //   A /_____ \ B   //
+			const auto& F = __points.find(__vs[i+5])->second; //    / \    / \    //
+			_mesh.add_face({A,B,C});                          //   /   \  /   \   //
+			_mesh.add_face({D,B,A});                          //  /_____\/_____\  //
+			_mesh.add_face({E,C,B});                          // F      C       E //
 			_mesh.add_face({F,A,C});
 		}
 		_mesh.garbage_collection();
@@ -226,65 +222,12 @@ private:
 		std::vector<MyMesh::VertexHandle> t;
 		for (std::uint64_t i = 0; i < __indices->size(); i += 3)
 		{
-			std::cout << "i : " << i << std::endl;
 			t.clear();
 			t.emplace_back(e.at(__indices->at(i)));
 			t.emplace_back(e.at(__indices->at(i+1)));
 			t.emplace_back(e.at(__indices->at(i+2)));
 			_mesh.add_face(t);
 		}
-		std::cout << "Vertices : " << _mesh.n_vertices() << std::endl;
-		std::cout << "Faces : " << _mesh.n_faces() << std::endl;
-		/*
-		MyMesh::VertexHandle vhandle[8];
-		vhandle[0] = _mesh.add_vertex(MyMesh::Point(-1, -1,1));
-		vhandle[1] = _mesh.add_vertex(MyMesh::Point( 1, -1,1));
-		vhandle[2] = _mesh.add_vertex(MyMesh::Point( 1,1,1));
-		vhandle[3] = _mesh.add_vertex(MyMesh::Point(-1,1,1));
-		vhandle[4] = _mesh.add_vertex(MyMesh::Point(-1, -1, -1));
-		vhandle[5] = _mesh.add_vertex(MyMesh::Point( 1, -1, -1));
-		vhandle[6] = _mesh.add_vertex(MyMesh::Point( 1,1, -1));
-		vhandle[7] = _mesh.add_vertex(MyMesh::Point(-1,1, -1));
-		// generate (quadrilateral) faces
-		std::vector<MyMesh::VertexHandle>face_vhandles;
-		face_vhandles.clear();
-		face_vhandles.push_back(vhandle[0]);
-		face_vhandles.push_back(vhandle[1]);
-		face_vhandles.push_back(vhandle[2]);
-		face_vhandles.push_back(vhandle[3]);
-		_mesh.add_face(face_vhandles);
-
-		face_vhandles.clear();
-		face_vhandles.push_back(vhandle[7]);
-		face_vhandles.push_back(vhandle[6]);
-		face_vhandles.push_back(vhandle[5]);
-		face_vhandles.push_back(vhandle[4]);
-		_mesh.add_face(face_vhandles);
-		face_vhandles.clear();
-		face_vhandles.push_back(vhandle[1]);
-		face_vhandles.push_back(vhandle[0]);
-		face_vhandles.push_back(vhandle[4]);
-		face_vhandles.push_back(vhandle[5]);
-		_mesh.add_face(face_vhandles);
-		face_vhandles.clear();
-		face_vhandles.push_back(vhandle[2]);
-		face_vhandles.push_back(vhandle[1]);
-		face_vhandles.push_back(vhandle[5]);
-		face_vhandles.push_back(vhandle[6]);
-		_mesh.add_face(face_vhandles);
-		face_vhandles.clear();
-		face_vhandles.push_back(vhandle[3]);
-		face_vhandles.push_back(vhandle[2]);
-		face_vhandles.push_back(vhandle[6]);
-		face_vhandles.push_back(vhandle[7]);
-		_mesh.add_face(face_vhandles);
-		face_vhandles.clear();
-		face_vhandles.push_back(vhandle[0]);
-		face_vhandles.push_back(vhandle[3]);
-		face_vhandles.push_back(vhandle[7]);
-		face_vhandles.push_back(vhandle[4]);
-		_mesh.add_face(face_vhandles);
-		*/
 	}
 
 	void _writeMesh(DrawableComponent& drawableComponent)
