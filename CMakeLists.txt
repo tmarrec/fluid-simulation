@@ -18,6 +18,8 @@ find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-w")
 add_subdirectory("externals/OpenMesh")
+file(MAKE_DIRECTORY report)
+
 
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -pedantic -fopenmp -pthread -DGL_GLEXT_PROTOTYPES")
 set(CMAKE_CXX_FLAGS_DEBUG_INIT "${CMAKE_CXX_FLAGS} -O0 -g")
@@ -99,6 +101,6 @@ file(COPY ${CMAKE_SOURCE_DIR}/models DESTINATION ${EXECUTABLE_OUTPUT_PATH})
 message("-- Models copied to the build directory")
 
 execute_process(
-	COMMAND bash -c "cppcheck --enable=all --inconclusive --library=posix --xml --xml-version=2 --std=c++17 ../src 2>../reports/report.xml && cppcheck-htmlreport --source-dir=../src --file=../reports/report.xml --report-dir=../reports"
+	COMMAND bash -c "cppcheck --enable=all --inconclusive --library=posix --xml --xml-version=2 --std=c++17 ../src 2>../report/report.xml && cppcheck-htmlreport --source-dir=../src --file=../report/report.xml --report-dir=../report"
 )
 
