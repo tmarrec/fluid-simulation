@@ -200,9 +200,8 @@ private:
 	void _readMesh(std::shared_ptr<std::vector<GLfloat>> __vertices, std::shared_ptr<std::vector<GLuint>> __indices)
 	{
 		std::unordered_map<Vertex_, Mesh::VertexHandle> points;
-		std::vector<Mesh::VertexHandle> e;
+		std::vector<Mesh::VertexHandle> vhandles;
 
-		Mesh::VertexHandle vhandle[__vertices->size()];
 		for (std::uint64_t i = 0; i < __vertices->size(); i += 3)
 		{
 			Mesh::Point p (__vertices->at(i), __vertices->at(i+1), __vertices->at(i+2));
@@ -212,19 +211,19 @@ private:
 			{
 				auto k = _mesh.add_vertex(Mesh::Point(__vertices->at(i), __vertices->at(i+1), __vertices->at(i+2)));
 				points.insert({{v, k}});
-				e.emplace_back(k);
+				vhandles.emplace_back(k);
 			}
 			else
 			{
-				e.emplace_back(got->second);
+				vhandles.emplace_back(got->second);
 			}
 		}
 		std::vector<Mesh::VertexHandle> t {3};
 		for (std::uint64_t i = 0; i < __indices->size(); i += 3)
 		{
-			t[0] = e.at(__indices->at(i));
-			t[1] = e.at(__indices->at(i+1));
-			t[2] = e.at(__indices->at(i+2));
+			t[0] = vhandles.at(__indices->at(i));
+			t[1] = vhandles.at(__indices->at(i+1));
+			t[2] = vhandles.at(__indices->at(i+2));
 			_mesh.add_face(t);
 		}
 	}

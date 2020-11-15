@@ -18,7 +18,10 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define TINYGLTF_USE_CPP14
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #include "tiny_gltf.h"
+#pragma GCC diagnostic pop
 
 #include "utils.h"
 #include "shapes.h"
@@ -182,25 +185,12 @@ private:
 			}
 			else
 			{
-				std::cout << "no indices tf" << std::endl;
 				ASSERT(vertices.size()%3==0, "vertices must be power of 3");
 				indices.resize(vertices.size()/3);
 				std::iota(indices.begin(), indices.end(), 0);
 			}
 			
  		} 
-
-		//std::cout << "vertices:" << std::endl;
-		for (int i = 0; i < vertices.size(); i += 3)
-		{
-			//std::cout << vertices[i] << " " << vertices[i+1] << " " << vertices[i+2] << std::endl;
-		}
-
-		//std::cout << "indices:" << std::endl;
-		for (int i = 0; i < indices.size(); i += 3)
-		{
-			//std::cout << indices[i] << " " << indices[i+1] << " " << indices[i+2] << std::endl;
-		}
 
 		return {vertices, normals, indices};
 	}
