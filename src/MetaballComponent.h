@@ -19,7 +19,7 @@ public:
 	void update([[maybe_unused]] double __deltaTime) override
 	{
 		// Testings (frame rate dependent)
-		t += 0.01f;
+		t += 0.015f;
 		if (entity->getEntityID() == 13)
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
@@ -53,11 +53,7 @@ public:
 					// loop cell points	
 					for (std::uint8_t i = 0; i < 8; ++i)
 					{
-						float inside = func(grid[x][y][z].points[i]);
-						if (inside >= 0.5f)
-						{
-							_marchingCubeComponent->changeGrid(x, y, z, i, inside);
-						}
+						_marchingCubeComponent->changeGrid(x, y, z, i, func(grid[x][y][z].points[i]));
 					}
 				}
 			}

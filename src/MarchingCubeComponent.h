@@ -27,7 +27,7 @@ public:
 
 	inline void changeGrid(std::uint64_t __x, std::uint64_t __y, std::uint64_t __z, std::uint64_t __i, float __inside)
 	{
-		_grid[__x][__y][__z].val[__i] += __inside - 0.5f;
+		_grid[__x][__y][__z].val[__i] += __inside;
 	}
 
 	inline void addFunc(std::function<float(glm::vec3)> __f)
