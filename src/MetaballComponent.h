@@ -18,14 +18,14 @@ public:
 
 	void update([[maybe_unused]] double __deltaTime) override
 	{
-		// Testings
+		// Testings (frame rate dependent)
 		t += 0.01f;
-		if (entity->getEntityID() == 14)
+		if (entity->getEntityID() == 13)
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
 			transformComponent.setPosition({0.0f, cos(t)*2.5f, sin(t)*2.5f});
 		}
-		else if (entity->getEntityID() == 15) 
+		else if (entity->getEntityID() == 14) 
 		{
 			auto& transformComponent = entity->getComponent<TransformComponent>();
 			transformComponent.setPosition({0.0f, cos(t)*2.5f, -sin(t)*2.5f});

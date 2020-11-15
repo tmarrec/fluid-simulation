@@ -25,6 +25,34 @@ struct Quad
 	};
 };
 
+struct Pyramid
+{
+	std::vector<GLfloat> vertices =
+	{
+		0.0f, 1.27201964951f, 0.0f,
+		-1.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 1.0f,
+		-1.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, -1.0f,
+	};
+	std::vector<GLfloat> normals =
+	{
+		0.0f, 1.0f, 0.0f,
+		-1.0f, -0.63600982475f, 1.0f,
+		1.0f, -0.63600982475f, 1.0f,
+		-1.0f, -0.63600982475f, -1.0f,
+		1.0f, 0.63600982475f, -1.0f,
+	};
+	std::vector<GLuint> indices
+	{
+		3, 2, 1, 3, 4, 2,
+		4, 0, 2,
+		2, 0, 1,
+		1, 0, 3,
+		3, 0, 4
+	};
+};
+
 struct Cube
 {
 	std::vector<GLfloat> vertices =

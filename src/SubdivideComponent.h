@@ -17,7 +17,7 @@
 #include "OpenMesh/Core/Mesh/PolyConnectivity.hh"
 #include "OpenMesh/Core/Utils/Property.hh"
 
-typedef OpenMesh::TriMesh_ArrayKernelT<> MyMesh;
+typedef OpenMesh::TriMesh_ArrayKernelT<> Mesh;
 
 // Vertex struct with hash function used for hash map
 struct Vertex_
@@ -77,7 +77,7 @@ private:
 
 		for (std::uint64_t i = 0; i < __iterations; ++i)
 		{
-			std::unordered_map<Vertex_, MyMesh::VertexHandle> points;
+			std::unordered_map<Vertex_, Mesh::VertexHandle> points;
 			std::vector<Vertex_> vs;
 			_smoothPoints();
 			_getSubdividedVertices(vs, points);
@@ -136,7 +136,7 @@ private:
 		}
 	}
 
-	std::vector<Vertex_> _getSubdividedVertices(std::vector<Vertex_>& __vs, std::unordered_map<Vertex_, MyMesh::VertexHandle>& __points)
+	std::vector<Vertex_> _getSubdividedVertices(std::vector<Vertex_>& __vs, std::unordered_map<Vertex_, Mesh::VertexHandle>& __points)
 	{
 		// Find all faces vertices with properties on edges/points
 		for (const auto& f_it : _mesh.faces())
@@ -169,7 +169,7 @@ private:
 	}
 
 
-	void _updateFaces(std::vector<Vertex_>& __vs, std::unordered_map<Vertex_, MyMesh::VertexHandle>& __points)
+	void _updateFaces(std::vector<Vertex_>& __vs, std::unordered_map<Vertex_, Mesh::VertexHandle>& __points)
 	{
 		_mesh.request_face_status();
 		_mesh.request_edge_status();
@@ -199,18 +199,18 @@ private:
 
 	void _readMesh(std::shared_ptr<std::vector<GLfloat>> __vertices, std::shared_ptr<std::vector<GLuint>> __indices)
 	{
-		std::unordered_map<Vertex_, MyMesh::VertexHandle> points;
-		std::vector<MyMesh::VertexHandle> e;
+		std::unordered_map<Vertex_, Mesh::VertexHandle> points;
+		std::vector<Mesh::VertexHandle> e;
 
-		MyMesh::VertexHandle vhandle[__vertices->size()];
+		Mesh::VertexHandle vhandle[__vertices->size()];
 		for (std::uint64_t i = 0; i < __vertices->size(); i += 3)
 		{
-			MyMesh::Point p (__vertices->at(i), __vertices->at(i+1), __vertices->at(i+2));
+			Mesh::Point p (__vertices->at(i), __vertices->at(i+1), __vertices->at(i+2));
 			Vertex_ v {p};
 			auto got = points.find(v);
 			if (got == points.end())
 			{
-				auto k = _mesh.add_vertex(MyMesh::Point(__vertices->at(i), __vertices->at(i+1), __vertices->at(i+2)));
+				auto k = _mesh.add_vertex(Mesh::Point(__vertices->at(i), __vertices->at(i+1), __vertices->at(i+2)));
 				points.insert({{v, k}});
 				e.emplace_back(k);
 			}
@@ -219,18 +219,17 @@ private:
 				e.emplace_back(got->second);
 			}
 		}
-		std::vector<MyMesh::VertexHandle> t;
+		std::vector<Mesh::VertexHandle> t {3};
 		for (std::uint64_t i = 0; i < __indices->size(); i += 3)
 		{
-			t.clear();
-			t.emplace_back(e.at(__indices->at(i)));
-			t.emplace_back(e.at(__indices->at(i+1)));
-			t.emplace_back(e.at(__indices->at(i+2)));
+			t[0] = e.at(__indices->at(i));
+			t[1] = e.at(__indices->at(i+1));
+			t[2] = e.at(__indices->at(i+2));
 			_mesh.add_face(t);
 		}
 	}
 
-	void _writeMesh(DrawableComponent& drawableComponent)
+	void _writeMesh(DrawableComponent& __drawableComponent)
 	{
 		std::vector<GLfloat> newVertices;
 		std::vector<GLfloat> newNormals;
@@ -255,12 +254,11 @@ private:
 				if (got == points.end())
 				{
 					points.insert({{v, vertexInd}});
-					newVertices.emplace_back(vTemp[0]);
-					newVertices.emplace_back(vTemp[1]);
-					newVertices.emplace_back(vTemp[2]);
-					newNormals.emplace_back(nTemp[0]);
-					newNormals.emplace_back(nTemp[1]);
-					newNormals.emplace_back(nTemp[2]);
+					std::uint64_t oldSize = newVertices.size();
+					newVertices.resize(oldSize+3);
+					memcpy(&newVertices[oldSize], &vTemp, sizeof(GLfloat)*3);
+					newNormals.resize(oldSize+3);
+					memcpy(&newNormals[oldSize], &nTemp, sizeof(GLfloat)*3);
 					ind[i] = vertexInd++;
 				}
 				else
@@ -277,13 +275,13 @@ private:
 		_mesh.release_halfedge_normals();
 		_mesh.release_vertex_normals();
 
-		drawableComponent.setVertices(newVertices);
-		drawableComponent.setNormals(newNormals);
-		drawableComponent.setIndices(newIndices);
-		drawableComponent.updateGeometry();
+		__drawableComponent.setVertices(newVertices);
+		__drawableComponent.setNormals(newNormals);
+		__drawableComponent.setIndices(newIndices);
+		__drawableComponent.updateGeometry();
 	}
 
-	MyMesh _mesh;
-	OpenMesh::EPropHandleT<MyMesh::Point> _edgePoint;
-	OpenMesh::VPropHandleT<MyMesh::Point> _vertexPoint;
+	Mesh _mesh;
+	OpenMesh::EPropHandleT<Mesh::Point> _edgePoint;
+	OpenMesh::VPropHandleT<Mesh::Point> _vertexPoint;
 };
