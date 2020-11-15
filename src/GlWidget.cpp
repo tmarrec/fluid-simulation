@@ -64,15 +64,15 @@ void GlWidget::_initScene()
 
 	auto& metaball(_ECS_manager->addEntity());
 	metaball.addComponent<TransformComponent>(glm::vec3{0.0f, -4.0f, -4.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
-	metaball.addComponent<MetaballComponent>(&marchingCubeComponent, 1.5f);
+	metaball.addComponent<MetaballComponent>(&marchingCubeComponent, 0.8f);
 
 	auto& metaball2(_ECS_manager->addEntity());
 	metaball2.addComponent<TransformComponent>(glm::vec3{0.0f, -4.0f, 4.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
-	metaball2.addComponent<MetaballComponent>(&marchingCubeComponent, 1.5f);
+	metaball2.addComponent<MetaballComponent>(&marchingCubeComponent, 0.8f);
 
 	auto& metaball3(_ECS_manager->addEntity());
 	metaball3.addComponent<TransformComponent>(glm::vec3{0.0f, 4.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec3{1.0f, 1.0f, 1.0f});
-	metaball3.addComponent<MetaballComponent>(&marchingCubeComponent, 1.7f);
+	metaball3.addComponent<MetaballComponent>(&marchingCubeComponent, 1.0f);
 
 
 	Pyramid p;
