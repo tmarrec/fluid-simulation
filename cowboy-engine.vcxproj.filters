@@ -13,8 +13,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\ECS">
-      <UniqueIdentifier>{8f0eb421-e037-4a0a-8dd4-b0feb44a8af9}</UniqueIdentifier>
+    <Filter Include="ecs">
+      <UniqueIdentifier>{1594640c-3a46-418a-9f80-2e66c392259a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -29,23 +29,23 @@
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentArray.h">
-      <Filter>Header Files\ECS</Filter>
+    <ClInclude Include="ecs\ComponentArray.h">
+      <Filter>ecs</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentManager.h">
-      <Filter>Header Files\ECS</Filter>
+    <ClInclude Include="ecs\ComponentManager.h">
+      <Filter>ecs</Filter>
     </ClInclude>
-    <ClInclude Include="EntityManager.h">
-      <Filter>Header Files\ECS</Filter>
+    <ClInclude Include="ecs\Coordinator.h">
+      <Filter>ecs</Filter>
     </ClInclude>
-    <ClInclude Include="System.h">
-      <Filter>Header Files\ECS</Filter>
+    <ClInclude Include="ecs\EntityManager.h">
+      <Filter>ecs</Filter>
     </ClInclude>
-    <ClInclude Include="SystemManager.h">
-      <Filter>Header Files\ECS</Filter>
+    <ClInclude Include="ecs\System.h">
+      <Filter>ecs</Filter>
     </ClInclude>
-    <ClInclude Include="Coordinator.h">
-      <Filter>Header Files\ECS</Filter>
+    <ClInclude Include="ecs\SystemManager.h">
+      <Filter>ecs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
