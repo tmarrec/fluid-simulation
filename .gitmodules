@@ -1,9 +1,0 @@
-[submodule "externals/glm"]
-	path = externals/glm
-	url = https://github.com/g-truc/glm.git
-[submodule "externals/tinygltf"]
-	path = externals/tinygltf
-	url = https://github.com/syoyo/tinygltf.git
-[submodule "externals/OpenMesh"]
-	path = externals/OpenMesh
-	url = https://www.graphics.rwth-aachen.de:9000/OpenMesh/OpenMesh.git
