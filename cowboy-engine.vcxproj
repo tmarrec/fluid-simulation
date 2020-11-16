@@ -78,6 +78,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\glm;C:\VulkanSDK\1.2.154.1\Include;C:\glfw-3.3.2.bin.WIN64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\VulkanSDK\1.2.154.1\Lib;C:\glfw-3.3.2.bin.WIN64\lib-vc2019;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -119,11 +121,21 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>vulkan-1.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -145,12 +157,12 @@
     <ClCompile Include="cowboy-engine.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ComponentArray.h" />
-    <ClInclude Include="ComponentManager.h" />
-    <ClInclude Include="Coordinator.h" />
-    <ClInclude Include="EntityManager.h" />
-    <ClInclude Include="System.h" />
-    <ClInclude Include="SystemManager.h" />
+    <ClInclude Include="ecs\ComponentArray.h" />
+    <ClInclude Include="ecs\ComponentManager.h" />
+    <ClInclude Include="ecs\Coordinator.h" />
+    <ClInclude Include="ecs\EntityManager.h" />
+    <ClInclude Include="ecs\System.h" />
+    <ClInclude Include="ecs\SystemManager.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
