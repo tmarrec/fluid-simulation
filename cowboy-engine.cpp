@@ -1,6 +1,15 @@
 #include <iostream>
 
+#include "Coordinator.h"
+#include "utils.h"
+
+Coordinator ECS;
+
 int main()
 {
-    std::cout << "Hello World!\n";
+	PRINT_TITLE();
+
+	ECS.Init();
+
+	return EXIT_SUCCESS;
 }

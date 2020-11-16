@@ -144,6 +144,16 @@
   <ItemGroup>
     <ClCompile Include="cowboy-engine.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ComponentArray.h" />
+    <ClInclude Include="ComponentManager.h" />
+    <ClInclude Include="Coordinator.h" />
+    <ClInclude Include="EntityManager.h" />
+    <ClInclude Include="System.h" />
+    <ClInclude Include="SystemManager.h" />
+    <ClInclude Include="Types.h" />
+    <ClInclude Include="utils.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
