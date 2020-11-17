@@ -3,26 +3,26 @@
 
 void Game::run()
 {
-	renderInit();
 	windowInit();
+	renderInit();
 	mainLoop();
-}
-
-void Game::renderInit()
-{
-	renderer.init();
 }
 
 void Game::windowInit()
 {
-	window.init();
+	_window->init();
+}
+
+void Game::renderInit()
+{
+	_renderer.init(_window);
 }
 
 void Game::mainLoop()
 {
-	while (!window.windowShouldClose())
+	while (!_window->windowShouldClose())
 	{
-		window.pollEvents();
+		_window->pollEvents();
 	}
 }
 

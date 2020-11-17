@@ -14,6 +14,6 @@ private:
 	void windowInit();
 	void mainLoop();
 
-	Window window;
-	Renderer renderer;
+	std::shared_ptr<Window> _window = std::make_shared<Window>();
+	Renderer _renderer;
 };
