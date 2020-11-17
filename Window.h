@@ -17,11 +17,12 @@ public:
 	void init();
 	bool windowShouldClose() const;
 	void pollEvents();
+	std::pair<const char**, std::uint32_t> windowGetRequiredInstanceExtensions();
 	~Window();
 
 private:
 	void windowInit();
 	static void glfwError(int error, const char* description);
 
-	std::unique_ptr<GLFWwindow, glfwDeleter> glfwWindow;
+	std::unique_ptr<GLFWwindow, glfwDeleter> _glfwWindow = nullptr;
 };

@@ -15,7 +15,7 @@ void Window::init()
 
 bool Window::windowShouldClose() const
 {
-	return glfwWindowShouldClose(glfwWindow.get());
+	return glfwWindowShouldClose(_glfwWindow.get());
 }
 
 void Window::pollEvents()
@@ -23,9 +23,18 @@ void Window::pollEvents()
 	glfwPollEvents();
 }
 
+std::pair<const char**, std::uint32_t> Window::windowGetRequiredInstanceExtensions()
+{
+	std::uint32_t glfwExtensionCount = 0;
+	const char** glfwExtensions;
+
+	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+	return std::pair<const char**, std::uint32_t>(glfwExtensions, glfwExtensionCount);
+}
+
 void Window::windowInit()
 {
-	glfwWindow.reset(glfwCreateWindow(800, 600, "cowboy-engine", nullptr, nullptr));
+	_glfwWindow.reset(glfwCreateWindow(800, 600, "cowboy-engine", nullptr, nullptr));
 }
 
 void Window::glfwError(int error, const char* description)
