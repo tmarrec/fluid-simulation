@@ -6,6 +6,11 @@ void Renderer::init(std::shared_ptr<Window> window)
 	createInstance();
 }
 
+Renderer::~Renderer()
+{
+	vkDestroyInstance(_vkInstance, nullptr);
+}
+
 void Renderer::createInstance()
 {
 	ASSERT(_window, "_window pointer should not be nullptr");
@@ -34,6 +39,5 @@ void Renderer::createInstance()
 	{
 		ERROR("Cannot create Vulkan instance.");
 	}
-
 }
 

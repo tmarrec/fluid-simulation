@@ -2,6 +2,8 @@
 #include <vulkan/vulkan.h>
 #include <utility>
 #include <cstdint>
+#include <vector>
+
 #include "Window.h"
 
 class Window;
@@ -10,6 +12,7 @@ class Renderer
 {
 public:
 	void init(std::shared_ptr<Window> window);
+	~Renderer();
 
 private:
 	void createInstance();
