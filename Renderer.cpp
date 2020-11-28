@@ -15,6 +15,11 @@ void Renderer::createInstance()
 {
 	ASSERT(_window, "_window pointer should not be nullptr");
 
+	if (enableValidationLayers && !checkValidationLayerSupport())
+	{
+		ERROR("Validation layers requested but not available.");
+	}
+
 	VkApplicationInfo appInfo{};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.pNext = nullptr;
@@ -29,8 +34,16 @@ void Renderer::createInstance()
 	createInfo.pNext = nullptr;
 	createInfo.flags = 0;
 	createInfo.pApplicationInfo = &appInfo;
-	createInfo.enabledLayerCount = 0; // TODO temp
-	createInfo.ppEnabledLayerNames = nullptr;
+	if (enableValidationLayers)
+	{
+		createInfo.enabledLayerCount = static_cast<std::uint32_t>(vkValidationLayers.size());
+		createInfo.ppEnabledLayerNames = vkValidationLayers.data();
+	}
+	else
+	{
+		createInfo.enabledLayerCount = 0;
+		createInfo.ppEnabledLayerNames = nullptr;
+	}
 	std::pair<const char**, std::uint32_t> windowRequiredInstanceExtensions = _window->windowGetRequiredInstanceExtensions();
 	createInfo.enabledExtensionCount = windowRequiredInstanceExtensions.second;
 	createInfo.ppEnabledExtensionNames = windowRequiredInstanceExtensions.first;
@@ -41,3 +54,36 @@ void Renderer::createInstance()
 	}
 }
 
+bool Renderer::checkValidationLayerSupport()
+{
+	std::uint32_t vkLayerCount;
+	if (vkEnumerateInstanceLayerProperties(&vkLayerCount, nullptr))
+	{
+		ERROR("Cannot enumerate instance layer properties.");
+	}
+
+	std::vector<VkLayerProperties> vkAvailableLayers{ vkLayerCount };
+	if (vkEnumerateInstanceLayerProperties(&vkLayerCount, vkAvailableLayers.data()))
+	{
+		ERROR("Cannot enumerate instance layer properties.");
+	}
+
+	// Search if all of the layers in vkValidationLayers exist in vkAvailableLayers
+	for (const char* layerName : vkValidationLayers)
+	{
+		bool layerFound = false;
+		for (const VkLayerProperties& layerProperties : vkAvailableLayers)
+		{
+			if (strcmp(layerName, layerProperties.layerName))
+			{
+				layerFound = true;
+				break;
+			}
+		}
+		if (!layerFound)
+		{
+			return false;
+		}
+	}
+	return true;
+}
