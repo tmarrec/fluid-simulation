@@ -44,11 +44,14 @@ private:
 	void pickPhysicalDevice();
 	bool isPhysicalDeviceSuitable(VkPhysicalDevice device);
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+	void createLogicalDevice();
 
 	VkInstance _vkInstance = nullptr;
 	std::shared_ptr<Window> _window = nullptr;
 	VkDebugUtilsMessengerEXT _debugMessenger = nullptr;
 	VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
+	VkDevice _vkDevice = nullptr;
+	VkQueue _vkGraphicsQueue = nullptr;
 };
 
 
