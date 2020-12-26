@@ -5,6 +5,7 @@ void Renderer::init(std::shared_ptr<Window> window)
 	_window = window;
 	createInstance();
 	setupDebugMessenger();
+	createSurface();
 	pickPhysicalDevice();
 	createLogicalDevice();
 }
@@ -13,6 +14,7 @@ Renderer::~Renderer()
 {
 	destroyDebugMessenger();
 	vkDestroyDevice(_vkDevice, nullptr);
+	vkDestroySurfaceKHR(_vkInstance, _vkSurface, nullptr);
 	vkDestroyInstance(_vkInstance, nullptr);
 }
 
@@ -31,12 +33,12 @@ void Renderer::pickPhysicalDevice()
 	{
 		if (isPhysicalDeviceSuitable(device))
 		{
-			_physicalDevice = device;
+			_vkPhysicalDevice = device;
 			break;
 		}
 	}
 	
-	if (_physicalDevice == VK_NULL_HANDLE)
+	if (_vkPhysicalDevice == VK_NULL_HANDLE)
 	{
 		ERROR("Failed to find suitable GPU.");
 	}
@@ -79,6 +81,13 @@ QueueFamilyIndices Renderer::findQueueFamilies(VkPhysicalDevice device)
 			indices.graphics = i;
 		}
 
+		VkBool32 presentSupport = false;
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, _vkSurface, &presentSupport);
+		if (presentSupport)
+		{
+			indices.present = i;
+		}
+
 		// Stop the search if all indices required are found
 		if (indices.isComplete())
 		{
@@ -92,16 +101,26 @@ QueueFamilyIndices Renderer::findQueueFamilies(VkPhysicalDevice device)
 
 void Renderer::createLogicalDevice()
 {
-	QueueFamilyIndices indices = findQueueFamilies(_physicalDevice);
+	QueueFamilyIndices indices = findQueueFamilies(_vkPhysicalDevice);
 
-	VkDeviceQueueCreateInfo queueCreateInfo{};
-	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	queueCreateInfo.pNext = nullptr;
-	queueCreateInfo.flags = 0;
-	queueCreateInfo.queueFamilyIndex = indices.graphics.value();
-	queueCreateInfo.queueCount = 1;
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+	std::set<std::uint32_t> uniqueQueueFamilies =
+	{
+		indices.graphics.value(),
+		indices.present.value()
+	};
 	float queuePriority = 1.0f;
-	queueCreateInfo.pQueuePriorities = &queuePriority;
+	for (const auto& queueFamily : uniqueQueueFamilies)
+	{
+		VkDeviceQueueCreateInfo queueCreateInfo{};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfo.pNext = nullptr;
+		queueCreateInfo.flags = 0;
+		queueCreateInfo.queueFamilyIndex = indices.graphics.value();
+		queueCreateInfo.queueCount = 1;
+		queueCreateInfo.pQueuePriorities = &queuePriority;
+		queueCreateInfos.emplace_back(queueCreateInfo);
+	}
 
 	VkPhysicalDeviceFeatures deviceFeatures{};
 
@@ -109,8 +128,8 @@ void Renderer::createLogicalDevice()
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	createInfo.pNext = nullptr;
 	createInfo.flags = 0;
-	createInfo.queueCreateInfoCount = 1;
-	createInfo.pQueueCreateInfos = &queueCreateInfo;
+	createInfo.queueCreateInfoCount = static_cast<std::uint32_t>(queueCreateInfos.size());
+	createInfo.pQueueCreateInfos = queueCreateInfos.data();
 	createInfo.enabledExtensionCount = 0;
 	createInfo.ppEnabledExtensionNames = nullptr;
 	createInfo.pEnabledFeatures = &deviceFeatures;
@@ -124,12 +143,18 @@ void Renderer::createLogicalDevice()
 		createInfo.enabledLayerCount = 0;
 	}
 
-	if (vkCreateDevice(_physicalDevice, &createInfo, nullptr, &_vkDevice) != VK_SUCCESS)
+	if (vkCreateDevice(_vkPhysicalDevice, &createInfo, nullptr, &_vkDevice) != VK_SUCCESS)
 	{
 		ERROR("Failed to create logical device.")
 	}
 
 	vkGetDeviceQueue(_vkDevice, indices.graphics.value(), 0, &_vkGraphicsQueue);
+	vkGetDeviceQueue(_vkDevice, indices.present.value(), 0, &_vkPresentQueue);
+}
+
+void Renderer::createSurface()
+{
+	_window->windowCreateSurface(_vkInstance, &_vkSurface);
 }
 
 void Renderer::createInstance()

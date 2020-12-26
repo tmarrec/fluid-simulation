@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <optional>
+#include <set>
 
 #include "Window.h"
 
@@ -21,10 +22,11 @@ const bool enableValidationLayers = true;
 struct QueueFamilyIndices
 {
 	std::optional<std::uint32_t> graphics;
+	std::optional<std::uint32_t> present;
 
 	bool isComplete()
 	{
-		return graphics.has_value();
+		return graphics.has_value() && present.has_value();
 	}
 };
 
@@ -45,13 +47,16 @@ private:
 	bool isPhysicalDeviceSuitable(VkPhysicalDevice device);
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	void createLogicalDevice();
+	void createSurface();
 
 	VkInstance _vkInstance = nullptr;
 	std::shared_ptr<Window> _window = nullptr;
 	VkDebugUtilsMessengerEXT _debugMessenger = nullptr;
-	VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
+	VkPhysicalDevice _vkPhysicalDevice = VK_NULL_HANDLE;
 	VkDevice _vkDevice = nullptr;
 	VkQueue _vkGraphicsQueue = nullptr;
+	VkSurfaceKHR _vkSurface = nullptr;
+	VkQueue _vkPresentQueue = nullptr;
 };
 
 
