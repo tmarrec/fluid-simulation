@@ -5,12 +5,88 @@ void Renderer::init(std::shared_ptr<Window> window)
 	_window = window;
 	createInstance();
 	setupDebugMessenger();
+	pickPhysicalDevice();
 }
 
 Renderer::~Renderer()
 {
 	destroyDebugMessenger();
 	vkDestroyInstance(_vkInstance, nullptr);
+}
+
+void Renderer::pickPhysicalDevice()
+{
+	std::uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(_vkInstance, &deviceCount, nullptr);
+	if (deviceCount == 0)
+	{
+		ERROR("Failed to find GPUs with Vulkan support.");
+	}
+	std::vector<VkPhysicalDevice> devices{ deviceCount };
+	vkEnumeratePhysicalDevices(_vkInstance, &deviceCount, devices.data());
+	
+	for (const auto& device : devices)
+	{
+		if (isPhysicalDeviceSuitable(device))
+		{
+			_physicalDevice = device;
+			break;
+		}
+	}
+	
+	if (_physicalDevice == VK_NULL_HANDLE)
+	{
+		ERROR("Failed to find suitable GPU.");
+	}
+}
+
+bool Renderer::isPhysicalDeviceSuitable(VkPhysicalDevice device)
+{
+	VkPhysicalDeviceProperties deviceProperties;
+	vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+	VkPhysicalDeviceFeatures deviceFeatures;
+	vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+	QueueFamilyIndices queueFamilyIndices = findQueueFamilies(device);
+
+	// Temporary using only discrete GPU
+	if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader && queueFamilyIndices.isComplete())
+	{
+		INFO("Found suitable GPU: " << deviceProperties.deviceName);
+		return true;
+	}
+	return false;
+}
+
+QueueFamilyIndices Renderer::findQueueFamilies(VkPhysicalDevice device)
+{
+	QueueFamilyIndices indices;
+
+	std::uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+	std::uint32_t i = 0;
+	for (const auto& queueFamily : queueFamilies)
+	{
+		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		{
+			indices.graphics = i;
+		}
+
+		// Stop the search if all indices required are found
+		if (indices.isComplete())
+		{
+			break;
+		}
+		++i;
+	}
+
+
+	return indices;
 }
 
 void Renderer::createInstance()

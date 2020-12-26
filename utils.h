@@ -2,11 +2,8 @@
 
 #define INFO(m) \
 	std::cerr << std::endl; \
-	std::cerr << "\033[44m\033[1m[INFO]\033[49m\033[0m " << std::endl; \
-	std::cerr << "\033[1mFILE\033[0m    : " << __FILE__ << std::endl; \
-	std::cerr << "\033[1mFUNCTION\033[0m: " << __func__ << std::endl; \
-	std::cerr << "\033[1mLINE\033[0m    : " << __LINE__ << std::endl; \
-	std::cerr << "\033[1mMESSAGE\033[0m : " << m << std::endl; \
+	std::cerr << "\033[44m\033[1m[INFO]\033[49m\033[0m "; \
+	std::cerr << m << std::endl; \
 	std::cerr << std::endl; \
 
 #define WARNING(m) \

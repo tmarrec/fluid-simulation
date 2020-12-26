@@ -3,6 +3,7 @@
 #include <utility>
 #include <cstdint>
 #include <vector>
+#include <optional>
 
 #include "Window.h"
 
@@ -17,6 +18,16 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
+struct QueueFamilyIndices
+{
+	std::optional<std::uint32_t> graphics;
+
+	bool isComplete()
+	{
+		return graphics.has_value();
+	}
+};
+
 class Renderer
 {
 public:
@@ -30,11 +41,16 @@ private:
 	void setupDebugMessenger();
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 	void destroyDebugMessenger();
+	void pickPhysicalDevice();
+	bool isPhysicalDeviceSuitable(VkPhysicalDevice device);
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
 	VkInstance _vkInstance = nullptr;
 	std::shared_ptr<Window> _window = nullptr;
 	VkDebugUtilsMessengerEXT _debugMessenger = nullptr;
+	VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
 };
+
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugCallback
 (
