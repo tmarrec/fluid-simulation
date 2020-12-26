@@ -6,11 +6,13 @@ void Renderer::init(std::shared_ptr<Window> window)
 	createInstance();
 	setupDebugMessenger();
 	pickPhysicalDevice();
+	createLogicalDevice();
 }
 
 Renderer::~Renderer()
 {
 	destroyDebugMessenger();
+	vkDestroyDevice(_vkDevice, nullptr);
 	vkDestroyInstance(_vkInstance, nullptr);
 }
 
@@ -85,8 +87,49 @@ QueueFamilyIndices Renderer::findQueueFamilies(VkPhysicalDevice device)
 		++i;
 	}
 
-
 	return indices;
+}
+
+void Renderer::createLogicalDevice()
+{
+	QueueFamilyIndices indices = findQueueFamilies(_physicalDevice);
+
+	VkDeviceQueueCreateInfo queueCreateInfo{};
+	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	queueCreateInfo.pNext = nullptr;
+	queueCreateInfo.flags = 0;
+	queueCreateInfo.queueFamilyIndex = indices.graphics.value();
+	queueCreateInfo.queueCount = 1;
+	float queuePriority = 1.0f;
+	queueCreateInfo.pQueuePriorities = &queuePriority;
+
+	VkPhysicalDeviceFeatures deviceFeatures{};
+
+	VkDeviceCreateInfo createInfo{};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	createInfo.pNext = nullptr;
+	createInfo.flags = 0;
+	createInfo.queueCreateInfoCount = 1;
+	createInfo.pQueueCreateInfos = &queueCreateInfo;
+	createInfo.enabledExtensionCount = 0;
+	createInfo.ppEnabledExtensionNames = nullptr;
+	createInfo.pEnabledFeatures = &deviceFeatures;
+	if (enableValidationLayers)
+	{
+		createInfo.enabledLayerCount = static_cast<std::uint32_t>(vkValidationLayers.size());
+		createInfo.ppEnabledLayerNames = vkValidationLayers.data();
+	}
+	else
+	{
+		createInfo.enabledLayerCount = 0;
+	}
+
+	if (vkCreateDevice(_physicalDevice, &createInfo, nullptr, &_vkDevice) != VK_SUCCESS)
+	{
+		ERROR("Failed to create logical device.")
+	}
+
+	vkGetDeviceQueue(_vkDevice, indices.graphics.value(), 0, &_vkGraphicsQueue);
 }
 
 void Renderer::createInstance()
@@ -128,7 +171,6 @@ void Renderer::createInstance()
 	std::vector<const char*> vkExtensions = getVkRequiredExtensions();
 	createInfo.enabledExtensionCount = static_cast<std::uint32_t>(vkExtensions.size());
 	createInfo.ppEnabledExtensionNames = vkExtensions.data();
-
 
 	if (vkCreateInstance(&createInfo, nullptr, &_vkInstance))
 	{
