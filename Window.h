@@ -18,6 +18,7 @@ public:
 	bool windowShouldClose() const;
 	void pollEvents();
 	std::pair<const char**, std::uint32_t> windowGetRequiredInstanceExtensions();
+	void windowCreateSurface(VkInstance instance, VkSurfaceKHR* surface);
 	~Window();
 
 private:

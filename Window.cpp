@@ -32,6 +32,14 @@ std::pair<const char**, std::uint32_t> Window::windowGetRequiredInstanceExtensio
 	return std::pair<const char**, std::uint32_t>(glfwExtensions, glfwExtensionCount);
 }
 
+void Window::windowCreateSurface(VkInstance instance, VkSurfaceKHR* surface)
+{
+	if (glfwCreateWindowSurface(instance, _glfwWindow.get(), nullptr, surface) != VK_SUCCESS)
+	{
+		ERROR("Failed to create window surface.");
+	}
+}
+
 void Window::windowInit()
 {
 	_glfwWindow.reset(glfwCreateWindow(800, 600, "cowboy-engine", nullptr, nullptr));
