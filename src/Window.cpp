@@ -4,7 +4,7 @@ void Window::init()
 {
 	if (glfwInit() != GLFW_TRUE)
 	{
-		ERROR("Can't init glfw.");
+		ERROR("Unable to init glfw.");
 	}
 	glfwSetErrorCallback(&Window::glfwError);
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -32,20 +32,12 @@ std::pair<const char**, std::uint32_t> Window::windowGetRequiredInstanceExtensio
 	return std::pair<const char**, std::uint32_t>(glfwExtensions, glfwExtensionCount);
 }
 
-void Window::windowCreateSurface(VkInstance instance, VkSurfaceKHR* surface)
-{
-	if (glfwCreateWindowSurface(instance, _glfwWindow.get(), nullptr, surface) != VK_SUCCESS)
-	{
-		ERROR("Failed to create window surface.");
-	}
-}
-
 void Window::windowInit()
 {
 	_glfwWindow.reset(glfwCreateWindow(800, 600, "cowboy-engine", nullptr, nullptr));
 }
 
-void Window::glfwError(int error, const char* description)
+void Window::glfwError([[maybe_unused]] int error, const char* description)
 {
 	WARNING(description);
 }
