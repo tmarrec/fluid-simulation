@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Shader.h"
 #include "Window.h"
 
 class Renderer
@@ -10,7 +11,9 @@ public:
 	~Renderer();
 
 private:
-
 	std::shared_ptr<Window> _window = nullptr;
+
+    unsigned int VAO;
+    Shader* shaderProgram;
 };
 

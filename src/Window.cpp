@@ -45,7 +45,6 @@ void Window::windowInit()
         ERROR("Failed to create glfw window");		
 	}
     glfwMakeContextCurrent(_glfwWindow.get());
-
 }
 
 void Window::glfwError([[maybe_unused]] int error, const char* description)
