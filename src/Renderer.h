@@ -1,9 +1,4 @@
 #pragma once
-#include <utility>
-#include <cstdint>
-#include <vector>
-#include <optional>
-#include <set>
 
 #include "Window.h"
 
@@ -11,6 +6,7 @@ class Renderer
 {
 public:
 	void init(std::shared_ptr<Window> window);
+    void pass();
 	~Renderer();
 
 private:

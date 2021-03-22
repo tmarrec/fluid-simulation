@@ -21,6 +21,12 @@ SET (GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 SET (GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 ADD_SUBDIRECTORY (extern/glfw)
 
+# ╔══════════════════════════╗
+# ║ glad compilation options ║
+# ╚══════════════════════════╝
+
+ADD_SUBDIRECTORY (extern/glad)
+
 # ╔═════════════╗
 # ║ Vim options ║
 # ╚═════════════╝
@@ -57,3 +63,8 @@ TARGET_LINK_LIBRARIES (${PROJECT_NAME} glfw)
 FIND_PACKAGE (OpenGL REQUIRED)
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} OpenGL::GL)
 
+# ╔══════════════╗
+# ║ glad linking ║
+# ╚══════════════╝
+
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} glad)
