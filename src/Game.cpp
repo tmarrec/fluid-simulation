@@ -1,16 +1,15 @@
 #include "Game.h"
-#include "Renderer.h"
 
-void Game::run()
+void Game::run(WindowInfos windowInfos)
 {
-	windowInit();
+	windowInit(windowInfos);
 	renderInit();
 	mainLoop();
 }
 
-void Game::windowInit()
+void Game::windowInit(WindowInfos windowInfos)
 {
-	_window->init();
+	_window->init(windowInfos);
 }
 
 void Game::renderInit()
@@ -22,6 +21,8 @@ void Game::mainLoop()
 {
 	while (!_window->windowShouldClose())
 	{
+        _renderer.pass();
+        _window->swapBuffers();
 		_window->pollEvents();
 	}
 }

@@ -44,4 +44,4 @@
 #endif
 
 #define PRINT_TITLE() \
-	std::cout << "cowboy-engine" << std::endl;
+	std::cout << "cowboy-engine - Tristan Marrec" << std::endl;

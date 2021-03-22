@@ -1,13 +1,17 @@
 #include "Window.h"
 
-void Window::init()
+void Window::init(WindowInfos windowInfos)
 {
+    _windowInfos = windowInfos;
 	if (glfwInit() != GLFW_TRUE)
 	{
-		ERROR("Unable to init glfw.");
+		ERROR("Failed to initalize glfw.");
 	}
 	glfwSetErrorCallback(&Window::glfwError);
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	windowInit();
@@ -23,18 +27,25 @@ void Window::pollEvents()
 	glfwPollEvents();
 }
 
-std::pair<const char**, std::uint32_t> Window::windowGetRequiredInstanceExtensions()
+const WindowInfos Window::windowInfos() const
 {
-	std::uint32_t glfwExtensionCount = 0;
-	const char** glfwExtensions;
+    return _windowInfos;
+}
 
-	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-	return std::pair<const char**, std::uint32_t>(glfwExtensions, glfwExtensionCount);
+void Window::swapBuffers()
+{
+    glfwSwapBuffers(_glfwWindow.get());
 }
 
 void Window::windowInit()
 {
-	_glfwWindow.reset(glfwCreateWindow(800, 600, "cowboy-engine", nullptr, nullptr));
+    _glfwWindow.reset(glfwCreateWindow(_windowInfos.x, _windowInfos.y, _windowInfos.title.c_str(), nullptr, nullptr));
+	if (_glfwWindow == nullptr)
+	{
+        ERROR("Failed to create glfw window");		
+	}
+    glfwMakeContextCurrent(_glfwWindow.get());
+
 }
 
 void Window::glfwError([[maybe_unused]] int error, const char* description)

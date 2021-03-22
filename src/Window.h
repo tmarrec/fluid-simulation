@@ -1,9 +1,10 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <iostream>
 
+#include "types.h"
 #include "utils.h"
 
 struct glfwDeleter
@@ -14,17 +15,17 @@ struct glfwDeleter
 class Window
 {
 public:
-	void init();
+	void init(WindowInfos windowInfos);
 	bool windowShouldClose() const;
 	void pollEvents();
-	std::pair<const char**, std::uint32_t> windowGetRequiredInstanceExtensions();
+    void swapBuffers();
+    const WindowInfos windowInfos() const;
 	~Window();
-
-
 
 private:
 	void windowInit();
 	static void glfwError(int error, const char* description);
 
 	std::unique_ptr<GLFWwindow, glfwDeleter> _glfwWindow = nullptr;
+    WindowInfos _windowInfos;
 };
