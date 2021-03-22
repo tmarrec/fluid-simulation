@@ -12,6 +12,12 @@ SET (CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -pedantic")
 SET (CMAKE_CXX_FLAGS_DEBUG_INIT "${CMAKE_CXX_FLAGS} -O0 -g")
 SET (CMAKE_CXX_FLAGS_RELEASE_INIT "${CMAKE_CXX_FLAGS} -O3")
 
+# ╔════════════════════════════╗
+# ║ OpenGL compilation options ║
+# ╚════════════════════════════╝
+
+FIND_PACKAGE (OpenGL REQUIRED)
+
 # ╔══════════════════════════╗
 # ║ glfw compilation options ║
 # ╚══════════════════════════╝
@@ -49,22 +55,23 @@ ADD_EXECUTABLE (${PROJECT_NAME}
 	src/Game.h
 	src/Renderer.h
 	src/Window.h
+    src/Shader.h
 
 	src/Game.cpp
 	src/Renderer.cpp
 	src/Window.cpp
+    src/Shader.cpp
 )
 
-# ╔══════════════╗
-# ║ glfw linking ║
-# ╚══════════════╝
+# ╔═════════╗
+# ║ Linking ║
+# ╚═════════╝
 
-TARGET_LINK_LIBRARIES (${PROJECT_NAME} glfw)
-FIND_PACKAGE (OpenGL REQUIRED)
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} OpenGL::GL)
+TARGET_LINK_LIBRARIES (${PROJECT_NAME} glfw)
+TARGET_LINK_LIBRARIES (${PROJECT_NAME} glad)
+TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} PRIVATE "extern/glm")
 
-# ╔══════════════╗
-# ║ glad linking ║
-# ╚══════════════╝
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} glad)
+FILE (COPY src/shaders DESTINATION .)
+

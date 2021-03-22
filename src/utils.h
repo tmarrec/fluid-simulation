@@ -1,5 +1,9 @@
 #pragma once
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #define INFO(m) \
 	std::cerr << std::endl; \
 	std::cerr << "\033[44m\033[1m[INFO]\033[49m\033[0m "; \
