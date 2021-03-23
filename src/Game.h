@@ -1,14 +1,15 @@
 #pragma once
 #include <iostream>
+#include <chrono>
 
 #include "Renderer.h"
 #include "Window.h"
-#include "ecs/System.h"
-#include "systems/Physics.h"
 #include "types.h"
-#include "ecs/Coordinator.h"
 #include "Components.h"
+#include "ecs/Coordinator.h"
 
+#include "systems/Physics.h"
+#include "systems/MeshRenderer.h"
 
 class Game
 {
@@ -21,5 +22,7 @@ private:
 	std::shared_ptr<Window> _window = std::make_shared<Window>();
 	Renderer _renderer;
     std::vector<Entity> _entities;
+
     std::shared_ptr<Physics> _physicsSys;
+    std::shared_ptr<MeshRenderer> _meshRendererSys;
 };

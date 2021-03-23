@@ -62,6 +62,8 @@ ADD_EXECUTABLE (${PROJECT_NAME}
     # Systems
     src/systems/Physics.h
     src/systems/Physics.cpp
+    src/systems/MeshRenderer.h
+    src/systems/MeshRenderer.cpp
 
     # Main
  	src/cowboy-engine.cpp
