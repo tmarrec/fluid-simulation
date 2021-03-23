@@ -1,9 +1,10 @@
 #pragma once
 #include <queue>
 #include <array>
+#include <iostream>
 
-#include "Types.h"
-#include "utils.h"
+#include "../types.h"
+#include "../utils.h"
 
 class EntityManager
 {

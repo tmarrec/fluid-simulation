@@ -1,8 +1,10 @@
 #pragma once
 #include <memory>
 #include <unordered_map>
+#include <iostream>
 
-#include "ecs/System.h"
+#include "System.h"
+#include "../utils.h"
 
 class SystemManager
 {
