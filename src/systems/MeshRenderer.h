@@ -11,10 +11,11 @@ extern Coordinator gCoordinator;
 class MeshRenderer : public System
 {
 public:
-    void init(std::shared_ptr<Renderer> renderer);
+    void init(std::shared_ptr<Renderer> renderer, Camera camera);
     void update();
     ~MeshRenderer();
 
 private:
     std::shared_ptr<Renderer> _renderer = nullptr;
+    Camera _camera;
 };

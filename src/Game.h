@@ -6,6 +6,7 @@
 #include "Window.h"
 #include "types.h"
 #include "Components.h"
+#include "Shader.h"
 #include "ecs/Coordinator.h"
 
 #include "systems/Physics.h"

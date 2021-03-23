@@ -3,7 +3,10 @@
 #include <cstdint>
 #include <vector>
 
+#include "glm/fwd.hpp"
+#include "glm/gtc/constants.hpp"
 #include "utils.h"
+#include "Shader.h"
 
 struct Transform
 {
@@ -24,4 +27,20 @@ struct Mesh
     std::uint32_t VBO = 0;
     std::uint32_t NBO = 0;
     std::uint32_t EBO = 0;
+};
+
+struct Camera
+{
+    float yaw;
+    float pitch;
+    float speed;
+    float FOV;
+    glm::vec3 front = {0.0f, 0.0f, 1.0f};
+    glm::vec3 up = {0.0f, -2.0f, 0.0f};
+    glm::mat4 projection = glm::zero<glm::mat4>();
+};
+
+struct Material
+{
+    Shader shader;
 };
