@@ -1,8 +1,11 @@
 #include "MeshRenderer.h"
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/trigonometric.hpp"
 
-void MeshRenderer::init(std::shared_ptr<Renderer> renderer)
+void MeshRenderer::init(std::shared_ptr<Renderer> renderer, Camera camera)
 {
     _renderer = renderer;
+    _camera = camera;
 }
 
 void MeshRenderer::update()
@@ -12,6 +15,7 @@ void MeshRenderer::update()
     {
         auto& transform = gCoordinator.GetComponent<Transform>(entity);
         auto& mesh = gCoordinator.GetComponent<Mesh>(entity);
+        auto& material = gCoordinator.GetComponent<Material>(entity);
 
         if (!mesh.initialized)
         {
@@ -19,6 +23,7 @@ void MeshRenderer::update()
         }
         else
         {
+            _renderer->useShader(material.shader, _camera, transform);
             _renderer->drawMesh(mesh);
         }
     }

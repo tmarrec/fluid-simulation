@@ -1,5 +1,6 @@
 #include "Game.h"
 #include <chrono>
+#include <memory>
 
 Coordinator gCoordinator;
 
@@ -13,10 +14,19 @@ void Game::run(WindowInfos windowInfos)
 
     gCoordinator.RegisterComponent<Transform>();
     gCoordinator.RegisterComponent<Mesh>();
+    gCoordinator.RegisterComponent<Camera>();
+    gCoordinator.RegisterComponent<Material>();
 
     _physicsSys = gCoordinator.RegisterSystem<Physics>();
     _meshRendererSys = gCoordinator.RegisterSystem<MeshRenderer>();
-    _meshRendererSys->init(std::make_shared<Renderer>(_renderer));
+    Camera camera
+    {
+        .yaw = 0,
+        .pitch = 0,
+        .speed = 5,
+        .FOV = 60
+    };
+    _meshRendererSys->init(std::make_shared<Renderer>(_renderer), camera);
 
     Signature signaturePhysics;
     signaturePhysics.set(gCoordinator.GetComponentType<Transform>());
@@ -25,6 +35,7 @@ void Game::run(WindowInfos windowInfos)
     Signature signatureMeshRenderer;
     signatureMeshRenderer.set(gCoordinator.GetComponentType<Transform>());
     signatureMeshRenderer.set(gCoordinator.GetComponentType<Mesh>());
+    signatureMeshRenderer.set(gCoordinator.GetComponentType<Material>());
     gCoordinator.SetSystemSignature<MeshRenderer>(signatureMeshRenderer);
 
     auto entity = gCoordinator.CreateEntity();
@@ -39,23 +50,86 @@ void Game::run(WindowInfos windowInfos)
     {
         .vertices =
         {
-             0.5f,  0.5f, 0.0f,  // top right
-             0.5f, -0.5f, 0.0f,  // bottom right
-            -0.5f, -0.5f, 0.0f,  // bottom left
-            -0.5f,  0.5f, 0.0f   // top left 
+            -0.5f, -0.5f, 0.5f,
+            0.5f, -0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+
+            0.5f, 0.5f, 0.5f,
+            0.5f, 0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, 0.5f,
+
+            -0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
+            -0.5f, 0.5f, -0.5f,
+
+            -0.5f, -0.5f, -0.5f,
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, -0.5f,
+                            
+            0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
+
+            -0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, 0.5f,
+            -0.5f, -0.5f, 0.5f,
         },
         .normals =
         {
-            0, 0, 0,
-            0, 0, 0,
-            0, 0, 0,
-            0, 0, 0,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+
+            0.0f, 0.0f, -1.0f,
+            0.0f, 0.0f, -1.0f,
+            0.0f, 0.0f, -1.0f,
+            0.0f, 0.0f, -1.0f,
+
+            -1.0f, 0.0f, 0.0f,
+            -1.0f, 0.0f, 0.0f,
+            -1.0f, 0.0f, 0.0f,
+            -1.0f, 0.0f, 0.0f,
+
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+
+            0.0f, -1.0f, 0.0f,
+            0.0f, -1.0f, 0.0f,
+            0.0f, -1.0f, 0.0f,
+            0.0f, -1.0f, 0.0f,
         },
         .indices =
         {
-            0, 1, 3,
-            1, 2, 3
+            0,  1,  2,  0,  2,  3,   // Front
+            3,  6,  5,  4,  7,  6,   // Right
+            5,  9, 11,  11, 9,  8,    // Back
+            15, 12, 13, 13, 14, 15,  // Left
+            17, 16, 19, 17, 19, 18,  // Upper
+            20, 21, 23, 21, 22, 23 	 // Bottom
         },
+    });
+
+    Shader shaderProgram {};
+    shaderProgram.setVert("shaders/vert.vert");
+    shaderProgram.setFrag("shaders/frag.frag");
+
+    gCoordinator.AddComponent(entity, Material
+    {
+        .shader = shaderProgram
     });
 
 	mainLoop();
