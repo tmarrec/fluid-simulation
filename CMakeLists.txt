@@ -7,8 +7,8 @@ PROJECT (cowboy-engine VERSION "0.1")
 # ╚═════════════════════════╝
 
 SET (CMAKE_CXX_STANDARD_REQUIRED ON)
-SET (CMAKE_CXX_STANDARD 17)
-SET (CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wextra -pedantic")
+SET (CMAKE_CXX_STANDARD 20)
+SET (CMAKE_CXX_FLAGS "-std=c++20 -Wall -Wextra -pedantic")
 SET (CMAKE_CXX_FLAGS_DEBUG_INIT "${CMAKE_CXX_FLAGS} -O0 -g")
 SET (CMAKE_CXX_FLAGS_RELEASE_INIT "${CMAKE_CXX_FLAGS} -O3")
 
@@ -44,14 +44,29 @@ SET (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # ╚═════════╝
 
 ADD_EXECUTABLE (${PROJECT_NAME}
-	# Header only
+	# Utils
 	src/utils.h
 	src/types.h
 
-	# Source only
+    # ECS
+    src/ecs/System.h
+    src/ecs/Coordinator.h
+    src/ecs/EntityManager.h
+    src/ecs/SystemManager.h
+    src/ecs/ComponentArray.h
+    src/ecs/ComponentManager.h
+
+    # Components structs
+    src/Components.h
+
+    # Systems
+    src/systems/Physics.h
+    src/systems/Physics.cpp
+
+    # Main
  	src/cowboy-engine.cpp
 
-	# Header and source files
+    # Engine
 	src/Game.h
 	src/Renderer.h
 	src/Window.h

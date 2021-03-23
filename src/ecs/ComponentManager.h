@@ -1,7 +1,8 @@
 #pragma once
 #include <memory>
+#include <iostream>
 
-#include "ecs/ComponentArray.h"
+#include "ComponentArray.h"
 
 class ComponentManager
 {

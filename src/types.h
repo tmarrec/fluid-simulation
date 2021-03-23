@@ -1,13 +1,15 @@
 #pragma once
 
+#include <bits/c++config.h>
 #include <bitset>
 #include <cstdint>
+#include <limits>
 
 // ECS
 using Entity = std::uint16_t;
-const Entity MAX_ENTITIES = static_cast<Entity>(65536);
+const Entity MAX_ENTITIES = std::numeric_limits<Entity>::max();
 using ComponentType = std::uint8_t;
-const ComponentType MAX_COMPONENTS = static_cast<ComponentType>(256);
+const ComponentType MAX_COMPONENTS = std::numeric_limits<ComponentType>::max();
 using Signature = std::bitset<MAX_COMPONENTS>;
 
 struct WindowInfos
