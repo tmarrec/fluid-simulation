@@ -8,5 +8,5 @@ extern Coordinator gCoordinator;
 class Physics : public System
 {
 public:
-    void Update(float dt);
+    void update(float dt);
 };

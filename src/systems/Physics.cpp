@@ -1,6 +1,6 @@
 #include "Physics.h"
 
-void Physics::Update(float dt)
+void Physics::update(float dt)
 {
     for (auto const& entity : mEntities)
     {

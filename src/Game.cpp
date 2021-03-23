@@ -1,8 +1,5 @@
 #include "Game.h"
-#include "Components.h"
-#include "ecs/Coordinator.h"
-#include "systems/Physics.h"
-#include "types.h"
+#include <chrono>
 
 Coordinator gCoordinator;
 
@@ -15,12 +12,20 @@ void Game::run(WindowInfos windowInfos)
     _entities.reserve(MAX_ENTITIES);
 
     gCoordinator.RegisterComponent<Transform>();
+    gCoordinator.RegisterComponent<Mesh>();
 
     _physicsSys = gCoordinator.RegisterSystem<Physics>();
+    _meshRendererSys = gCoordinator.RegisterSystem<MeshRenderer>();
+    _meshRendererSys->init(std::make_shared<Renderer>(_renderer));
 
-    Signature signature;
-    signature.set(gCoordinator.GetComponentType<Transform>());
-    gCoordinator.SetSystemSignature<Physics>(signature);
+    Signature signaturePhysics;
+    signaturePhysics.set(gCoordinator.GetComponentType<Transform>());
+    gCoordinator.SetSystemSignature<Physics>(signaturePhysics);
+
+    Signature signatureMeshRenderer;
+    signatureMeshRenderer.set(gCoordinator.GetComponentType<Transform>());
+    signatureMeshRenderer.set(gCoordinator.GetComponentType<Mesh>());
+    gCoordinator.SetSystemSignature<MeshRenderer>(signatureMeshRenderer);
 
     auto entity = gCoordinator.CreateEntity();
     gCoordinator.AddComponent(entity, Transform
@@ -30,18 +35,49 @@ void Game::run(WindowInfos windowInfos)
         .scale = glm::vec3(1, 1, 1)
     });
 
+    gCoordinator.AddComponent(entity, Mesh
+    {
+        .vertices =
+        {
+             0.5f,  0.5f, 0.0f,  // top right
+             0.5f, -0.5f, 0.0f,  // bottom right
+            -0.5f, -0.5f, 0.0f,  // bottom left
+            -0.5f,  0.5f, 0.0f   // top left 
+        },
+        .normals =
+        {
+            0, 0, 0,
+            0, 0, 0,
+            0, 0, 0,
+            0, 0, 0,
+        },
+        .indices =
+        {
+            0, 1, 3,
+            1, 2, 3
+        },
+    });
+
 	mainLoop();
 }
 
 void Game::mainLoop()
 {
+    float dt = 0.0f;
 	while (!_window->windowShouldClose())
 	{
-        _physicsSys->Update(0.1f);
+        auto startTime = std::chrono::high_resolution_clock::now();
 
-        _renderer.pass();
+        _physicsSys->update(dt);
+        _renderer.prePass();
+        _meshRendererSys->update();
+
         _window->swapBuffers();
 		_window->pollEvents();
+
+        auto stopTime = std::chrono::high_resolution_clock::now();
+        dt = std::chrono::duration<float, std::chrono::seconds::period>(stopTime - startTime).count();
+        //std::cout << 1/dt << std::endl;
 	}
 }
 
