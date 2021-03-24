@@ -1,14 +1,9 @@
 #include "Game.h"
-#include "BasicEntities.h"
-#include <optional>
 
 Coordinator gCoordinator;
 
-void Game::run(WindowInfos windowInfos)
+void Game::initECS()
 {
-	_window->init(windowInfos);
-	_renderer.init(_window);
-
     gCoordinator.Init();
     _entities.reserve(MAX_ENTITIES);
 
@@ -16,6 +11,7 @@ void Game::run(WindowInfos windowInfos)
     gCoordinator.RegisterComponent<Mesh>();
     gCoordinator.RegisterComponent<Camera>();
     gCoordinator.RegisterComponent<Material>();
+    gCoordinator.RegisterComponent<FluidCube>();
 
     _physicsSys = gCoordinator.RegisterSystem<Physics>();
     _meshRendererSys = gCoordinator.RegisterSystem<MeshRenderer>();
@@ -33,6 +29,7 @@ void Game::run(WindowInfos windowInfos)
             }
     };
     _meshRendererSys->init(std::make_shared<Renderer>(_renderer), camera);
+    _fluidsSys = gCoordinator.RegisterSystem<Fluids>();
 
     Signature signaturePhysics;
     signaturePhysics.set(gCoordinator.GetComponentType<Transform>());
@@ -44,8 +41,21 @@ void Game::run(WindowInfos windowInfos)
     signatureMeshRenderer.set(gCoordinator.GetComponentType<Material>());
     gCoordinator.SetSystemSignature<MeshRenderer>(signatureMeshRenderer);
 
-    BasicEntities::addVector(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{1,1,1});
-    BasicEntities::addVector(glm::vec3{1,1,1}, glm::vec3{0,0,0}, glm::vec3{1,1,1});
+    Signature signatureFluids;
+    signatureFluids.set(gCoordinator.GetComponentType<Transform>());
+    signatureFluids.set(gCoordinator.GetComponentType<FluidCube>());
+    gCoordinator.SetSystemSignature<Fluids>(signatureFluids);
+}
+
+void Game::run(WindowInfos windowInfos)
+{
+	_window->init(windowInfos);
+	_renderer.init(_window);
+    initECS();
+
+    BasicEntities::addLineCube(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{1,1,1});
+    BasicEntities::addCube(glm::vec3{1,1,1}, glm::vec3{0,0,0}, glm::vec3{1,1,1});
+    BasicEntities::addVector(glm::vec3{-1,-1,-1}, glm::vec3{0,0,0}, glm::vec3{1,1,1});
     
 	mainLoop();
 }
@@ -58,9 +68,9 @@ void Game::mainLoop()
         auto startTime = std::chrono::high_resolution_clock::now();
 
         _physicsSys->update(dt);
+        _fluidsSys->update();
         _renderer.prePass();
         _meshRendererSys->update();
-
 
         _window->swapBuffers();
 		_window->pollEvents();

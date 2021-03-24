@@ -12,6 +12,12 @@ using ComponentType = std::uint8_t;
 const ComponentType MAX_COMPONENTS = std::numeric_limits<ComponentType>::max();
 using Signature = std::bitset<MAX_COMPONENTS>;
 
+enum RenderMode
+{
+    TRIANGLES,
+    LINES
+};
+
 struct WindowInfos
 {
     std::string title;
