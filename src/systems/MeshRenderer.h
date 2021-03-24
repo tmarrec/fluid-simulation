@@ -17,6 +17,7 @@ public:
 
 private:
     void cameraMovements();
+    void cameraMouseMovements();
     std::shared_ptr<Renderer> _renderer = nullptr;
     Camera _camera;
 };

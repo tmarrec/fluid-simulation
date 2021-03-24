@@ -21,7 +21,7 @@ void Renderer::prePass()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Renderer::drawMesh(Mesh &mesh)
+void Renderer::drawMesh(Mesh& mesh)
 {
     GLenum renderMode = GL_TRIANGLES;
     switch (mesh.renderMode)
@@ -99,7 +99,7 @@ void Renderer::initMesh(Mesh& mesh)
     mesh.initialized = true;
 }
 
-void Renderer::freeMesh(Mesh &mesh)
+void Renderer::freeMesh(Mesh& mesh)
 {
     glDeleteVertexArrays(1, &mesh.VAO);
     glDeleteBuffers(1, &mesh.VBO);
