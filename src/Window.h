@@ -5,7 +5,7 @@
 
 #include "types.h"
 #include "utils.h"
-#include "KeyInput.h"
+#include "Input.h"
 
 struct glfwDeleter
 {
@@ -28,5 +28,4 @@ private:
 
 	std::unique_ptr<GLFWwindow, glfwDeleter> _glfwWindow = nullptr;
     WindowInfos _windowInfos;
-    KeyInput _keyInput;
 };

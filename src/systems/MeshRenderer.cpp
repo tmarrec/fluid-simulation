@@ -1,7 +1,5 @@
 #include "MeshRenderer.h"
-#include "GLFW/glfw3.h"
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/trigonometric.hpp"
+#include "glm/geometric.hpp"
 
 void MeshRenderer::init(std::shared_ptr<Renderer> renderer, Camera camera)
 {
@@ -33,30 +31,47 @@ void MeshRenderer::update()
 
 void MeshRenderer::cameraMovements()
 {
-    if (KeyInput::isDown(GLFW_KEY_W))
+    if (Input::keyIsDown(GLFW_KEY_W))
     {
-        _camera.transform.position.z += _camera.speed;
+        _camera.transform.position += _camera.front * _camera.speed;
     }
-    if (KeyInput::isDown(GLFW_KEY_A))
+    if (Input::keyIsDown(GLFW_KEY_A))
     {
-        _camera.transform.position.x += _camera.speed;
+        _camera.transform.position -= glm::normalize(glm::cross(_camera.front, _camera.up)) * _camera.speed;
     }
-    if (KeyInput::isDown(GLFW_KEY_S))
+    if (Input::keyIsDown(GLFW_KEY_S))
     {
-        _camera.transform.position.z -= _camera.speed;
+        _camera.transform.position -= _camera.front * _camera.speed;
     }
-    if (KeyInput::isDown(GLFW_KEY_D))
+    if (Input::keyIsDown(GLFW_KEY_D))
     {
-        _camera.transform.position.x -= _camera.speed;
+        _camera.transform.position += glm::normalize(glm::cross(_camera.front, _camera.up)) * _camera.speed;
     }
-    if (KeyInput::isDown(GLFW_KEY_LEFT_SHIFT))
+    if (Input::keyIsDown(GLFW_KEY_LEFT_SHIFT))
     {
         _camera.transform.position.y += _camera.speed;
     }
-    if (KeyInput::isDown(GLFW_KEY_LEFT_CONTROL))
+    if (Input::keyIsDown(GLFW_KEY_LEFT_CONTROL))
     {
         _camera.transform.position.y -= _camera.speed;
     }
+    cameraMouseMovements();
+}
+
+void MeshRenderer::cameraMouseMovements()
+{
+    float sensitivity = 1.0f;
+    _camera.yaw += Input::mouseOffsetX*sensitivity;
+    _camera.pitch = glm::clamp(_camera.pitch - Input::mouseOffsetY*sensitivity, -89.9f, 89.9f);
+
+    glm::vec3 dir;
+    dir.x = cos(glm::radians(_camera.yaw))*cos(glm::radians(_camera.pitch));
+    dir.y = sin(glm::radians(_camera.pitch));
+    dir.z = sin(glm::radians(_camera.yaw))*cos(glm::radians(_camera.pitch));
+    dir = glm::normalize(dir);
+    _camera.front = dir;
+
+    Input::updateMouseMovements();
 }
 
 MeshRenderer::~MeshRenderer()
