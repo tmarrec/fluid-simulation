@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "BasicEntities.h"
+#include <optional>
 
 Coordinator gCoordinator;
 
@@ -43,7 +44,8 @@ void Game::run(WindowInfos windowInfos)
     signatureMeshRenderer.set(gCoordinator.GetComponentType<Material>());
     gCoordinator.SetSystemSignature<MeshRenderer>(signatureMeshRenderer);
 
-    BasicEntities::addCube();
+    BasicEntities::addVector(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{1,1,1});
+    BasicEntities::addVector(glm::vec3{1,1,1}, glm::vec3{0,0,0}, glm::vec3{1,1,1});
     
 	mainLoop();
 }

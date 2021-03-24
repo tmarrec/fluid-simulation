@@ -57,7 +57,6 @@ void MeshRenderer::cameraMovements()
     {
         _camera.transform.position.y -= _camera.speed;
     }
-
 }
 
 MeshRenderer::~MeshRenderer()

@@ -1,15 +1,19 @@
 #include "BasicEntities.h"
 
-void BasicEntities::addCube()
+void BasicEntities::addTransform(Entity& entity, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
-    auto entity = gCoordinator.CreateEntity();
-
     gCoordinator.AddComponent(entity, Transform
     {
-        .position = glm::vec3(0, 0, 0),
-        .rotation = glm::vec3(0, 0, 0),
-        .scale = glm::vec3(1, 1, 1)
+        .position = position,
+        .rotation = rotation,
+        .scale = scale
     });
+}
+
+void BasicEntities::addCube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+{
+    auto entity = gCoordinator.CreateEntity();
+    addTransform(entity, position, rotation, scale);
 
     gCoordinator.AddComponent(entity, Mesh
     {
@@ -85,6 +89,40 @@ void BasicEntities::addCube()
             15, 12, 13, 13, 14, 15,
             17, 16, 19, 17, 19, 18,
             20, 21, 23, 21, 22, 23
+        },
+    });
+
+    Shader shaderProgram {};
+    shaderProgram.setVert("shaders/vert.vert");
+    shaderProgram.setFrag("shaders/frag.frag");
+
+    gCoordinator.AddComponent(entity, Material
+    {
+        .shader = shaderProgram
+    });
+}
+
+void BasicEntities::addVector(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+{
+    auto entity = gCoordinator.CreateEntity();
+
+    addTransform(entity, position, rotation, scale);
+
+    gCoordinator.AddComponent(entity, Mesh
+    {
+        .vertices =
+        {
+            0.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+        },
+        .normals =
+        {
+            0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f,
+        },
+        .indices =
+        {
+            0,  1
         },
     });
 
