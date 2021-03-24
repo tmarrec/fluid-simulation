@@ -102,6 +102,68 @@ void BasicEntities::addCube(glm::vec3 position, glm::vec3 rotation, glm::vec3 sc
     });
 }
 
+void BasicEntities::addLineCube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+{
+    auto entity = gCoordinator.CreateEntity();
+    addTransform(entity, position, rotation, scale);
+
+    gCoordinator.AddComponent(entity, Mesh
+    {
+        .vertices =
+        {
+            -0.5f, -0.5f, 0.5f,
+            0.5f, -0.5f, 0.5f,
+            0.5f, 0.5f, 0.5f,
+            -0.5f, 0.5f, 0.5f,
+
+            -0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, 0.5f, -0.5f,
+            -0.5f, 0.5f, -0.5f,
+        },
+        .normals =
+        {
+            0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f,
+
+            0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f,
+        },
+        .indices =
+        {
+            0, 1,
+            1, 2,
+            2, 3,
+            3, 0,
+
+            4, 5,
+            5, 6,
+            6, 7,
+            7, 4,
+
+            2, 6,
+            1, 5,
+            0, 4,
+            3, 7
+        },
+        .renderMode = LINES,
+    });
+
+    Shader shaderProgram {};
+    shaderProgram.setVert("shaders/vert.vert");
+    shaderProgram.setFrag("shaders/frag.frag");
+
+    gCoordinator.AddComponent(entity, Material
+    {
+        .shader = shaderProgram
+    });
+
+}
+
 void BasicEntities::addVector(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
     auto entity = gCoordinator.CreateEntity();
@@ -124,6 +186,7 @@ void BasicEntities::addVector(glm::vec3 position, glm::vec3 rotation, glm::vec3 
         {
             0,  1
         },
+        .renderMode = LINES,
     });
 
     Shader shaderProgram {};

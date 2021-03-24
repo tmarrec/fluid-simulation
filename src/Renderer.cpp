@@ -23,8 +23,18 @@ void Renderer::prePass()
 
 void Renderer::drawMesh(Mesh &mesh)
 {
+    GLenum renderMode = GL_TRIANGLES;
+    switch (mesh.renderMode)
+    {
+        case LINES:
+            renderMode = GL_LINES;
+            break;
+        case TRIANGLES:
+            renderMode = GL_TRIANGLES;
+            break;
+    }
     glBindVertexArray(mesh.VAO);
-    glDrawElements(GL_LINES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(renderMode, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 }
 

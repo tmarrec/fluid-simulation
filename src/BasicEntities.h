@@ -10,6 +10,7 @@ class BasicEntities
 {
 public:
     static void addCube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+    static void addLineCube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
     static void addVector(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 
 private:

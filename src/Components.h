@@ -6,6 +6,7 @@
 #include "glm/fwd.hpp"
 #include "glm/gtc/constants.hpp"
 #include "utils.h"
+#include "types.h"
 #include "Shader.h"
 
 struct Transform
@@ -27,6 +28,8 @@ struct Mesh
     std::uint32_t VBO = 0;
     std::uint32_t NBO = 0;
     std::uint32_t EBO = 0;
+
+    RenderMode renderMode = TRIANGLES;
 };
 
 struct Camera
@@ -44,4 +47,9 @@ struct Camera
 struct Material
 {
     Shader shader;
+};
+
+struct FluidCube
+{
+
 };

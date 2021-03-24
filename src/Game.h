@@ -12,6 +12,7 @@
 
 #include "systems/Physics.h"
 #include "systems/MeshRenderer.h"
+#include "systems/Fluids.h"
 
 class Game
 {
@@ -20,6 +21,7 @@ public:
 
 private:
 	void mainLoop();
+    void initECS();
 
 	std::shared_ptr<Window> _window = std::make_shared<Window>();
 	Renderer _renderer;
@@ -27,4 +29,5 @@ private:
 
     std::shared_ptr<Physics> _physicsSys;
     std::shared_ptr<MeshRenderer> _meshRendererSys;
+    std::shared_ptr<Fluids> _fluidsSys;
 };
