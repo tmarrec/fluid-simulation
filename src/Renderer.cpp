@@ -24,7 +24,7 @@ void Renderer::prePass()
 void Renderer::drawMesh(Mesh &mesh)
 {
     glBindVertexArray(mesh.VAO);
-    glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_LINES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 }
 
