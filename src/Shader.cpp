@@ -80,7 +80,7 @@ void Shader::checkCompilation(std::uint64_t shader, const std::string& type)
 
 GLint Shader::getLocation(const std::string &name) const
 {
-    GLint location = glGetUniformLocation(_id, name.c_str());
+    const GLint location = glGetUniformLocation(_id, name.c_str());
     if (location == -1) {
         WARNING("Cannot find uniform location : " << name);
     }	

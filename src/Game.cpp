@@ -1,6 +1,5 @@
 #include "Game.h"
-#include <chrono>
-#include <memory>
+#include "BasicEntities.h"
 
 Coordinator gCoordinator;
 
@@ -23,8 +22,14 @@ void Game::run(WindowInfos windowInfos)
     {
         .yaw = 0,
         .pitch = 0,
-        .speed = 5,
-        .FOV = 60
+        .speed = 0.1f,
+        .FOV = 90,
+        .transform = Transform
+            {
+                .position = {0, 0, -2},
+                .rotation = {0, 0, 0},
+                .scale = {1, 1, 1}
+            }
     };
     _meshRendererSys->init(std::make_shared<Renderer>(_renderer), camera);
 
@@ -38,100 +43,8 @@ void Game::run(WindowInfos windowInfos)
     signatureMeshRenderer.set(gCoordinator.GetComponentType<Material>());
     gCoordinator.SetSystemSignature<MeshRenderer>(signatureMeshRenderer);
 
-    auto entity = gCoordinator.CreateEntity();
-    gCoordinator.AddComponent(entity, Transform
-    {
-        .position = glm::vec3(0, 0, 0),
-        .rotation = glm::vec3(0, 0, 0),
-        .scale = glm::vec3(1, 1, 1)
-    });
-
-    gCoordinator.AddComponent(entity, Mesh
-    {
-        .vertices =
-        {
-            -0.5f, -0.5f, 0.5f,
-            0.5f, -0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-
-            0.5f, 0.5f, 0.5f,
-            0.5f, 0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, 0.5f,
-
-            -0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, 0.5f, -0.5f,
-            -0.5f, 0.5f, -0.5f,
-
-            -0.5f, -0.5f, -0.5f,
-            -0.5f, -0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, -0.5f,
-                            
-            0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, -0.5f,
-            0.5f, 0.5f, -0.5f,
-
-            -0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, 0.5f,
-            -0.5f, -0.5f, 0.5f,
-        },
-        .normals =
-        {
-            0.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f,
-            0.0f, 0.0f, 1.0f,
-
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
-
-            0.0f, 0.0f, -1.0f,
-            0.0f, 0.0f, -1.0f,
-            0.0f, 0.0f, -1.0f,
-            0.0f, 0.0f, -1.0f,
-
-            -1.0f, 0.0f, 0.0f,
-            -1.0f, 0.0f, 0.0f,
-            -1.0f, 0.0f, 0.0f,
-            -1.0f, 0.0f, 0.0f,
-
-            0.0f, 1.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-
-            0.0f, -1.0f, 0.0f,
-            0.0f, -1.0f, 0.0f,
-            0.0f, -1.0f, 0.0f,
-            0.0f, -1.0f, 0.0f,
-        },
-        .indices =
-        {
-            0,  1,  2,  0,  2,  3,   // Front
-            3,  6,  5,  4,  7,  6,   // Right
-            5,  9, 11,  11, 9,  8,    // Back
-            15, 12, 13, 13, 14, 15,  // Left
-            17, 16, 19, 17, 19, 18,  // Upper
-            20, 21, 23, 21, 22, 23 	 // Bottom
-        },
-    });
-
-    Shader shaderProgram {};
-    shaderProgram.setVert("shaders/vert.vert");
-    shaderProgram.setFrag("shaders/frag.frag");
-
-    gCoordinator.AddComponent(entity, Material
-    {
-        .shader = shaderProgram
-    });
-
+    BasicEntities::addCube();
+    
 	mainLoop();
 }
 
@@ -145,6 +58,7 @@ void Game::mainLoop()
         _physicsSys->update(dt);
         _renderer.prePass();
         _meshRendererSys->update();
+
 
         _window->swapBuffers();
 		_window->pollEvents();

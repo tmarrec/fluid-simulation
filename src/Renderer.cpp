@@ -12,12 +12,13 @@ void Renderer::init(std::shared_ptr<Window> window)
 
     const WindowInfos windowInfos = _window->windowInfos();
     glViewport(0, 0, windowInfos.x, windowInfos.y);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void Renderer::prePass()
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Renderer::drawMesh(Mesh &mesh)
@@ -35,18 +36,11 @@ void Renderer::useShader(Shader& shader, Camera& camera, Transform& transform)
     model = glm::rotate(model, glm::radians(transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::rotate(model, glm::radians(transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::scale(model, glm::vec3{transform.scale});
+    const WindowInfos windowInfos = _window->windowInfos();
+    const glm::mat4 projection = glm::infinitePerspective(glm::radians(camera.FOV), static_cast<float>(windowInfos.x)/windowInfos.y, 0.1f);
+    const glm::mat4 view = glm::lookAt(camera.transform.position, camera.transform.position+camera.front, camera.up);
 
     shader.use();
-    //glm::mat4 projection = glm::infinitePerspective(glm::radians(camera.FOV), 800.0f/600.0f, 0.1f);
-    glm::mat4 projection = glm::perspective(
-        glm::radians(camera.FOV),
-        8.0f/6.0f,
-        0.1f,
-        100.0f
-    );
-
-    glm::mat4 view = glm::lookAt(glm::vec3(0, 0, -2), glm::vec3(0, 0, -2)+camera.front, camera.up);
-
     shader.setMat4("model", model);
     shader.setMat4("view", view);
     shader.setMat4("projection", projection);
