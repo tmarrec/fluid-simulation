@@ -36,8 +36,9 @@ struct Camera
     float speed;
     float FOV;
     glm::vec3 front = {0.0f, 0.0f, 1.0f};
-    glm::vec3 up = {0.0f, -2.0f, 0.0f};
+    glm::vec3 up = {0.0f, 1.0f, 0.0f};
     glm::mat4 projection = glm::zero<glm::mat4>();
+    Transform transform;
 };
 
 struct Material

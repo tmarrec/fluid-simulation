@@ -1,4 +1,5 @@
 #include "MeshRenderer.h"
+#include "GLFW/glfw3.h"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/trigonometric.hpp"
 
@@ -11,6 +12,7 @@ void MeshRenderer::init(std::shared_ptr<Renderer> renderer, Camera camera)
 void MeshRenderer::update()
 {
     ASSERT(_renderer, "MeshRenderer needs to be initialized");
+    cameraMovements();
     for (auto const& entity : mEntities)
     {
         auto& transform = gCoordinator.GetComponent<Transform>(entity);
@@ -29,10 +31,39 @@ void MeshRenderer::update()
     }
 }
 
+void MeshRenderer::cameraMovements()
+{
+    if (KeyInput::isDown(GLFW_KEY_W))
+    {
+        _camera.transform.position.z += _camera.speed;
+    }
+    if (KeyInput::isDown(GLFW_KEY_A))
+    {
+        _camera.transform.position.x += _camera.speed;
+    }
+    if (KeyInput::isDown(GLFW_KEY_S))
+    {
+        _camera.transform.position.z -= _camera.speed;
+    }
+    if (KeyInput::isDown(GLFW_KEY_D))
+    {
+        _camera.transform.position.x -= _camera.speed;
+    }
+    if (KeyInput::isDown(GLFW_KEY_LEFT_SHIFT))
+    {
+        _camera.transform.position.y += _camera.speed;
+    }
+    if (KeyInput::isDown(GLFW_KEY_LEFT_CONTROL))
+    {
+        _camera.transform.position.y -= _camera.speed;
+    }
+
+}
+
 MeshRenderer::~MeshRenderer()
 {
     ASSERT(_renderer, "MeshRenderer needs to be initialized");
-    for (auto const& entity : mEntities)
+    for (const auto& entity : mEntities)
     {
         auto& mesh = gCoordinator.GetComponent<Mesh>(entity);
         if (mesh.initialized)

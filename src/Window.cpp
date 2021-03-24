@@ -17,6 +17,8 @@ void Window::init(WindowInfos windowInfos)
     //glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_FALSE);
 
 	windowInit();
+
+    glfwSetKeyCallback(_glfwWindow.get(), KeyInput::keyCallback);
 }
 
 bool Window::windowShouldClose() const

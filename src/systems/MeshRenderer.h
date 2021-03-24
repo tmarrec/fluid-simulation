@@ -16,6 +16,7 @@ public:
     ~MeshRenderer();
 
 private:
+    void cameraMovements();
     std::shared_ptr<Renderer> _renderer = nullptr;
     Camera _camera;
 };

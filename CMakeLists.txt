@@ -73,11 +73,15 @@ ADD_EXECUTABLE (${PROJECT_NAME}
 	src/Renderer.h
 	src/Window.h
     src/Shader.h
+    src/KeyInput.h
+    src/BasicEntities.h
 
 	src/Game.cpp
 	src/Renderer.cpp
 	src/Window.cpp
     src/Shader.cpp
+    src/KeyInput.cpp
+    src/BasicEntities.cpp
 )
 
 # ╔═════════╗

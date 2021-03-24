@@ -8,6 +8,7 @@
 #include "Components.h"
 #include "Shader.h"
 #include "ecs/Coordinator.h"
+#include "BasicEntities.h"
 
 #include "systems/Physics.h"
 #include "systems/MeshRenderer.h"
