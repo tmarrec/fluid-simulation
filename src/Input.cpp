@@ -43,9 +43,9 @@ void Input::cursorPositionCallback([[maybe_unused]] GLFWwindow* window, double x
     {
         mouseOffsetX = xpos-_lastMouseX;
         mouseOffsetY = ypos-_lastMouseY;
-        _lastMouseX = xpos;
-        _lastMouseY = ypos;
     }
+    _lastMouseX = xpos;
+    _lastMouseY = ypos;
 }
 
 void Input::mouseButtonCallback(GLFWwindow* window, int button, [[maybe_unused]] int action, [[maybe_unused]] int mobs)
@@ -54,8 +54,8 @@ void Input::mouseButtonCallback(GLFWwindow* window, int button, [[maybe_unused]]
     {
         case GLFW_MOUSE_BUTTON_1:
             _focused = true;
-             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-             break;
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            break;
     }
 }
 

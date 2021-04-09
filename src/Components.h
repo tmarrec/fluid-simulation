@@ -49,7 +49,6 @@ struct Material
     Shader shader;
 };
 
-struct FluidCube
+struct Fluid2D
 {
-
 };
