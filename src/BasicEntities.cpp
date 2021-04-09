@@ -1,4 +1,5 @@
 #include "BasicEntities.h"
+#include "Components.h"
 
 void BasicEntities::addTransform(Entity& entity, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
@@ -7,6 +8,43 @@ void BasicEntities::addTransform(Entity& entity, glm::vec3 position, glm::vec3 r
         .position = position,
         .rotation = rotation,
         .scale = scale
+    });
+}
+
+void BasicEntities::addPlane(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+{
+    auto entity = gCoordinator.CreateEntity();
+    addTransform(entity, position, rotation, scale);
+
+    gCoordinator.AddComponent(entity, Mesh
+    {
+        .vertices =
+        {
+            -0.5f, 0.0f, -0.5f,
+            0.5f, 0.0f, -0.5f,
+            0.5f, 0.0f, 0.5f,
+            -0.5f, 0.0f, 0.5f,
+        },
+        .normals =
+        {
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+        },
+        .indices =
+        {
+            0,  1,  2,  0,  2,  3,
+        },
+    });
+
+    Shader shaderProgram {};
+    shaderProgram.setVert("shaders/vert.vert");
+    shaderProgram.setFrag("shaders/frag.frag");
+
+    gCoordinator.AddComponent(entity, Material
+    {
+        .shader = shaderProgram
     });
 }
 
@@ -196,5 +234,47 @@ void BasicEntities::addVector(glm::vec3 position, glm::vec3 rotation, glm::vec3 
     gCoordinator.AddComponent(entity, Material
     {
         .shader = shaderProgram
+    });
+}
+
+void BasicEntities::addFluid2D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+{
+    auto entity = gCoordinator.CreateEntity();
+    addTransform(entity, position, rotation, scale);
+
+    gCoordinator.AddComponent(entity, Mesh
+    {
+        .vertices =
+        {
+            -0.5f, 0.0f, -0.5f,
+            0.5f, 0.0f, -0.5f,
+            0.5f, 0.0f, 0.5f,
+            -0.5f, 0.0f, 0.5f,
+        },
+        .normals =
+        {
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+        },
+        .indices =
+        {
+            0,  1,  2,  0,  2,  3,
+        },
+    });
+
+    Shader shaderProgram {};
+    shaderProgram.setVert("shaders/vert.vert");
+    shaderProgram.setFrag("shaders/frag.frag");
+
+    gCoordinator.AddComponent(entity, Material
+    {
+        .shader = shaderProgram
+    });
+
+    gCoordinator.AddComponent(entity, Fluid2D
+    {
+
     });
 }

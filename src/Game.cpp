@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "BasicEntities.h"
 
 Coordinator gCoordinator;
 
@@ -11,19 +12,19 @@ void Game::initECS()
     gCoordinator.RegisterComponent<Mesh>();
     gCoordinator.RegisterComponent<Camera>();
     gCoordinator.RegisterComponent<Material>();
-    gCoordinator.RegisterComponent<FluidCube>();
+    gCoordinator.RegisterComponent<Fluid2D>();
 
     _physicsSys = gCoordinator.RegisterSystem<Physics>();
     _meshRendererSys = gCoordinator.RegisterSystem<MeshRenderer>();
     Camera camera
     {
-        .yaw = 0,
-        .pitch = 0,
+        .yaw = 90,
+        .pitch = -10,
         .speed = 0.1f,
-        .FOV = 90,
+        .FOV = 60,
         .transform = Transform
             {
-                .position = {0, 0, -2},
+                .position = {0.065, 5, -12},
                 .rotation = {0, 0, 0},
                 .scale = {1, 1, 1}
             }
@@ -43,7 +44,7 @@ void Game::initECS()
 
     Signature signatureFluids;
     signatureFluids.set(gCoordinator.GetComponentType<Transform>());
-    signatureFluids.set(gCoordinator.GetComponentType<FluidCube>());
+    signatureFluids.set(gCoordinator.GetComponentType<Fluid2D>());
     gCoordinator.SetSystemSignature<Fluids>(signatureFluids);
 }
 
@@ -53,9 +54,7 @@ void Game::run(WindowInfos windowInfos)
 	_renderer.init(_window);
     initECS();
 
-    BasicEntities::addLineCube(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{1,1,1});
-    BasicEntities::addCube(glm::vec3{1,1,1}, glm::vec3{0,0,0}, glm::vec3{1,1,1});
-    BasicEntities::addVector(glm::vec3{-1,-1,-1}, glm::vec3{0,0,0}, glm::vec3{1,1,1});
+    BasicEntities::addFluid2D(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
     
 	mainLoop();
 }

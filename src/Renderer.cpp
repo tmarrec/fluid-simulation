@@ -1,5 +1,4 @@
 #include "Renderer.h"
-#include "glm/gtc/constants.hpp"
 
 void Renderer::init(std::shared_ptr<Window> window)
 {
