@@ -1,22 +1,34 @@
 #include "BasicEntities.h"
 #include "Components.h"
+#include <cstdint>
 
-void BasicEntities::addTransform(Entity& entity, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+Mesh BasicEntities::_vector;
+Mesh BasicEntities::_plane;
+Mesh BasicEntities::_cube;
+
+void BasicEntities::initBasicEntities(std::shared_ptr<Renderer> renderer)
 {
-    gCoordinator.AddComponent(entity, Transform
+    _vector =
     {
-        .position = position,
-        .rotation = rotation,
-        .scale = scale
-    });
-}
+        .vertices =
+        {
+            0.0f, 0.0f, 0.0f,
+            1.0f, 0.0f, 0.0f,
+        },
+        .normals =
+        {
+            0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f,
+        },
+        .indices =
+        {
+            0,  1
+        },
+        .renderMode = LINES,
+    };
+    renderer->initMesh(_vector);
 
-void BasicEntities::addPlane(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
-{
-    auto entity = gCoordinator.CreateEntity();
-    addTransform(entity, position, rotation, scale);
-
-    gCoordinator.AddComponent(entity, Mesh
+    _plane =
     {
         .vertices =
         {
@@ -36,24 +48,9 @@ void BasicEntities::addPlane(glm::vec3 position, glm::vec3 rotation, glm::vec3 s
         {
             0,  1,  2,  0,  2,  3,
         },
-    });
+    };
 
-    Shader shaderProgram {};
-    shaderProgram.setVert("shaders/vert.vert");
-    shaderProgram.setFrag("shaders/frag.frag");
-
-    gCoordinator.AddComponent(entity, Material
-    {
-        .shader = shaderProgram
-    });
-}
-
-void BasicEntities::addCube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
-{
-    auto entity = gCoordinator.CreateEntity();
-    addTransform(entity, position, rotation, scale);
-
-    gCoordinator.AddComponent(entity, Mesh
+    _cube =
     {
         .vertices =
         {
@@ -128,7 +125,43 @@ void BasicEntities::addCube(glm::vec3 position, glm::vec3 rotation, glm::vec3 sc
             17, 16, 19, 17, 19, 18,
             20, 21, 23, 21, 22, 23
         },
+    };
+    renderer->initMesh(_cube);
+}
+
+void BasicEntities::addTransform(Entity& entity, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+{
+    gCoordinator.AddComponent(entity, Transform
+    {
+        .position = position,
+        .rotation = rotation,
+        .scale = scale
     });
+}
+
+void BasicEntities::addPlane(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+{
+    auto entity = gCoordinator.CreateEntity();
+    addTransform(entity, position, rotation, scale);
+
+    gCoordinator.AddComponent(entity, _plane);
+
+    Shader shaderProgram {};
+    shaderProgram.setVert("shaders/vert.vert");
+    shaderProgram.setFrag("shaders/frag.frag");
+
+    gCoordinator.AddComponent(entity, Material
+    {
+        .shader = shaderProgram
+    });
+}
+
+void BasicEntities::addCube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+{
+    auto entity = gCoordinator.CreateEntity();
+    addTransform(entity, position, rotation, scale);
+
+    gCoordinator.AddComponent(entity, _cube);
 
     Shader shaderProgram {};
     shaderProgram.setVert("shaders/vert.vert");
@@ -202,7 +235,7 @@ void BasicEntities::addLineCube(glm::vec3 position, glm::vec3 rotation, glm::vec
 
 }
 
-void BasicEntities::addVector(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+Entity BasicEntities::addVector(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
     auto entity = gCoordinator.CreateEntity();
 
@@ -212,8 +245,8 @@ void BasicEntities::addVector(glm::vec3 position, glm::vec3 rotation, glm::vec3 
     {
         .vertices =
         {
-            0.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f,
+            0, 0, 0,
+            1, 0, 0,
         },
         .normals =
         {
@@ -235,6 +268,7 @@ void BasicEntities::addVector(glm::vec3 position, glm::vec3 rotation, glm::vec3 
     {
         .shader = shaderProgram
     });
+    return entity;
 }
 
 void BasicEntities::addFluid2D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
@@ -242,6 +276,7 @@ void BasicEntities::addFluid2D(glm::vec3 position, glm::vec3 rotation, glm::vec3
     auto entity = gCoordinator.CreateEntity();
     addTransform(entity, position, rotation, scale);
 
+    /*
     gCoordinator.AddComponent(entity, Mesh
     {
         .vertices =
@@ -262,7 +297,9 @@ void BasicEntities::addFluid2D(glm::vec3 position, glm::vec3 rotation, glm::vec3
         {
             0,  1,  2,  0,  2,  3,
         },
+        .renderMode = LINES
     });
+    */
 
     Shader shaderProgram {};
     shaderProgram.setVert("shaders/vert.vert");
@@ -273,8 +310,26 @@ void BasicEntities::addFluid2D(glm::vec3 position, glm::vec3 rotation, glm::vec3
         .shader = shaderProgram
     });
 
-    gCoordinator.AddComponent(entity, Fluid2D
+    Fluid2D fluid =
     {
+        .entities = {},
+        .U = {},
+        .Uprev = {},
+        .viscosity = 1.0f,
+        .dt = 0.1f,
+    };
 
-    });
+    for (std::uint32_t i = 0; i < fluid.N+2; ++i)
+    {
+        for (std::uint32_t j = 0; j < fluid.N+2; ++j)
+        {
+            fluid.U.emplace_back(glm::vec3{0,0,0});
+            fluid.Uprev.emplace_back(glm::vec3{0,0,0});
+
+            glm::vec3 cellpos = position+(static_cast<float>(i)*glm::vec3{1.0f, 0, 0})+(static_cast<float>(j)*glm::vec3{0, 0, 1.0f})-((static_cast<float>(fluid.N+2)/2)*glm::vec3{1.0f, 0, 1.0f})+glm::vec3{0.5f, 0, 0.5f};
+            fluid.entities.emplace_back(addVector(cellpos, {0,0,0}, {0.5f,0.5f,0.5f}));
+        }
+    }
+
+    gCoordinator.AddComponent(entity, fluid);
 }

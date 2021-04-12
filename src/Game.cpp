@@ -1,5 +1,7 @@
 #include "Game.h"
 #include "BasicEntities.h"
+#include <cstdint>
+#include <memory>
 
 Coordinator gCoordinator;
 
@@ -19,12 +21,12 @@ void Game::initECS()
     Camera camera
     {
         .yaw = 90,
-        .pitch = -10,
+        .pitch = -90,
         .speed = 0.1f,
         .FOV = 60,
         .transform = Transform
             {
-                .position = {0.065, 5, -12},
+                .position = {0, 17, 0},
                 .rotation = {0, 0, 0},
                 .scale = {1, 1, 1}
             }
@@ -53,9 +55,10 @@ void Game::run(WindowInfos windowInfos)
 	_window->init(windowInfos);
 	_renderer.init(_window);
     initECS();
+    BasicEntities::initBasicEntities(std::make_shared<Renderer>(_renderer));
 
     BasicEntities::addFluid2D(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
-    
+
 	mainLoop();
 }
 
@@ -76,7 +79,7 @@ void Game::mainLoop()
 
         auto stopTime = std::chrono::high_resolution_clock::now();
         dt = std::chrono::duration<float, std::chrono::seconds::period>(stopTime - startTime).count();
-        //std::cout << 1/dt << std::endl;
+        std::cout << 1/dt << std::endl;
 	}
 }
 
