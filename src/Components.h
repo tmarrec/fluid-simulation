@@ -28,6 +28,7 @@ struct Mesh
     std::uint32_t VBO = 0;
     std::uint32_t NBO = 0;
     std::uint32_t EBO = 0;
+    std::uint32_t TBO = 0;
 
     RenderMode renderMode = TRIANGLES;
 };
@@ -47,16 +48,25 @@ struct Camera
 struct Material
 {
     Shader shader;
+    bool hasTexture = false;
+    std::uint32_t texture = 0;
+    std::uint32_t TBO = 0;
+    std::vector<float> texCoords = {};
 };
 
 struct Fluid2D
 {
-    std::uint32_t N = 16;
-    std::vector<Entity> entities;
-    std::vector<glm::vec3> velocityField;
-    std::vector<glm::vec3> velocityFieldPrev;
     float viscosity;
     float dt;
+    Entity entity;
+    std::uint32_t N = 64;
+
+    std::vector<glm::vec3> velocityField;
+    std::vector<glm::vec3> velocityFieldPrev;
+
+    std::vector<glm::vec3> substanceField;
+    std::vector<glm::vec3> substanceFieldPrev;
+
     std::uint32_t IX(int x, int y) const
     { 
         return x + y * (N+2);

@@ -1,10 +1,9 @@
 #include "BasicEntities.h"
-#include "Components.h"
-#include <cstdint>
 
 Mesh BasicEntities::_vector;
 Mesh BasicEntities::_plane;
 Mesh BasicEntities::_cube;
+std::shared_ptr<Renderer> BasicEntities::_renderer;
 
 void BasicEntities::initBasicEntities(std::shared_ptr<Renderer> renderer)
 {
@@ -276,15 +275,14 @@ void BasicEntities::addFluid2D(glm::vec3 position, glm::vec3 rotation, glm::vec3
     auto entity = gCoordinator.CreateEntity();
     addTransform(entity, position, rotation, scale);
 
-    /*
-    gCoordinator.AddComponent(entity, Mesh
+    Mesh mesh
     {
         .vertices =
         {
-            -0.5f, 0.0f, -0.5f,
-            0.5f, 0.0f, -0.5f,
-            0.5f, 0.0f, 0.5f,
-            -0.5f, 0.0f, 0.5f,
+            -0.5f, 0.1f, -0.5f,
+            0.5f, 0.1f, -0.5f,
+            0.5f, 0.1f, 0.5f,
+            -0.5f, 0.1f, 0.5f,
         },
         .normals =
         {
@@ -297,39 +295,47 @@ void BasicEntities::addFluid2D(glm::vec3 position, glm::vec3 rotation, glm::vec3
         {
             0,  1,  2,  0,  2,  3,
         },
-        .renderMode = LINES
-    });
-    */
+    };
+    gCoordinator.AddComponent(entity, mesh);
 
     Shader shaderProgram {};
     shaderProgram.setVert("shaders/vert.vert");
-    shaderProgram.setFrag("shaders/frag.frag");
+    shaderProgram.setFrag("shaders/fluid2D.frag");
 
-    gCoordinator.AddComponent(entity, Material
+    Material material = 
     {
-        .shader = shaderProgram
-    });
+        .shader = shaderProgram,
+        .texCoords =
+        {
+            1.0f, 1.0f,
+            1.0f, 0.0f,
+            0.0f, 0.0f, 
+            0.0f, 1.0f
+        }
+    };
+    BasicEntities::_renderer->initMaterial(material);
+    gCoordinator.AddComponent(entity, material);
+
 
     Fluid2D fluid =
     {
-        .entities = {},
+        .viscosity = 0.01f,
+        .dt = 0.0001f,
+        .entity = entity,
         .velocityField = {},
         .velocityFieldPrev = {},
-        .viscosity = 1.0f,
-        .dt = 0.001f,
+        .substanceField = {},
+        .substanceFieldPrev = {},
     };
 
-    for (std::uint32_t i = 0; i < fluid.N+2; ++i)
+    fluid.velocityField.reserve((fluid.N+2)*(fluid.N+2));
+    for (std::uint32_t i = 0; i < (fluid.N+2)*(fluid.N+2); ++i)
     {
-        for (std::uint32_t j = 0; j < fluid.N+2; ++j)
-        {
-            fluid.velocityField.emplace_back(glm::vec3{0,0,0});
-            fluid.velocityFieldPrev.emplace_back(glm::vec3{0,0,0});
-
-            glm::vec3 cellpos = position+(static_cast<float>(i)*glm::vec3{1.0f, 0, 0})+(static_cast<float>(j)*glm::vec3{0, 0, 1.0f})-((static_cast<float>(fluid.N+2)/2)*glm::vec3{1.0f, 0, 1.0f})+glm::vec3{0.5f, 0, 0.5f};
-            fluid.entities.emplace_back(addVector(cellpos, {0,0,0}, {0.5f,0.5f,0.5f}));
-        }
+        fluid.velocityField.emplace_back(glm::vec3{0,0,0});
     }
+    fluid.velocityFieldPrev = fluid.velocityField;
+    fluid.substanceField = fluid.velocityField;
+    fluid.substanceFieldPrev = fluid.velocityField;
 
     gCoordinator.AddComponent(entity, fluid);
 }

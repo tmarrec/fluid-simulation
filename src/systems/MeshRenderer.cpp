@@ -1,5 +1,4 @@
 #include "MeshRenderer.h"
-#include "glm/geometric.hpp"
 
 void MeshRenderer::init(std::shared_ptr<Renderer> renderer, Camera camera)
 {
@@ -23,7 +22,7 @@ void MeshRenderer::update()
         }
         else
         {
-            _renderer->useShader(material.shader, _camera, transform);
+            _renderer->applyMaterial(material, _camera, transform);
             _renderer->drawMesh(mesh);
         }
     }
