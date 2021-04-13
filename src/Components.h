@@ -53,8 +53,8 @@ struct Fluid2D
 {
     std::uint32_t N = 16;
     std::vector<Entity> entities;
-    std::vector<glm::vec3> U;
-    std::vector<glm::vec3> Uprev;
+    std::vector<glm::vec3> velocityField;
+    std::vector<glm::vec3> velocityFieldPrev;
     float viscosity;
     float dt;
     std::uint32_t IX(int x, int y) const

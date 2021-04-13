@@ -313,18 +313,18 @@ void BasicEntities::addFluid2D(glm::vec3 position, glm::vec3 rotation, glm::vec3
     Fluid2D fluid =
     {
         .entities = {},
-        .U = {},
-        .Uprev = {},
+        .velocityField = {},
+        .velocityFieldPrev = {},
         .viscosity = 1.0f,
-        .dt = 0.1f,
+        .dt = 0.001f,
     };
 
     for (std::uint32_t i = 0; i < fluid.N+2; ++i)
     {
         for (std::uint32_t j = 0; j < fluid.N+2; ++j)
         {
-            fluid.U.emplace_back(glm::vec3{0,0,0});
-            fluid.Uprev.emplace_back(glm::vec3{0,0,0});
+            fluid.velocityField.emplace_back(glm::vec3{0,0,0});
+            fluid.velocityFieldPrev.emplace_back(glm::vec3{0,0,0});
 
             glm::vec3 cellpos = position+(static_cast<float>(i)*glm::vec3{1.0f, 0, 0})+(static_cast<float>(j)*glm::vec3{0, 0, 1.0f})-((static_cast<float>(fluid.N+2)/2)*glm::vec3{1.0f, 0, 1.0f})+glm::vec3{0.5f, 0, 0.5f};
             fluid.entities.emplace_back(addVector(cellpos, {0,0,0}, {0.5f,0.5f,0.5f}));
