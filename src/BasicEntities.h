@@ -22,4 +22,5 @@ private:
     static Mesh _vector;
     static Mesh _plane;
     static Mesh _cube;
+    static std::shared_ptr<Renderer> _renderer;
 };

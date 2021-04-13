@@ -1,7 +1,4 @@
 #include "Game.h"
-#include "BasicEntities.h"
-#include <cstdint>
-#include <memory>
 
 Coordinator gCoordinator;
 
@@ -26,13 +23,14 @@ void Game::initECS()
         .FOV = 60,
         .transform = Transform
             {
-                .position = {0, 17, 0},
+                .position = {0, 11, 0},
                 .rotation = {0, 0, 0},
                 .scale = {1, 1, 1}
             }
     };
     _meshRendererSys->init(std::make_shared<Renderer>(_renderer), camera);
     _fluidsSys = gCoordinator.RegisterSystem<Fluids>();
+    _fluidsSys->init(std::make_shared<Renderer>(_renderer));
 
     Signature signaturePhysics;
     signaturePhysics.set(gCoordinator.GetComponentType<Transform>());
