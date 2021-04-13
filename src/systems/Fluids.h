@@ -17,7 +17,8 @@ private:
 
     void addSource(Fluid2D& fluid);
     void diffuse(Fluid2D& fluid, float visc, std::vector<glm::vec3>& X, std::vector<glm::vec3>& X0);
-    void advect(Fluid2D& fluid, std::vector<glm::vec3>& U, std::vector<glm::vec3>& Uprev);
+    void advect(Fluid2D& fluid, std::vector<glm::vec3>& D, std::vector<glm::vec3>& Dprev, std::vector<glm::vec3>& U);
+    void project(Fluid2D& fluid, std::vector<glm::vec3>& U, std::vector<glm::vec3>& Uprev);
     void setBnd(Fluid2D& fluid, std::vector<glm::vec3>& U);
 
     void updateRender(Fluid2D& fluid, Transform& transform);
