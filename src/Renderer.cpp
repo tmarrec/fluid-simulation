@@ -126,17 +126,17 @@ void Renderer::initMaterial(Material& material) const
 {
     material.hasTexture = true;
     glGenTextures(1, &material.texture);
-    glBindTexture(GL_TEXTURE_2D, material.texture);
 }
 
-void Renderer::updateTexture(const std::vector<std::uint8_t>& texture) const
+void Renderer::updateTexture(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const
 {
-    std::uint32_t size = (std::uint32_t)sqrt(texture.size()/3);
+    std::uint32_t size = (std::uint32_t)sqrt(static_cast<std::uint32_t>(texture.size()/3));
+    glBindTexture(GL_TEXTURE_2D, textureGL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glad_glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, texture.data());
     glGenerateMipmap(GL_TEXTURE_2D);
 }

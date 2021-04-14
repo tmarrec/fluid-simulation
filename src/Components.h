@@ -59,19 +59,43 @@ struct Fluid2D
     float viscosity;
     float dt;
     Entity entity;
-    std::uint32_t N = 84;
+    std::uint32_t N = 64;
 
-    std::vector<float> velocityFieldX;
-    std::vector<float> velocityFieldY;
+    std::vector<float> velocityFieldX = {};
+    std::vector<float> velocityFieldY = {};
 
-    std::vector<float> velocityFieldPrevX;
-    std::vector<float> velocityFieldPrevY;
+    std::vector<float> velocityFieldPrevX = {};
+    std::vector<float> velocityFieldPrevY = {};
 
-    std::vector<float> substanceField;
-    std::vector<float> substanceFieldPrev;
+    std::vector<float> substanceField = {};
+    std::vector<float> substanceFieldPrev = {};
 
-    std::uint32_t IX(int x, int y) const
+    std::uint32_t IX(const std::uint32_t x, int y) const
     { 
         return x + y * (N+2);
+    };
+};
+
+struct Fluid3D
+{
+    float viscosity;
+    float dt;
+    Entity entity;
+    std::uint32_t N = 16;
+
+    std::vector<float> velocityFieldX = {};
+    std::vector<float> velocityFieldY = {};
+    std::vector<float> velocityFieldZ = {};
+
+    std::vector<float> velocityFieldPrevX = {};
+    std::vector<float> velocityFieldPrevY = {};
+    std::vector<float> velocityFieldPrevZ = {};
+
+    std::vector<float> substanceField = {};
+    std::vector<float> substanceFieldPrev = {};
+
+    std::uint32_t IX(const std::uint32_t x, const std::uint32_t y, const std::uint32_t z) const
+    { 
+        return x + y * (N+2) + z * ((N+2)*(N+2));
     };
 };
