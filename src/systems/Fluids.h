@@ -3,8 +3,15 @@
 #include "../ecs/Coordinator.h"
 #include "../Components.h"
 #include "../BasicEntities.h"
+#include <cstdint>
 
 extern Coordinator gCoordinator;
+
+struct Bound
+{
+    std::uint8_t dim;
+    std::uint8_t b;
+};
 
 class Fluids : public System
 {
@@ -16,13 +23,14 @@ private:
     void Vstep(Fluid2D& fluid);
     void Sstep(Fluid2D& fluid);
 
-    void addSource(Fluid2D& fluid);
-    void diffuse(Fluid2D& fluid, std::vector<glm::vec3>& X, std::vector<glm::vec3>& X0);
-    void advect(Fluid2D& fluid, std::vector<glm::vec3>& D, std::vector<glm::vec3>& Dprev, std::vector<glm::vec3>& U);
-    void project(Fluid2D& fluid, std::vector<glm::vec3>& U, std::vector<glm::vec3>& Uprev);
-    void setBnd(Fluid2D& fluid, std::vector<glm::vec3>& U);
+    void addSource(Fluid2D& fluid, std::vector<float>& X, std::vector<float>& S);
+    void diffuse(Fluid2D& fluid, std::vector<float>& X, std::vector<float>& Xprev, std::uint8_t b);
+    void advect(Fluid2D& fluid, std::vector<float>& D, std::vector<float>& Dprev, std::vector<float>& X, std::vector<float>& Y, std::uint8_t b);
+    void project(Fluid2D& fluid, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& p, std::vector<float>& div);
+    void setBnd(Fluid2D& fluid, std::vector<float>& X, std::uint8_t b);
 
     void updateRender(Fluid2D& fluid);
 
     std::shared_ptr<Renderer> _renderer = nullptr;
 };
+
