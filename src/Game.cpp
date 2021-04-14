@@ -11,7 +11,7 @@ void Game::initECS()
     gCoordinator.RegisterComponent<Mesh>();
     gCoordinator.RegisterComponent<Camera>();
     gCoordinator.RegisterComponent<Material>();
-    gCoordinator.RegisterComponent<Fluid2D>();
+    gCoordinator.RegisterComponent<Fluid3D>();
 
     _physicsSys = gCoordinator.RegisterSystem<Physics>();
     _meshRendererSys = gCoordinator.RegisterSystem<MeshRenderer>();
@@ -23,7 +23,7 @@ void Game::initECS()
         .FOV = 60,
         .transform = Transform
             {
-                .position = {0, 11, 0},
+                .position = {0, 15, 0},
                 .rotation = {0, 0, 0},
                 .scale = {1, 1, 1}
             }
@@ -44,7 +44,7 @@ void Game::initECS()
 
     Signature signatureFluids;
     signatureFluids.set(gCoordinator.GetComponentType<Transform>());
-    signatureFluids.set(gCoordinator.GetComponentType<Fluid2D>());
+    signatureFluids.set(gCoordinator.GetComponentType<Fluid3D>());
     gCoordinator.SetSystemSignature<Fluids>(signatureFluids);
 }
 
@@ -55,7 +55,7 @@ void Game::run(WindowInfos windowInfos)
     initECS();
     BasicEntities::initBasicEntities(std::make_shared<Renderer>(_renderer));
 
-    BasicEntities::addFluid2D(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
+    BasicEntities::addFluid3D(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
 
 	mainLoop();
 }

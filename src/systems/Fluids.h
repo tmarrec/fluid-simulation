@@ -7,12 +7,6 @@
 
 extern Coordinator gCoordinator;
 
-struct Bound
-{
-    std::uint8_t dim;
-    std::uint8_t b;
-};
-
 class Fluids : public System
 {
 public:
@@ -20,16 +14,16 @@ public:
     void update();
 
 private:
-    void Vstep(Fluid2D& fluid);
-    void Sstep(Fluid2D& fluid);
+    void Vstep(Fluid3D& fluid);
+    void Sstep(Fluid3D& fluid);
 
-    void addSource(Fluid2D& fluid, std::vector<float>& X, std::vector<float>& S);
-    void diffuse(Fluid2D& fluid, std::vector<float>& X, std::vector<float>& Xprev, std::uint8_t b);
-    void advect(Fluid2D& fluid, std::vector<float>& D, std::vector<float>& Dprev, std::vector<float>& X, std::vector<float>& Y, std::uint8_t b);
-    void project(Fluid2D& fluid, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& p, std::vector<float>& div);
-    void setBnd(Fluid2D& fluid, std::vector<float>& X, std::uint8_t b);
+    void addSource(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& S) const;
+    void diffuse(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, std::uint8_t b) const;
+    void advect(Fluid3D& fluid, std::vector<float>& D, std::vector<float>& Dprev, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& Z, std::uint8_t b) const;
+    void project(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& Z, std::vector<float>& p, std::vector<float>& div) const;
+    void setBnd(Fluid3D& fluid, std::vector<float>& X, std::uint8_t b) const;
 
-    void updateRender(Fluid2D& fluid);
+    void updateRender(Fluid3D& fluid);
 
     std::shared_ptr<Renderer> _renderer = nullptr;
 };
