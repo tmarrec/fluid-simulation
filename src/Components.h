@@ -59,13 +59,16 @@ struct Fluid2D
     float viscosity;
     float dt;
     Entity entity;
-    std::uint32_t N = 64;
+    std::uint32_t N = 84;
 
-    std::vector<glm::vec3> velocityField;
-    std::vector<glm::vec3> velocityFieldPrev;
+    std::vector<float> velocityFieldX;
+    std::vector<float> velocityFieldY;
 
-    std::vector<glm::vec3> substanceField;
-    std::vector<glm::vec3> substanceFieldPrev;
+    std::vector<float> velocityFieldPrevX;
+    std::vector<float> velocityFieldPrevY;
+
+    std::vector<float> substanceField;
+    std::vector<float> substanceFieldPrev;
 
     std::uint32_t IX(int x, int y) const
     { 

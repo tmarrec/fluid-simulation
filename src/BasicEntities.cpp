@@ -319,23 +319,27 @@ void BasicEntities::addFluid2D(glm::vec3 position, glm::vec3 rotation, glm::vec3
 
     Fluid2D fluid =
     {
-        .viscosity = 0.01f,
+        .viscosity = 0.02f,
         .dt = 0.0001f,
         .entity = entity,
-        .velocityField = {},
-        .velocityFieldPrev = {},
+        .velocityFieldX = {},
+        .velocityFieldY = {},
+        .velocityFieldPrevX = {},
+        .velocityFieldPrevY = {},
         .substanceField = {},
         .substanceFieldPrev = {},
     };
 
-    fluid.velocityField.reserve((fluid.N+2)*(fluid.N+2));
+    fluid.velocityFieldX.reserve((fluid.N+2)*(fluid.N+2));
     for (std::uint32_t i = 0; i < (fluid.N+2)*(fluid.N+2); ++i)
     {
-        fluid.velocityField.emplace_back(glm::vec3{0,0,0});
+        fluid.velocityFieldX.emplace_back(0);
     }
-    fluid.velocityFieldPrev = fluid.velocityField;
-    fluid.substanceField = fluid.velocityField;
-    fluid.substanceFieldPrev = fluid.velocityField;
+    fluid.velocityFieldPrevX = fluid.velocityFieldX;
+    fluid.velocityFieldY = fluid.velocityFieldX;
+    fluid.velocityFieldPrevY = fluid.velocityFieldX;
+    fluid.substanceField = fluid.velocityFieldX;
+    fluid.substanceFieldPrev = fluid.velocityFieldX;
 
     gCoordinator.AddComponent(entity, fluid);
 }
