@@ -26,5 +26,6 @@ private:
     void updateRender(Fluid3D& fluid);
 
     std::shared_ptr<Renderer> _renderer = nullptr;
+    bool _init = false;
 };
 

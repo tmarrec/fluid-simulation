@@ -22,7 +22,7 @@ class Renderer
 {
 public:
 	void init(std::shared_ptr<Window> window);
-    void prePass() const;
+    void prePass();
     void endPass() const;
     void initMesh(Mesh& mesh) const;
     void drawMesh(Mesh& mesh) const;
@@ -37,6 +37,7 @@ private:
     FrameBuffer _screenbuffer;
     FrameBuffer _raymarchingbuffer;
     WindowInfos _windowInfos;
+    std::uint64_t frameNb = 10;
 
     void _initFrameBuffer(FrameBuffer& framebuffer, std::string vert, std::string frag);
 };

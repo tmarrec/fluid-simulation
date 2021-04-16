@@ -1,5 +1,8 @@
 #include "Renderer.h"
+#include "glm/gtx/string_cast.hpp"
 #include <memory>
+
+#include <chrono>
 
 void Renderer::init(std::shared_ptr<Window> window)
 {
@@ -18,12 +21,13 @@ void Renderer::init(std::shared_ptr<Window> window)
     _initFrameBuffer(_raymarchingbuffer, "shaders/screen.vert", "shaders/raymarch.frag");
 }
 
-void Renderer::prePass() const
+void Renderer::prePass()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, _screenbuffer.FBO);
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.5f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    frameNb = frameNb + 1;
 }
 
 void Renderer::endPass() const
@@ -99,7 +103,7 @@ void Renderer::_initFrameBuffer(FrameBuffer& framebuffer, std::string vert, std:
 
     // Do this at each resize
     framebuffer.shader->use();
-	framebuffer.shader->set1i("screenTexture", 0);
+	//framebuffer.shader->set1i("screenTexture", 0);
     
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.FBO);
 	// Color attachment texture
@@ -136,9 +140,12 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
 	    _screenbuffer.shader->set3f("eyePos", camera.transform.position);
 	    _screenbuffer.shader->set1f("absorption", 1.0f);
         */
+	    //_raymarchingbuffer.shader->set1i("u_densityTex", 0);
 	    _raymarchingbuffer.shader->set2f("u_resolution", {_windowInfos.x, _windowInfos.y});
-	    _raymarchingbuffer.shader->set1f("u_time", 1.0f);
 	    _raymarchingbuffer.shader->set3f("u_eyePos", camera.transform.position);
+	    _raymarchingbuffer.shader->set3f("u_eyeFront", camera.front);
+	    _raymarchingbuffer.shader->set1f("u_eyeFOV", camera.FOV);
+	    _raymarchingbuffer.shader->set1f("u_absorption", 4.0f);
     }
 
     glm::mat4 model {1.0f};
@@ -242,16 +249,15 @@ void Renderer::initTexture(const std::vector<std::uint8_t>& texture, const std::
 
 void Renderer::initTexture3D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const
 {
-    std::uint32_t size = (std::uint32_t)std::cbrt(static_cast<std::uint32_t>(texture.size()/3));
+    std::uint32_t size = (std::uint32_t)std::cbrt(static_cast<std::uint32_t>(texture.size()));
     glBindTexture(GL_TEXTURE_3D, textureGL);
-    /*
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    */
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, size, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, texture.data());
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, size, size, size, 0, GL_RED, GL_UNSIGNED_BYTE, texture.data());
     glGenerateMipmap(GL_TEXTURE_3D);
 }
 
