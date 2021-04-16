@@ -18,13 +18,13 @@ void Game::initECS()
     _meshRendererSys = gCoordinator.RegisterSystem<MeshRenderer>();
     Camera camera
     {
-        .yaw = 90,
-        .pitch = 0,
+        .yaw = 128,
+        .pitch = -25,
         .speed = 0.1f,
         .FOV = 60,
         .transform = Transform
             {
-                .position = {0, 2, 0},
+                .position = {5.7, 4.3, -8.2},
                 .rotation = {0, 0, 0},
                 .scale = {1, 1, 1}
             }
@@ -58,7 +58,7 @@ void Game::run(WindowInfos windowInfos)
 
     BasicEntities::addFluid3D(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
 
-    BasicEntities::addCube(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
+    //BasicEntities::addCube(glm::vec3{5,0,0}, glm::vec3{0,0,0}, glm::vec3{5,5,5});
 
 	mainLoop();
 }

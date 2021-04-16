@@ -1,4 +1,5 @@
 #include "Fluids.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <unistd.h>
@@ -13,10 +14,19 @@ void Fluids::update()
     for (auto const& entity : mEntities)
     {
         auto& fluid = gCoordinator.GetComponent<Fluid3D>(entity);
+        if (!_init)
+        {
+            _init = true; 
+            fluid.velocityFieldX[fluid.IX(fluid.N/2, fluid.N/2-1, fluid.N/2)] = -0.1f;
+            fluid.velocityFieldZ[fluid.IX(fluid.N/2, fluid.N/2-10, fluid.N/2)] = 0.1f;
+        }
 
-        std::uint32_t t = (fluid.N+2)*(fluid.N+2)+(fluid.N/2)+(fluid.N)*2;
-        fluid.substanceField[t] = 500;
-        //fluid.velocityFieldX[t-1] = 50;
+        int N = fluid.N/2;
+        fluid.substanceField[fluid.IX(N, N, N)] = 200;
+        N++;
+        fluid.substanceField[fluid.IX(N, N, N)] = 150;
+        N++;
+        fluid.substanceField[fluid.IX(N, N, N)] = 50;
         
         Vstep(fluid);
         Sstep(fluid);
@@ -205,6 +215,7 @@ void Fluids::project(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& 
 
 void Fluids::setBnd(Fluid3D& fluid, std::vector<float>& X, std::uint8_t b) const
 {
+    /*
     // Edges
     for (std::uint32_t k = 1; k <= fluid.N; ++k)
     {
@@ -241,34 +252,33 @@ void Fluids::setBnd(Fluid3D& fluid, std::vector<float>& X, std::uint8_t b) const
     X[fluid.IX(fluid.N+1,fluid.N+1,0)]          = 0.33f*(X[fluid.IX(fluid.N,fluid.N+1,0)]+X[fluid.IX(fluid.N+1,fluid.N,0)]+X[fluid.IX(fluid.N+1,fluid.N+1,1)]);
     X[fluid.IX(fluid.N+1,0,fluid.N+1)]          = 0.33f*(X[fluid.IX(fluid.N,0,fluid.N+1)]+X[fluid.IX(fluid.N+1,1,fluid.N+1)]+X[fluid.IX(fluid.N+1,0,fluid.N)]);
     X[fluid.IX(fluid.N+1,fluid.N+1,fluid.N+1)]  = 0.33f*(X[fluid.IX(fluid.N,fluid.N+1,fluid.N+1)]+X[fluid.IX(fluid.N+1,fluid.N,fluid.N+1)]+X[fluid.IX(fluid.N+1,fluid.N+1,fluid.N)]);
+    */
 }
 
 void Fluids::updateRender(Fluid3D& fluid)
 {
-    std::vector<std::uint8_t> texture((fluid.N+2)*(fluid.N+2)*(fluid.N+2)*3, 0);
+    std::vector<std::uint8_t> texture((fluid.N+2)*(fluid.N+2)*(fluid.N+2), 0);
+
     for (std::uint32_t i = 0; i < (fluid.N+2)*(fluid.N+2)*(fluid.N+2); ++i)
     {
-        std::uint8_t density = std::clamp(static_cast<int>(fluid.substanceField[i]), 0, 255);
-        density = (i/((fluid.N+2)*(fluid.N+2)))*255;
-        /*
-        std::cout << density*1 << " ";
-        if (i % (fluid.N+2) == 0)
-        {
-            std::cout << std::endl;
-        }
-        if (i % ((fluid.N+2)*(fluid.N+2)) == 0)
-        {
-            std::cout << std::endl;
-        }
-        if (i % ((fluid.N+2)*(fluid.N+2)*(fluid.N+2)) == 0)
-        {
-            std::cout << std::endl << "==============" << std::endl;
-        }
-        */
-        texture[i*3] = density;
-        texture[i*3+1] = density;
-        texture[i*3+2] = density;
+        std::uint8_t density = static_cast<std::uint8_t>(std::clamp(fluid.substanceField[i], 0.0f, 255.0f));
+        texture[i] = density;
     }
+
+    /*
+    int i = 0;
+    for (std::uint32_t x = 0; x < fluid.N+2; ++x)
+    {
+        for (std::uint32_t y = 0; y < fluid.N+2; ++y)
+        {
+            for (std::uint32_t z = 0; z < fluid.N+2; ++z)
+            {
+                texture[i++] = 255;
+            }
+        }
+    }
+    */
+
     const auto& textureGL = gCoordinator.GetComponent<Material>(fluid.entity).texture;
     _renderer->initTexture3D(texture, textureGL);
 }
