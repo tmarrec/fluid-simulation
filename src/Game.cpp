@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "BasicEntities.h"
 
 Coordinator gCoordinator;
 
@@ -18,12 +19,12 @@ void Game::initECS()
     Camera camera
     {
         .yaw = 90,
-        .pitch = -90,
+        .pitch = 0,
         .speed = 0.1f,
         .FOV = 60,
         .transform = Transform
             {
-                .position = {0, 15, 0},
+                .position = {0, 2, 0},
                 .rotation = {0, 0, 0},
                 .scale = {1, 1, 1}
             }
@@ -57,6 +58,8 @@ void Game::run(WindowInfos windowInfos)
 
     BasicEntities::addFluid3D(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
 
+    BasicEntities::addCube(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
+
 	mainLoop();
 }
 
@@ -71,6 +74,7 @@ void Game::mainLoop()
         _fluidsSys->update();
         _renderer.prePass();
         _meshRendererSys->update();
+        _renderer.endPass();
 
         _window->swapBuffers();
 		_window->pollEvents();

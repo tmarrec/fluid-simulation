@@ -43,6 +43,11 @@ void Shader::set3f(const std::string &name, const glm::vec3 values) const
     glUniform3f(getLocation(name), values.x, values.y, values.z);
 }
 
+void Shader::set2f(const std::string &name, const glm::vec2 values) const
+{
+    glUniform2f(getLocation(name), values.x, values.y);
+}
+
 void Shader::setMat4(const std::string &name, const glm::mat4 values) const
 {
     glUniformMatrix4fv(getLocation(name), 1, GL_FALSE, glm::value_ptr(values));

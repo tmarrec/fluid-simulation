@@ -1,6 +1,7 @@
 #include "Fluids.h"
 #include <cmath>
 #include <cstdint>
+#include <unistd.h>
 
 void Fluids::init(std::shared_ptr<Renderer> renderer)
 {
@@ -13,9 +14,9 @@ void Fluids::update()
     {
         auto& fluid = gCoordinator.GetComponent<Fluid3D>(entity);
 
-        std::uint32_t t = (fluid.N+2)*(fluid.N+2)+(fluid.N/2*15);
+        std::uint32_t t = (fluid.N+2)*(fluid.N+2)+(fluid.N/2)+(fluid.N)*2;
         fluid.substanceField[t] = 500;
-        fluid.velocityFieldX[t-1] = 50;
+        //fluid.velocityFieldX[t-1] = 50;
         
         Vstep(fluid);
         Sstep(fluid);
@@ -244,14 +245,30 @@ void Fluids::setBnd(Fluid3D& fluid, std::vector<float>& X, std::uint8_t b) const
 
 void Fluids::updateRender(Fluid3D& fluid)
 {
-    std::vector<std::uint8_t> texture((fluid.N+2)*(fluid.N+2)*3, 0);
-    for (std::uint32_t i = 0; i < (fluid.N+2)*(fluid.N+2); ++i)
+    std::vector<std::uint8_t> texture((fluid.N+2)*(fluid.N+2)*(fluid.N+2)*3, 0);
+    for (std::uint32_t i = 0; i < (fluid.N+2)*(fluid.N+2)*(fluid.N+2); ++i)
     {
         std::uint8_t density = std::clamp(static_cast<int>(fluid.substanceField[i]), 0, 255);
+        density = (i/((fluid.N+2)*(fluid.N+2)))*255;
+        /*
+        std::cout << density*1 << " ";
+        if (i % (fluid.N+2) == 0)
+        {
+            std::cout << std::endl;
+        }
+        if (i % ((fluid.N+2)*(fluid.N+2)) == 0)
+        {
+            std::cout << std::endl;
+        }
+        if (i % ((fluid.N+2)*(fluid.N+2)*(fluid.N+2)) == 0)
+        {
+            std::cout << std::endl << "==============" << std::endl;
+        }
+        */
         texture[i*3] = density;
         texture[i*3+1] = density;
         texture[i*3+2] = density;
     }
     const auto& textureGL = gCoordinator.GetComponent<Material>(fluid.entity).texture;
-    _renderer->updateTexture(texture, textureGL);
+    _renderer->initTexture3D(texture, textureGL);
 }
