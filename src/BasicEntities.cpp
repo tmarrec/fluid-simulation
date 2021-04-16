@@ -368,7 +368,7 @@ void BasicEntities::addFluid3D(glm::vec3 position, glm::vec3 rotation, glm::vec3
 
     Shader shaderProgram {};
     shaderProgram.setVert("shaders/vert.vert");
-    shaderProgram.setFrag("shaders/fluid2D.frag");
+    shaderProgram.setFrag("shaders/fluid3D.frag");
 
     Material material = 
     {
@@ -387,8 +387,8 @@ void BasicEntities::addFluid3D(glm::vec3 position, glm::vec3 rotation, glm::vec3
 
     Fluid3D fluid =
     {
-        .viscosity = 0.02f,
-        .dt = 0.000001f,
+        .viscosity = 0.15f,
+        .dt = 0.001f,
         .entity = entity,
     };
 

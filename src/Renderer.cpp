@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include <memory>
 
 void Renderer::init(std::shared_ptr<Window> window)
 {
@@ -9,15 +10,45 @@ void Renderer::init(std::shared_ptr<Window> window)
         ERROR("Failed to initialize glad");
     }
 
-    const WindowInfos windowInfos = _window->windowInfos();
-    glViewport(0, 0, windowInfos.x, windowInfos.y);
+    _windowInfos = _window->windowInfos();
+    glViewport(0, 0, _windowInfos.x, _windowInfos.y);
     glEnable(GL_DEPTH_TEST);
+
+    _initFrameBuffer(_screenbuffer, "shaders/screen.vert", "shaders/screen.frag");
+    _initFrameBuffer(_raymarchingbuffer, "shaders/screen.vert", "shaders/raymarch.frag");
 }
 
 void Renderer::prePass() const
 {
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glBindFramebuffer(GL_FRAMEBUFFER, _screenbuffer.FBO);
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(0.5f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Renderer::endPass() const
+{
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glClear(GL_COLOR_BUFFER_BIT);
+	glDisable(GL_DEPTH_TEST);
+
+    // Screenbuffer step
+	_screenbuffer.shader->use();
+	glBindVertexArray(_screenbuffer.VAO);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, _screenbuffer.texture);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    // Raymarching step
+	_raymarchingbuffer.shader->use();
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBindVertexArray(_raymarchingbuffer.VAO);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, _raymarchingbuffer.texture);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDisable(GL_BLEND);
 }
 
 void Renderer::drawMesh(Mesh& mesh) const
@@ -37,11 +68,77 @@ void Renderer::drawMesh(Mesh& mesh) const
     glBindVertexArray(0);
 }
 
+void Renderer::_initFrameBuffer(FrameBuffer& framebuffer, std::string vert, std::string frag)
+{
+    float quadVertices[] =
+	{
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+	};
+	glGenFramebuffers(1, &framebuffer.FBO);
+	glGenTextures(1, &framebuffer.texture);
+	glGenRenderbuffers(1, &framebuffer.RBO);
+	glGenVertexArrays(1, &framebuffer.VAO);
+	glGenBuffers(1, &framebuffer.VBO);
+	glBindVertexArray(framebuffer.VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, framebuffer.VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
+	glBindVertexArray(0);
+    Shader shaderProgram {};
+    shaderProgram.setVert(vert);
+    shaderProgram.setFrag(frag);
+	framebuffer.shader = std::make_shared<Shader>(shaderProgram);
+
+    // Do this at each resize
+    framebuffer.shader->use();
+	framebuffer.shader->set1i("screenTexture", 0);
+    
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.FBO);
+	// Color attachment texture
+	glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _windowInfos.x, _windowInfos.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.texture, 0);
+
+	// Renderbuffer for depth and stencil
+	glBindRenderbuffer(GL_RENDERBUFFER, framebuffer.RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, _windowInfos.x, _windowInfos.y);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, framebuffer.RBO);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		ERROR("Framebuffer is not complete");
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, _windowInfos.x, _windowInfos.y);
+}
+
 void Renderer::applyMaterial(Material& material, Camera& camera, Transform& transform) const
 {
+    auto& shader = material.shader;
+    shader.use();
     if (material.hasTexture)
     {
-        glBindTexture(GL_TEXTURE_2D, material.texture);
+        glBindTexture(GL_TEXTURE_3D, material.texture);
+        //shader.set3f("eyePos", camera.transform.position);
+        _raymarchingbuffer.shader->use();
+        /*
+	    _screenbuffer.shader->set3f("lightPos", {0,0,0});
+	    _screenbuffer.shader->set3f("lightIntensity", {1,1,1});
+	    _screenbuffer.shader->set3f("eyePos", camera.transform.position);
+	    _screenbuffer.shader->set1f("absorption", 1.0f);
+        */
+	    _raymarchingbuffer.shader->set2f("u_resolution", {_windowInfos.x, _windowInfos.y});
+	    _raymarchingbuffer.shader->set1f("u_time", 1.0f);
+	    _raymarchingbuffer.shader->set3f("u_eyePos", camera.transform.position);
     }
 
     glm::mat4 model {1.0f};
@@ -54,8 +151,6 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
     const glm::mat4 projection = glm::infinitePerspective(glm::radians(camera.FOV), static_cast<float>(windowInfos.x)/windowInfos.y, 0.1f);
     const glm::mat4 view = glm::lookAt(camera.transform.position, camera.transform.position+camera.front, camera.up);
 
-    auto& shader = material.shader;
-    shader.use();
     shader.setMat4("model", model);
     shader.setMat4("view", view);
     shader.setMat4("projection", projection);
@@ -103,10 +198,14 @@ void Renderer::initMesh(Mesh& mesh) const
 
         std::vector<float> texCoords =
         {
-            0.0f, 0.0f, 
-            0.0f, 1.0f,
-            1.0f, 1.0f,
-            1.0f, 0.0f,
+            0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 1.0f,
+            1.00f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f,
+            0.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.00f, 1.0f, 0.0f,
         };
 		glBindBuffer(GL_ARRAY_BUFFER, mesh.TBO);
 		glBufferData(
@@ -115,7 +214,7 @@ void Renderer::initMesh(Mesh& mesh) const
 			texCoords.data(),
 			GL_STATIC_DRAW
 		);
-		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 2*sizeof(GLfloat), (GLvoid*)nullptr);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
 		glEnableVertexAttribArray(3);
 
     glBindVertexArray(0);
@@ -128,7 +227,7 @@ void Renderer::initMaterial(Material& material) const
     glGenTextures(1, &material.texture);
 }
 
-void Renderer::updateTexture(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const
+void Renderer::initTexture(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const
 {
     std::uint32_t size = (std::uint32_t)sqrt(static_cast<std::uint32_t>(texture.size()/3));
     glBindTexture(GL_TEXTURE_2D, textureGL);
@@ -139,6 +238,21 @@ void Renderer::updateTexture(const std::vector<std::uint8_t>& texture, const std
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, texture.data());
     glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+void Renderer::initTexture3D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const
+{
+    std::uint32_t size = (std::uint32_t)std::cbrt(static_cast<std::uint32_t>(texture.size()/3));
+    glBindTexture(GL_TEXTURE_3D, textureGL);
+    /*
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    */
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, size, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, texture.data());
+    glGenerateMipmap(GL_TEXTURE_3D);
 }
 
 void Renderer::freeMesh(Mesh& mesh) const

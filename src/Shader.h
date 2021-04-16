@@ -22,6 +22,7 @@ public:
 	void set1f(const std::string &name, const float value) const;
 	void set4f(const std::string &name, const glm::vec4 values) const;
 	void set3f(const std::string &name, const glm::vec3 values) const;
+	void set2f(const std::string &name, const glm::vec2 values) const;
 	void setMat4(const std::string &name, const glm::mat4 values) const;
 
 
