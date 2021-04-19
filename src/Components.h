@@ -81,7 +81,8 @@ struct Fluid3D
     float viscosity;
     float dt;
     Entity entity;
-    std::uint32_t N = 20;
+    std::uint32_t N = 36;
+    std::uint8_t solveNb = 5;
 
     std::vector<float> velocityFieldX = {};
     std::vector<float> velocityFieldY = {};

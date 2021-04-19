@@ -387,8 +387,8 @@ void BasicEntities::addFluid3D(glm::vec3 position, glm::vec3 rotation, glm::vec3
 
     Fluid3D fluid =
     {
-        .viscosity = 0.2f,
-        .dt = 0.000005f,
+        .viscosity = 0.00000f,
+        .dt = 0.0001f,
         .entity = entity,
     };
 
