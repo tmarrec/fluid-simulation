@@ -9,15 +9,15 @@ uniform vec3 u_eyeFront; // Camera front
 uniform float u_eyeFOV; // Camera field of view
 uniform float u_absorption;
 
-#define MAX_STEPS 1000
-#define MAX_DIST 1000.0f
+#define MAX_STEPS 100
+#define MAX_DIST 100.0f
 #define SURFACE_DIST 0.01f
 
-const int numSamples = 128;
+const int numSamples = 256;
 const float cubeSize = 3.0f;
 const float maxDist = sqrt(3.0f)*cubeSize;
 const float scale = maxDist / float(numSamples);
-const int numLightSamples = 32;
+const int numLightSamples = 16;
 const float lscale = maxDist / float(numLightSamples);
 const vec3 lightPos = u_eyePos;
 
@@ -74,13 +74,13 @@ vec4 rayMarching(vec3 ro, vec3 rd)
                         lpos += lightDir;
                     }
 
-                    vec3 Li = vec3(10)*Tl;
+                    vec3 Li = vec3(16)*Tl;
                     Lo += Li*T*density*scale;
                 }
 
                 pos += eyeDir; // Going deeper inside the cube
             }
-            return vec4(Lo, 1.0f-T);
+            return vec4(Lo, 1.0);
         }
     }
     discard;

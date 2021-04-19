@@ -18,13 +18,13 @@ void Game::initECS()
     _meshRendererSys = gCoordinator.RegisterSystem<MeshRenderer>();
     Camera camera
     {
-        .yaw = 128,
-        .pitch = -25,
+        .yaw = 227,
+        .pitch = -37,
         .speed = 0.1f,
         .FOV = 60,
         .transform = Transform
             {
-                .position = {5.7, 4.3, -8.2},
+                .position = {6.05, 5.84, 6.28},
                 .rotation = {0, 0, 0},
                 .scale = {1, 1, 1}
             }
