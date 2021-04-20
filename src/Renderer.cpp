@@ -132,20 +132,12 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
     if (material.hasTexture)
     {
         glBindTexture(GL_TEXTURE_3D, material.texture);
-        //shader.set3f("eyePos", camera.transform.position);
         _raymarchingbuffer.shader->use();
-        /*
-	    _screenbuffer.shader->set3f("lightPos", {0,0,0});
-	    _screenbuffer.shader->set3f("lightIntensity", {1,1,1});
-	    _screenbuffer.shader->set3f("eyePos", camera.transform.position);
-	    _screenbuffer.shader->set1f("absorption", 1.0f);
-        */
-	    //_raymarchingbuffer.shader->set1i("u_densityTex", 0);
 	    _raymarchingbuffer.shader->set2f("u_resolution", {_windowInfos.x, _windowInfos.y});
 	    _raymarchingbuffer.shader->set3f("u_eyePos", camera.transform.position);
 	    _raymarchingbuffer.shader->set3f("u_eyeFront", camera.front);
 	    _raymarchingbuffer.shader->set1f("u_eyeFOV", camera.FOV);
-	    _raymarchingbuffer.shader->set1f("u_absorption", 4.0f);
+	    _raymarchingbuffer.shader->set1f("u_absorption", 1.0f);
     }
 
     glm::mat4 model {1.0f};
@@ -257,7 +249,7 @@ void Renderer::initTexture3D(const std::vector<std::uint8_t>& texture, const std
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, size, size, size, 0, GL_RED, GL_UNSIGNED_BYTE, texture.data());
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_COMPRESSED_RED, size, size, size, 0, GL_RED, GL_UNSIGNED_BYTE, texture.data());
     glGenerateMipmap(GL_TEXTURE_3D);
 }
 

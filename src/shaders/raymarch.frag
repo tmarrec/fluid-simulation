@@ -15,9 +15,9 @@ uniform float u_absorption;
 
 const int numSamples = 256;
 const float cubeSize = 3.0f;
-const float maxDist = sqrt(3.0f)*cubeSize;
+const float maxDist = sqrt(3.0f);
 const float scale = maxDist / float(numSamples);
-const int numLightSamples = 16;
+const int numLightSamples = 32;
 const float lscale = maxDist / float(numLightSamples);
 const vec3 lightPos = u_eyePos;
 
