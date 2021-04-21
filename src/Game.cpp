@@ -14,7 +14,6 @@ void Game::initECS()
     gCoordinator.RegisterComponent<Material>();
     gCoordinator.RegisterComponent<Fluid3D>();
 
-    _physicsSys = gCoordinator.RegisterSystem<Physics>();
     _meshRendererSys = gCoordinator.RegisterSystem<MeshRenderer>();
     Camera camera
     {
@@ -32,10 +31,6 @@ void Game::initECS()
     _meshRendererSys->init(std::make_shared<Renderer>(_renderer), camera);
     _fluidsSys = gCoordinator.RegisterSystem<Fluids>();
     _fluidsSys->init(std::make_shared<Renderer>(_renderer));
-
-    Signature signaturePhysics;
-    signaturePhysics.set(gCoordinator.GetComponentType<Transform>());
-    gCoordinator.SetSystemSignature<Physics>(signaturePhysics);
 
     Signature signatureMeshRenderer;
     signatureMeshRenderer.set(gCoordinator.GetComponentType<Transform>());
@@ -65,23 +60,82 @@ void Game::run(WindowInfos windowInfos)
 
 void Game::mainLoop()
 {
-    float dt = 0.0f;
+    [[maybe_unused]] float dt = 0.0f;
+#ifdef DEBUG_GUI
+    std::deque<float> dtMean;
+    std::deque<float> fluidTime;
+    std::deque<float> renderTime;
+    std::deque<float> inputTime;
+    _fluidsSys->fluidSetupDebug();
+#endif
 	while (!_window->windowShouldClose())
 	{
         auto startTime = std::chrono::high_resolution_clock::now();
 
-        _physicsSys->update(dt);
+#ifdef DEBUG_GUI
+        auto fluidTimeStart = std::chrono::high_resolution_clock::now();
+#endif
         _fluidsSys->update();
+#ifdef DEBUG_GUI
+        auto fluidTimeStop = std::chrono::high_resolution_clock::now();
+#endif
+
+#ifdef DEBUG_GUI
+        _renderer.beginImgui();
+        _fluidsSys->fluidDebugTool();
+        float meanFluidTime = 0.0f;
+        for (const auto& t : fluidTime)
+            meanFluidTime += t;
+        meanFluidTime /= TIME_ECHANT_NB;
+        float meanRenderTime = 0.0f;
+        for (const auto& t : renderTime)
+            meanRenderTime += t;
+        meanRenderTime /= TIME_ECHANT_NB;
+        float meanInputTime = 0.0f;
+        for (const auto& t : inputTime)
+            meanInputTime += t;
+        meanInputTime /= TIME_ECHANT_NB;
+        float meanDtTime = 0.0f;
+        for (const auto& t : dtMean)
+            meanDtTime += t;
+        meanDtTime /= TIME_ECHANT_NB;
+        _renderer.debugGUI(meanDtTime, meanFluidTime, meanRenderTime, meanInputTime);
+        auto renderTimeStart = std::chrono::high_resolution_clock::now();
+#endif
         _renderer.prePass();
         _meshRendererSys->update();
+#ifdef DEBUG_GUI
+        _renderer.endImgui();
+#endif
         _renderer.endPass();
-
         _window->swapBuffers();
-		_window->pollEvents();
 
+#ifdef DEBUG_GUI
+        auto renderTimeStop = std::chrono::high_resolution_clock::now();
+        auto inputTimeStart = std::chrono::high_resolution_clock::now();
+#endif
+		_window->pollEvents();
+#ifdef DEBUG_GUI
+        auto inputTimeStop = std::chrono::high_resolution_clock::now();
+#endif
         auto stopTime = std::chrono::high_resolution_clock::now();
         dt = std::chrono::duration<float, std::chrono::seconds::period>(stopTime - startTime).count();
-        std::cout << 1/dt << std::endl;
+        //std::cout << 1.0f/dt << std::endl;
+
+#ifdef DEBUG_GUI
+        fluidTime.emplace_back(std::chrono::duration<float, std::chrono::seconds::period>(fluidTimeStop - fluidTimeStart).count());
+        renderTime.emplace_back(std::chrono::duration<float, std::chrono::seconds::period>(renderTimeStop - renderTimeStart).count());
+        inputTime.emplace_back(std::chrono::duration<float, std::chrono::seconds::period>(inputTimeStop - inputTimeStart).count());
+        dtMean.emplace_back(dt);
+        if (fluidTime.size() > TIME_ECHANT_NB)
+            fluidTime.pop_front();
+        if (renderTime.size() > TIME_ECHANT_NB)
+            renderTime.pop_front();
+        if (inputTime.size() > TIME_ECHANT_NB)
+            inputTime.pop_front();
+        if (dtMean.size() > TIME_ECHANT_NB)
+            dtMean.pop_front();
+#endif
 	}
 }
 

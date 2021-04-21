@@ -366,44 +366,25 @@ void BasicEntities::addFluid3D(glm::vec3 position, glm::vec3 rotation, glm::vec3
     };
     gCoordinator.AddComponent(entity, mesh);
 
-    Shader shaderProgram {};
-    shaderProgram.setVert("shaders/vert.vert");
-    shaderProgram.setFrag("shaders/fluid3D.frag");
-
     Material material = 
     {
-        .shader = shaderProgram,
+        .noShader = true,
         .texCoords =
         {
             1.0f, 1.0f,
             1.0f, 0.0f,
             0.0f, 0.0f, 
             0.0f, 1.0f
-        }
+        },
     };
     BasicEntities::_renderer->initMaterial(material);
     gCoordinator.AddComponent(entity, material);
 
-
     Fluid3D fluid =
     {
-        .viscosity = 1.1f,
-        .dt = 0.00015f,
         .entity = entity,
     };
-
-    fluid.velocityFieldX.reserve((fluid.N+2)*(fluid.N+2)*(fluid.N+2));
-    for (std::uint32_t i = 0; i < (fluid.N+2)*(fluid.N+2)*(fluid.N+2); ++i)
-    {
-        fluid.velocityFieldX.emplace_back(0);
-    }
-    fluid.velocityFieldPrevX = fluid.velocityFieldX;
-    fluid.velocityFieldY = fluid.velocityFieldX;
-    fluid.velocityFieldPrevY = fluid.velocityFieldX;
-    fluid.velocityFieldZ = fluid.velocityFieldX;
-    fluid.velocityFieldPrevZ = fluid.velocityFieldX;
-    fluid.substanceField = fluid.velocityFieldX;
-    fluid.substanceFieldPrev = fluid.velocityFieldX;
+    fluid.init();
 
     gCoordinator.AddComponent(entity, fluid);
 }

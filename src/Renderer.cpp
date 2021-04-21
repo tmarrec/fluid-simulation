@@ -1,8 +1,4 @@
 #include "Renderer.h"
-#include "glm/gtx/string_cast.hpp"
-#include <memory>
-
-#include <chrono>
 
 void Renderer::init(std::shared_ptr<Window> window)
 {
@@ -19,6 +15,19 @@ void Renderer::init(std::shared_ptr<Window> window)
 
     _initFrameBuffer(_screenbuffer, "shaders/screen.vert", "shaders/screen.frag");
     _initFrameBuffer(_raymarchingbuffer, "shaders/screen.vert", "shaders/raymarch.frag");
+
+#ifdef DEBUG_GUI
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImPlot::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
+
+    ImGui::StyleColorsDark();
+
+    _window->setupImgui();
+    ImGui_ImplOpenGL3_Init("#version 460 core");
+#endif
 }
 
 void Renderer::prePass()
@@ -27,7 +36,6 @@ void Renderer::prePass()
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    frameNb = frameNb + 1;
 }
 
 void Renderer::endPass() const
@@ -43,6 +51,7 @@ void Renderer::endPass() const
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, _screenbuffer.texture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+
 
     // Raymarching step
 	_raymarchingbuffer.shader->use();
@@ -128,7 +137,10 @@ void Renderer::_initFrameBuffer(FrameBuffer& framebuffer, std::string vert, std:
 void Renderer::applyMaterial(Material& material, Camera& camera, Transform& transform) const
 {
     auto& shader = material.shader;
-    shader.use();
+    if (!material.noShader)
+    {
+        shader.use();
+    }
     if (material.hasTexture)
     {
         glBindTexture(GL_TEXTURE_3D, material.texture);
@@ -137,7 +149,12 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
 	    _raymarchingbuffer.shader->set3f("u_eyePos", camera.transform.position);
 	    _raymarchingbuffer.shader->set3f("u_eyeFront", camera.front);
 	    _raymarchingbuffer.shader->set1f("u_eyeFOV", camera.FOV);
-	    _raymarchingbuffer.shader->set1f("u_absorption", 1.0f);
+	    _raymarchingbuffer.shader->set1f("u_absorption", material.absorption);
+	    _raymarchingbuffer.shader->set3f("u_lightIntensity", material.lightIntensity);
+    }
+    if (material.noShader)
+    {
+        return;
     }
 
     glm::mat4 model {1.0f};
@@ -261,3 +278,52 @@ void Renderer::freeMesh(Mesh& mesh) const
     glDeleteBuffers(1, &mesh.EBO);
     glDeleteBuffers(1, &mesh.TBO);
 }
+
+#ifdef DEBUG_GUI
+void Renderer::beginImgui() const
+{
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+}
+
+void Renderer::endImgui() const
+{
+    ImGui::Render();
+    glClear(GL_COLOR_BUFFER_BIT);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void Renderer::debugGUI(float dt, float fluidTime, float renderTime, float inputTime)
+{
+    ImGui::Begin("Renderer");
+    float fps = 1.0f/dt;
+    ImGui::Text("%f fps", fps);
+
+    std::vector<float> data;
+    for (const auto& t : _debugFPSTimes)
+    {
+        data.emplace_back(t);
+    }
+    ImGui::PlotLines("", data.data(), data.size(), 0, "", 0.0f, FLT_MAX, ImVec2(256,86));
+    if (dt > 0.0f)
+    {
+        _debugFPSTimes.emplace_back(fps);
+        if (_debugFPSTimes.size() > 2048)
+        {
+            _debugFPSTimes.pop_front();
+        }
+    }
+
+    ImPlot::SetNextPlotLimits(-0.5f, 0.5f, -0.5f, 0.5f);
+    if (ImPlot::BeginPlot("frame time", NULL, NULL, ImVec2(256,256)))
+    {
+        const char* labels[] = {"fluid","render","input"};
+        float data[] = {fluidTime, renderTime, inputTime};
+        ImPlot::PlotPieChart(labels, data, 3, 0.0f, 0.0f, 0.5f, true, "");
+        ImPlot::EndPlot();
+    }
+
+    ImGui::End();
+}
+#endif

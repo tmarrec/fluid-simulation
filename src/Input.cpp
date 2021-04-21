@@ -23,6 +23,19 @@ void Input::keyCallback(GLFWwindow* window, int key, [[maybe_unused]] int scanco
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         _focused = false;
     }
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+    {
+        if (!_focused)
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            _focused = true;
+        }
+        else
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            _focused = false;
+        }
+    }
 }
 
 bool Input::keyIsDown(int key)
@@ -47,15 +60,8 @@ void Input::cursorPositionCallback([[maybe_unused]] GLFWwindow* window, double x
     _lastMouseY = ypos;
 }
 
-void Input::mouseButtonCallback(GLFWwindow* window, int button, [[maybe_unused]] int action, [[maybe_unused]] int mobs)
+void Input::mouseButtonCallback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] int button, [[maybe_unused]] int action, [[maybe_unused]] int mobs)
 {
-    switch(button)
-    {
-        case GLFW_MOUSE_BUTTON_1:
-            _focused = true;
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            break;
-    }
 }
 
 void Input::updateMouseMovements()

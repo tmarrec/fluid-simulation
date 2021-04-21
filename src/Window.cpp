@@ -71,3 +71,10 @@ void glfwDeleter::operator()(GLFWwindow* window)
 	WARNING("GLFW Window deleted");
 	glfwDestroyWindow(window);
 }
+
+#ifdef DEBUG_GUI
+void Window::setupImgui() const
+{
+    ImGui_ImplGlfw_InitForOpenGL(_glfwWindow.get(), true);
+}
+#endif
