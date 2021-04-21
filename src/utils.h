@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef DEBUG_GUI
+    #define TIME_ECHANT_NB 32
+#endif  
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

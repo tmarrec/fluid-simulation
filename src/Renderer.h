@@ -5,8 +5,18 @@
 #include "Components.h"
 #include "types.h"
 #include "utils.h"
+
+#ifdef DEBUG_GUI
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include "implot.h"
+#endif
+
 #include <cstdint>
 #include <memory>
+#include <chrono>
+#include <deque>
 
 struct FrameBuffer
 {
@@ -32,13 +42,22 @@ public:
     void initTexture(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
     void initTexture3D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
 
+#ifdef DEBUG_GUI
+    void beginImgui() const;
+    void endImgui() const;
+    void debugGUI(float dt, float fluidTime, float renderTime, float inputTime);
+#endif
+
 private:
 	std::shared_ptr<Window> _window = nullptr;
     FrameBuffer _screenbuffer;
     FrameBuffer _raymarchingbuffer;
     WindowInfos _windowInfos;
-    std::uint64_t frameNb = 10;
 
     void _initFrameBuffer(FrameBuffer& framebuffer, std::string vert, std::string frag);
+
+#ifdef DEBUG_GUI
+    std::deque<float> _debugFPSTimes;
+#endif
 };
 

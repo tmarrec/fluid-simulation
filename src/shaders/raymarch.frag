@@ -8,18 +8,19 @@ uniform vec3 u_eyePos; // Camera position
 uniform vec3 u_eyeFront; // Camera front
 uniform float u_eyeFOV; // Camera field of view
 uniform float u_absorption;
+uniform vec3 u_lightIntensity;
 
 #define MAX_STEPS 100
 #define MAX_DIST 100.0f
 #define SURFACE_DIST 0.01f
 
-const int numSamples = 256;
+const int numSamples = 150;
 const float cubeSize = 3.0f;
 const float maxDist = sqrt(3.0f);
 const float scale = maxDist / float(numSamples);
-const int numLightSamples = 32;
+const int numLightSamples = 40;
 const float lscale = maxDist / float(numLightSamples);
-const vec3 lightPos = u_eyePos;
+const vec3 lightPos = vec3(2,8,1);
 
 float getCubeDist(vec3 p)
 {
@@ -66,7 +67,7 @@ vec4 rayMarching(vec3 ro, vec3 rd)
                     for (int sl = 0; sl < numLightSamples; ++sl)
                     {
                         float ld = texture(u_densityTex, lpos).x;
-                        Tl *= 1.0f-u_absorption*lscale*ld;
+                        Tl *= 1.0f-u_absorption*ld*lscale;
 
                         if (Tl <= 0.01f)
                             break;
@@ -74,13 +75,13 @@ vec4 rayMarching(vec3 ro, vec3 rd)
                         lpos += lightDir;
                     }
 
-                    vec3 Li = vec3(16)*Tl;
+                    vec3 Li = u_lightIntensity*Tl*u_absorption;
                     Lo += Li*T*density*scale;
                 }
 
                 pos += eyeDir; // Going deeper inside the cube
             }
-            return vec4(Lo, 1.0);
+            return vec4(Lo, 1.0f-T);
         }
     }
     discard;

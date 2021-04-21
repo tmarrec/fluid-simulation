@@ -1,6 +1,5 @@
 #pragma once
 #include <iostream>
-#include <chrono>
 
 #include "Renderer.h"
 #include "Window.h"
@@ -10,7 +9,6 @@
 #include "ecs/Coordinator.h"
 #include "BasicEntities.h"
 
-#include "systems/Physics.h"
 #include "systems/MeshRenderer.h"
 #include "systems/Fluids.h"
 
@@ -27,7 +25,6 @@ private:
 	Renderer _renderer;
     std::vector<Entity> _entities;
 
-    std::shared_ptr<Physics> _physicsSys;
     std::shared_ptr<MeshRenderer> _meshRendererSys;
     std::shared_ptr<Fluids> _fluidsSys;
 };

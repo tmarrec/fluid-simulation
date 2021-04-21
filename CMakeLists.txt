@@ -2,6 +2,12 @@ CMAKE_MINIMUM_REQUIRED (VERSION 3.18.4)
 
 PROJECT (cowboy-engine VERSION "0.1")
 
+OPTION (DEBUG_GUI "Debug interface" OFF)
+IF (DEBUG_GUI)
+    ADD_DEFINITIONS(-DDEBUG_GUI)
+    MESSAGE ("[cowboy-engine] Using debug GUI")
+ENDIF()
+
 # ╔═════════════════════════╗
 # ║ C++ Compilation options ║
 # ╚═════════════════════════╝
@@ -33,6 +39,7 @@ ADD_SUBDIRECTORY (extern/glfw)
 
 ADD_SUBDIRECTORY (extern/glad)
 
+
 # ╔═════════════╗
 # ║ Vim options ║
 # ╚═════════════╝
@@ -60,8 +67,6 @@ ADD_EXECUTABLE (${PROJECT_NAME}
     src/Components.h
 
     # Systems
-    src/systems/Physics.h
-    src/systems/Physics.cpp
     src/systems/MeshRenderer.h
     src/systems/MeshRenderer.cpp
     src/systems/Fluids.h
@@ -84,6 +89,16 @@ ADD_EXECUTABLE (${PROJECT_NAME}
     src/Shader.cpp
     src/Input.cpp
     src/BasicEntities.cpp
+
+    # imgui
+    extern/imgui/imgui.cpp
+    extern/imgui/imgui_draw.cpp
+    extern/imgui/imgui_tables.cpp
+    extern/imgui/imgui_widgets.cpp
+    extern/imgui/backends/imgui_impl_glfw.cpp
+    extern/imgui/backends/imgui_impl_opengl3.cpp
+    extern/implot/implot.cpp
+    extern/implot/implot_items.cpp
 )
 
 # ╔═════════╗
@@ -94,7 +109,9 @@ TARGET_LINK_LIBRARIES (${PROJECT_NAME} OpenGL::GL)
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} glfw)
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} glad)
 TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} PRIVATE "extern/glm")
-
+TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} PRIVATE "extern/imgui")
+TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} PRIVATE "extern/imgui/backends")
+TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} PRIVATE "extern/implot")
 
 FILE (COPY src/shaders DESTINATION .)
 

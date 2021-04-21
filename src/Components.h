@@ -47,8 +47,11 @@ struct Camera
 
 struct Material
 {
-    Shader shader;
+    Shader shader = {};
     bool hasTexture = false;
+    bool noShader = false;
+    float absorption = 64.0f;
+    glm::vec3 lightIntensity = glm::vec3(1, 1, 1);
     std::uint32_t texture = 0;
     std::uint32_t TBO = 0;
     std::vector<float> texCoords = {};
@@ -78,10 +81,11 @@ struct Fluid2D
 
 struct Fluid3D
 {
-    float viscosity;
-    float dt;
     Entity entity;
-    std::uint32_t N = 36;
+    float viscosity = 0.2f;
+    float diffusion = 0;
+    float dt = 0.0001f;
+    std::uint32_t N = 22;
     std::uint8_t solveNb = 8;
 
     std::vector<float> velocityFieldX = {};
@@ -98,5 +102,21 @@ struct Fluid3D
     std::uint32_t IX(const std::uint32_t x, const std::uint32_t y, const std::uint32_t z) const
     { 
         return x + y * (N+2) + z * ((N+2)*(N+2));
+    };
+
+    void init()
+    {
+        velocityFieldX.reserve((N+2)*(N+2)*(N+2));
+        for (std::uint32_t i = 0; i < (N+2)*(N+2)*(N+2); ++i)
+        {
+            velocityFieldX.emplace_back(0);
+        }
+        velocityFieldPrevX = velocityFieldX;
+        velocityFieldY = velocityFieldX;
+        velocityFieldPrevY = velocityFieldX;
+        velocityFieldZ = velocityFieldX;
+        velocityFieldPrevZ = velocityFieldX;
+        substanceField = velocityFieldX;
+        substanceFieldPrev = velocityFieldX;
     };
 };
