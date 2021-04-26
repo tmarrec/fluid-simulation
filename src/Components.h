@@ -87,8 +87,7 @@ struct Fluid3D
     float viscosity = 0.2f;
     float diffusion = 0;
     float dt = 0.0001f;
-    std::uint32_t N = 12;
-    std::uint8_t solveNb = 8;
+    std::uint32_t N = 16;
 
     std::vector<float> velocityFieldX = {};
     std::vector<float> velocityFieldY = {};
@@ -101,7 +100,9 @@ struct Fluid3D
     std::vector<float> substanceField = {};
     std::vector<float> substanceFieldPrev = {};
 
-    //Eigen::SparseMatrix<double> laplacian = Eigen::SparseMatrix<double>(N*N*N,N*N*N);
+    Eigen::SparseMatrix<double> laplacianProject = Eigen::SparseMatrix<double>(N*N*N,N*N*N);
+    Eigen::SparseMatrix<double> laplacianViscosity = Eigen::SparseMatrix<double>(N*N*N,N*N*N);
+    Eigen::SparseMatrix<double> laplacianDiffuse = Eigen::SparseMatrix<double>(N*N*N,N*N*N);
 
     std::uint32_t IX(const std::uint32_t x, const std::uint32_t y, const std::uint32_t z) const
     { 
@@ -122,5 +123,63 @@ struct Fluid3D
         velocityFieldPrevZ = velocityFieldX;
         substanceField = velocityFieldX;
         substanceFieldPrev = velocityFieldX;
+
+
+        laplacianProject = Eigen::SparseMatrix<double>(N*N*N,N*N*N);
+        laplacianViscosity = Eigen::SparseMatrix<double>(N*N*N,N*N*N);
+        laplacianDiffuse = Eigen::SparseMatrix<double>(N*N*N,N*N*N);
+
+        float visc = dt * viscosity * N;
+        float diff = dt * diffusion * N;
+        std::uint32_t bIt = 0;
+        for (std::uint32_t k = 1; k <= N; k++)
+        {
+            for (std::uint32_t j = 1; j <= N; j++)
+            {
+                for (std::uint32_t i = 1; i <= N; i++)
+                {
+                    if (bIt > 0 && (bIt-1)%N != 0)
+                    {
+                        laplacianProject.coeffRef(bIt, bIt-1) = 1;
+                        laplacianViscosity.coeffRef(bIt, bIt-1) = visc;
+                        laplacianDiffuse.coeffRef(bIt, bIt-1) = diff;
+                    }
+                    if (bIt >= N)
+                    {
+                        laplacianProject.coeffRef(bIt, bIt-N) = 1;
+                        laplacianViscosity.coeffRef(bIt, bIt-N) = visc;
+                        laplacianDiffuse.coeffRef(bIt, bIt-N) = diff;
+                    }
+                    if (bIt >= N * N)
+                    {
+                        laplacianProject.coeffRef(bIt, bIt-N*N) = 1;
+                        laplacianViscosity.coeffRef(bIt, bIt-N*N) = visc;
+                        laplacianDiffuse.coeffRef(bIt, bIt-N*N) = diff;
+                    }
+                    if (bIt < N*N*N-1 && (bIt+1)%N != 0)
+                    {
+                        laplacianProject.coeffRef(bIt, bIt+1) = 1;
+                        laplacianViscosity.coeffRef(bIt, bIt+1) = visc;
+                        laplacianDiffuse.coeffRef(bIt, bIt+1) = diff;
+                    }
+                    if (bIt + N < N*N*N-1)
+                    {
+                        laplacianProject.coeffRef(bIt, bIt + N) = 1;
+                        laplacianViscosity.coeffRef(bIt, bIt + N) = visc;
+                        laplacianDiffuse.coeffRef(bIt, bIt + N) = diff;
+                    }
+                    if (bIt + N*N < N*N*N-1)
+                    {
+                        laplacianProject.coeffRef(bIt, bIt + N*N) = 1;
+                        laplacianViscosity.coeffRef(bIt, bIt + N*N) = visc;
+                        laplacianDiffuse.coeffRef(bIt, bIt + N*N) = diff;
+                    }
+                    laplacianProject.coeffRef(bIt, bIt) = -6;
+                    laplacianViscosity.coeffRef(bIt, bIt) = -(1+6*visc);
+                    laplacianDiffuse.coeffRef(bIt, bIt) = -(1+6*diff);
+                    bIt++;
+                }
+            }
+        }
     };
 };

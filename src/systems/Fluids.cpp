@@ -18,7 +18,7 @@ void Fluids::reset(bool force)
 	for (auto const& entity : mEntities)
 	{
 		auto& fluid = gCoordinator.GetComponent<Fluid3D>(entity);
-        bool rebuild = _debugViscosity != fluid.viscosity || _debugN != (int)fluid.N || fluid.diffusion != _debugDiffusion;
+        bool rebuild = _debugDt != fluid.dt || _debugViscosity != fluid.viscosity || _debugN != (int)fluid.N || fluid.diffusion != _debugDiffusion;
         if (force || rebuild)
         {
             fluid = Fluid3D();
@@ -26,9 +26,10 @@ void Fluids::reset(bool force)
             fluid.N = _debugN;
             fluid.viscosity = _debugViscosity;
             fluid.diffusion = _debugDiffusion;
+            fluid.dt = _debugDt;
             fluid.init();
+            _initCG = false;
         }
-        fluid.dt = _debugDt;
 		auto& material = gCoordinator.GetComponent<Material>(entity);
         material.absorption = _debugAbsorption;
         material.lightIntensity.x = _debugLightIntensity[0];
@@ -47,13 +48,19 @@ void Fluids::update()
 	for (auto const& entity : mEntities)
 	{
 		auto& fluid = gCoordinator.GetComponent<Fluid3D>(entity);
+        
+        if (!_initCG)
+        {
+            _cgProject.compute(fluid.laplacianProject);
+            _cgDiffuse.compute(fluid.laplacianDiffuse);
+            _cgViscosity.compute(fluid.laplacianViscosity);
+            _initCG = true;
+        }
 
         /* Testings */
 		int N = fluid.N/2;
 
         float p = 8;
-        //fluid.velocityFieldX[fluid.IX(5, 1, 1)] = 55;
-        //
 	    fluid.substanceField[fluid.IX(N, N, N*2-2)] = p;
 	    fluid.substanceField[fluid.IX(N, N, 2)] = p;
 
@@ -102,9 +109,9 @@ void Fluids::Vstep(Fluid3D& fluid)
 #ifdef DEBUG_GUI
     auto VstepDiffuseTimeStart = std::chrono::high_resolution_clock::now();
 #endif
-	diffuse(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, fluid.viscosity, 1);
-	diffuse(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, fluid.viscosity, 2);
-	diffuse(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, fluid.viscosity, 3);
+	diffuse(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, 1, _cgViscosity);
+	diffuse(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, 2, _cgViscosity);
+	diffuse(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, 3, _cgViscosity);
 #ifdef DEBUG_GUI
     auto VstepDiffuseTimeStop = std::chrono::high_resolution_clock::now();
     _debugVstepDiffuseTimes.emplace_back(std::chrono::duration<float, std::chrono::seconds::period>(VstepDiffuseTimeStop - VstepDiffuseTimeStart).count());
@@ -147,7 +154,7 @@ void Fluids::Sstep(Fluid3D& fluid)
 #ifdef DEBUG_GUI
     auto SstepDiffuseTimeStart = std::chrono::high_resolution_clock::now();
 #endif
-	diffuse(fluid, fluid.substanceFieldPrev, fluid.substanceField, fluid.diffusion, 0);
+	diffuse(fluid, fluid.substanceFieldPrev, fluid.substanceField, 0, _cgDiffuse);
 
 #ifdef DEBUG_GUI
     auto SstepDiffuseTimeStop = std::chrono::high_resolution_clock::now();
@@ -174,11 +181,9 @@ void Fluids::addSource(Fluid3D& fluid, std::vector<float>& X, std::vector<float>
 	}
 }
 
-void Fluids::diffuse(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, float diff, std::uint8_t b) const
+void Fluids::diffuse(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, std::uint8_t b, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper>& cg)
 {
-	float a = fluid.dt * diff * fluid.N;
-	//GaussSeidelRelaxationLinSolve(fluid, X, Xprev, a, 1+6*a, b);
-    ConjugateGradientMethodLinSolve(fluid, X, Xprev, a, 1+6*a, b);
+    ConjugateGradientMethodLinSolve(fluid, X, Xprev, b, cg);
 }
 
 void Fluids::advect(Fluid3D& fluid, std::vector<float>& D, std::vector<float>& Dprev, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& Z, std::uint8_t b) const
@@ -226,39 +231,11 @@ void Fluids::advect(Fluid3D& fluid, std::vector<float>& D, std::vector<float>& D
 	setBnd(fluid, D, b);
 }
 
-void Fluids::GaussSeidelRelaxationLinSolve(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, float a, float c, std::uint8_t b) const
-{
-	float cinv = 1.0f/c;
-	for (std::uint32_t l = 0; l < fluid.solveNb; l++)
-	{
-		for (std::uint32_t k = 1; k <= fluid.N; k++)
-        {
-			for (std::uint32_t j = 1; j <= fluid.N; j++)
-            {
-				for (std::uint32_t i = 1; i <= fluid.N; i++)
-                {
-					X[fluid.IX(i,j,k)] =
-                        (Xprev[fluid.IX(i,j,k)]
-							+a*(X[fluid.IX(i+1,j,k)]+
-								X[fluid.IX(i-1,j,k)]+
-								X[fluid.IX(i,j+1,k)]+
-								X[fluid.IX(i,j-1,k)]+
-								X[fluid.IX(i,j,k+1)]+
-								X[fluid.IX(i,j,k-1)]
-						   ))*cinv;
-				}
-			}
-		}
-		setBnd(fluid, X, b);
-	}
-}
-
-void Fluids::ConjugateGradientMethodLinSolve(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, float a, float c, std::uint8_t bs) const
+void Fluids::ConjugateGradientMethodLinSolve(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, std::uint8_t bs, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper>& cg)
 {
     std::uint32_t n = (fluid.N)*(fluid.N)*(fluid.N);
     Eigen::VectorXd x(n);
     Eigen::VectorXd b(n);
-    Eigen::SparseMatrix<double> laplacian = Eigen::SparseMatrix<double>(n,n);
 
     // Filling matrices
     std::uint32_t bIt = 0;
@@ -268,42 +245,15 @@ void Fluids::ConjugateGradientMethodLinSolve(Fluid3D& fluid, std::vector<float>&
         {
             for (std::uint32_t i = 1; i <= fluid.N; i++)
             {
-                if (bIt > 0 && (bIt-1)%fluid.N != 0)
-                {
-                    laplacian.coeffRef(bIt, bIt-1) = a;
-                }
-                if (bIt >= fluid.N)
-                {
-                    laplacian.coeffRef(bIt, bIt-fluid.N) = a;
-                }
-                if (bIt >= fluid.N * fluid.N)
-                {
-                    laplacian.coeffRef(bIt, bIt-fluid.N*fluid.N) = a;
-                }
-                if (bIt < fluid.N*fluid.N*fluid.N-1 && (bIt+1)%fluid.N != 0)
-                {
-                    laplacian.coeffRef(bIt, bIt+1) = a;
-                }
-                if (bIt + fluid.N < fluid.N*fluid.N*fluid.N-1)
-                {
-                    laplacian.coeffRef(bIt, bIt + fluid.N) = a;
-                }
-                if (bIt + fluid.N*fluid.N < fluid.N*fluid.N*fluid.N-1)
-                {
-                    laplacian.coeffRef(bIt, bIt + fluid.N*fluid.N) = a;
-                }
-                laplacian.coeffRef(bIt, bIt) = -c;
-
-                b.coeffRef(bIt++) = -(Xprev[fluid.IX(i,j,k)]);
+                b.coeffRef(bIt) = -(Xprev[fluid.IX(i,j,k)]);
+                bIt++;
             }
         }
     }
-    Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper> cg;
-    cg.compute(laplacian);
-
+    
     // Solve the linear system
     x = cg.solve(b);
-
+    
     // Write the results
     for (std::uint32_t k = 1; k <= fluid.N; k++)
     {
@@ -319,7 +269,7 @@ void Fluids::ConjugateGradientMethodLinSolve(Fluid3D& fluid, std::vector<float>&
     setBnd(fluid, X, bs);
 }
 
-void Fluids::project(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& Z, std::vector<float>& p, std::vector<float>& div) const
+void Fluids::project(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& Z, std::vector<float>& p, std::vector<float>& div)
 {
     float h = 1.0f/fluid.N;
 	for (std::uint32_t k = 1; k <= fluid.N; ++k)
@@ -339,8 +289,7 @@ void Fluids::project(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& 
 	setBnd(fluid, div, 0);
 	setBnd(fluid, p, 0);
 
-	//GaussSeidelRelaxationLinSolve(fluid, p, div, 1, 6, 0);
-    ConjugateGradientMethodLinSolve(fluid, p, div, 1, 6, 0);
+    ConjugateGradientMethodLinSolve(fluid, p, div, 0, _cgProject);
 
 	for (std::uint32_t k = 1; k <= fluid.N; ++k)
 	{
