@@ -28,9 +28,13 @@ private:
 
     void addSource(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& S) const;
     void diffuse(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, float diff, std::uint8_t b) const;
+
     void advect(Fluid3D& fluid, std::vector<float>& D, std::vector<float>& Dprev, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& Z, std::uint8_t b) const;
     void project(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& Z, std::vector<float>& p, std::vector<float>& div) const;
-    void linSolve(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, float a, float c, std::uint8_t b) const;
+    void GaussSeidelRelaxationLinSolve(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, float a, float c, std::uint8_t b) const;
+
+    void ConjugateGradientMethodLinSolve(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, float a, float c, std::uint8_t b) const;
+
     void setBnd(Fluid3D& fluid, std::vector<float>& X, std::uint8_t b) const;
 
     void updateRender(Fluid3D& fluid);

@@ -13,3 +13,6 @@
 [submodule "extern/implot"]
 	path = extern/implot
 	url = https://github.com/epezent/implot.git
+[submodule "extern/eigen"]
+	path = extern/eigen
+	url = https://gitlab.com/libeigen/eigen.git

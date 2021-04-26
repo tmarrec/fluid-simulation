@@ -2,6 +2,8 @@
 #include <array>
 #include <cstdint>
 #include <vector>
+#include <Eigen/Sparse>
+#include <Eigen/IterativeLinearSolvers>
 
 #include "glm/fwd.hpp"
 #include "glm/gtc/constants.hpp"
@@ -85,7 +87,7 @@ struct Fluid3D
     float viscosity = 0.2f;
     float diffusion = 0;
     float dt = 0.0001f;
-    std::uint32_t N = 22;
+    std::uint32_t N = 12;
     std::uint8_t solveNb = 8;
 
     std::vector<float> velocityFieldX = {};
@@ -98,6 +100,8 @@ struct Fluid3D
 
     std::vector<float> substanceField = {};
     std::vector<float> substanceFieldPrev = {};
+
+    //Eigen::SparseMatrix<double> laplacian = Eigen::SparseMatrix<double>(N*N*N,N*N*N);
 
     std::uint32_t IX(const std::uint32_t x, const std::uint32_t y, const std::uint32_t z) const
     { 
