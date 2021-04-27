@@ -1,14 +1,12 @@
 #include "Fluids.h"
 
-#include <Eigen/Sparse>
-#include <Eigen/src/Core/util/Constants.h>
-#include <Eigen/src/IterativeLinearSolvers/BasicPreconditioners.h>
-#include <cstdint>
-
 void Fluids::init(std::shared_ptr<Renderer> renderer)
 {
 	_renderer = renderer;
     std::srand(std::time(nullptr));
+    
+    // Temp for eigen
+    omp_set_num_threads(0);
 }
 
 
@@ -61,11 +59,11 @@ void Fluids::update()
 		int N = fluid.N/2;
 
         float p = 8;
-	    fluid.substanceField[fluid.IX(N, N, N*2-2)] = p;
+	    fluid.substanceField[fluid.IX(N, N-1, N*2-2)] = p;
 	    fluid.substanceField[fluid.IX(N, N, 2)] = p;
 
         float z = 512;
-	    fluid.velocityFieldZ[fluid.IX(N, N, N*2-2)] = -z;
+	    fluid.velocityFieldZ[fluid.IX(N, N-1, N*2-2)] = -z;
 	    fluid.velocityFieldZ[fluid.IX(N, N, 2)] = z;
         /* End Testings */
 
@@ -173,7 +171,7 @@ void Fluids::Sstep(Fluid3D& fluid)
 #endif
 }
 
-void Fluids::addSource(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& S) const
+void Fluids::addSource(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& S) const
 {
 	for (std::uint32_t i = 0; i < (fluid.N+2)*(fluid.N+2)*(fluid.N+2); ++i)
 	{
@@ -181,40 +179,40 @@ void Fluids::addSource(Fluid3D& fluid, std::vector<float>& X, std::vector<float>
 	}
 }
 
-void Fluids::diffuse(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, std::uint8_t b, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper>& cg)
+void Fluids::diffuse(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t b, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>>& cg)
 {
     ConjugateGradientMethodLinSolve(fluid, X, Xprev, b, cg);
 }
 
-void Fluids::advect(Fluid3D& fluid, std::vector<float>& D, std::vector<float>& Dprev, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& Z, std::uint8_t b) const
+void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<double>& Dprev, const std::vector<double>& X, const std::vector<double>& Y, const std::vector<double>& Z, const std::uint8_t b) const
 {
-	float dt0 = fluid.dt * fluid.N;
+	double dt0 = fluid.dt * fluid.N;
 	for (std::uint32_t k = 1; k <= fluid.N; ++k)
 	{
 		for (std::uint32_t j = 1; j <= fluid.N; ++j)
 		{
 			for (std::uint32_t i = 1; i <= fluid.N; ++i)
 			{
-				float x = i-dt0*X[fluid.IX(i,j,k)];
-				float y = j-dt0*Y[fluid.IX(i,j,k)];
-				float z = k-dt0*Z[fluid.IX(i,j,k)];
+				double x = i-dt0*X[fluid.IX(i,j,k)];
+				double y = j-dt0*Y[fluid.IX(i,j,k)];
+				double z = k-dt0*Z[fluid.IX(i,j,k)];
 
-				x = std::clamp(x, 0.5f, fluid.N + 0.5f);
+				x = std::clamp(x, 0.5, fluid.N + 0.5);
 				std::uint32_t i0 = static_cast<std::uint32_t>(x);
 				std::uint32_t i1 = i0 + 1;
-				y = std::clamp(y, 0.5f, fluid.N + 0.5f);
+				y = std::clamp(y, 0.5, fluid.N + 0.5);
 				std::uint32_t j0 = static_cast<std::uint32_t>(y);
 				std::uint32_t j1 = j0 + 1;
-				z = std::clamp(z, 0.5f, fluid.N + 0.5f);
+				z = std::clamp(z, 0.5, fluid.N + 0.5);
 				std::uint32_t k0 = static_cast<std::uint32_t>(z);
 				std::uint32_t k1 = k0 + 1;
 
-				float s1 = x	- i0;
-				float s0 = 1.0f - s1;
-				float t1 = y	- j0;
-				float t0 = 1.0f - t1;
-				float u1 = z	- k0;
-				float u0 = 1.0f - u1;
+				double s1 = x	- i0;
+				double s0 = 1.0 - s1;
+				double t1 = y	- j0;
+				double t0 = 1.0 - t1;
+				double u1 = z	- k0;
+				double u0 = 1.0 - u1;
 
 				D[fluid.IX(i,j,k)] = 
 					s0*(t0*(u0*Dprev[fluid.IX(i0,j0,k0)]
@@ -231,7 +229,7 @@ void Fluids::advect(Fluid3D& fluid, std::vector<float>& D, std::vector<float>& D
 	setBnd(fluid, D, b);
 }
 
-void Fluids::ConjugateGradientMethodLinSolve(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, std::uint8_t bs, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper>& cg)
+void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t bs, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>>& cg)
 {
     std::uint32_t n = (fluid.N)*(fluid.N)*(fluid.N);
     Eigen::VectorXd x(n);
@@ -252,7 +250,10 @@ void Fluids::ConjugateGradientMethodLinSolve(Fluid3D& fluid, std::vector<float>&
     }
     
     // Solve the linear system
-    x = cg.solve(b);
+    do
+    {
+        x = cg.solve(b);
+    } while (cg.error() > 10e-4);
     
     // Write the results
     for (std::uint32_t k = 1; k <= fluid.N; k++)
@@ -269,16 +270,16 @@ void Fluids::ConjugateGradientMethodLinSolve(Fluid3D& fluid, std::vector<float>&
     setBnd(fluid, X, bs);
 }
 
-void Fluids::project(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& Z, std::vector<float>& p, std::vector<float>& div)
+void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<double>& Y, std::vector<double>& Z, std::vector<double>& p, std::vector<double>& div)
 {
-    float h = 1.0f/fluid.N;
+    double h = 1.0/fluid.N;
 	for (std::uint32_t k = 1; k <= fluid.N; ++k)
 	{
 		for (std::uint32_t j = 1; j <= fluid.N; ++j)
 		{
 			for (std::uint32_t i = 1; i <= fluid.N; ++i)
 			{
-                div[fluid.IX(i,j,k)] = -(0.33f)*
+                div[fluid.IX(i,j,k)] = -(0.33)*
                     ((X[fluid.IX(i+1,j,k)]-X[fluid.IX(i-1,j,k)])*h+
                      (Y[fluid.IX(i,j+1,k)]-Y[fluid.IX(i,j-1,k)])*h+
                      (Z[fluid.IX(i,j,k+1)]-Z[fluid.IX(i,j,k-1)])*h);
@@ -297,9 +298,9 @@ void Fluids::project(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& 
 		{
 			for (std::uint32_t i = 1; i <= fluid.N; ++i)
 			{
-				X[fluid.IX(i,j,k)] -= 0.5f*fluid.N*(p[fluid.IX(i+1,j,k)]-p[fluid.IX(i-1,j,k)]);
-				Y[fluid.IX(i,j,k)] -= 0.5f*fluid.N*(p[fluid.IX(i,j+1,k)]-p[fluid.IX(i,j-1,k)]);
-				Z[fluid.IX(i,j,k)] -= 0.5f*fluid.N*(p[fluid.IX(i,j,k+1)]-p[fluid.IX(i,j,k-1)]);
+				X[fluid.IX(i,j,k)] -= 0.5*fluid.N*(p[fluid.IX(i+1,j,k)]-p[fluid.IX(i-1,j,k)]);
+				Y[fluid.IX(i,j,k)] -= 0.5*fluid.N*(p[fluid.IX(i,j+1,k)]-p[fluid.IX(i,j-1,k)]);
+				Z[fluid.IX(i,j,k)] -= 0.5*fluid.N*(p[fluid.IX(i,j,k+1)]-p[fluid.IX(i,j,k-1)]);
 			}
 		}
 	}
@@ -309,7 +310,7 @@ void Fluids::project(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& 
 	setBnd(fluid, Z, 3);
 }
 
-void Fluids::setBnd(Fluid3D& fluid, std::vector<float>& X, std::uint8_t b) const
+void Fluids::setBnd(const Fluid3D& fluid, std::vector<double>& X, const std::uint8_t b) const
 {
 	// Faces
 	for (std::uint32_t j = 1; j <= fluid.N; ++j)
@@ -317,7 +318,7 @@ void Fluids::setBnd(Fluid3D& fluid, std::vector<float>& X, std::uint8_t b) const
 		for (std::uint32_t i = 1; i <= fluid.N; ++i)
 		{
 			X[fluid.IX(i,j,0)]		    = b == 3 ? -X[fluid.IX(i,j,1)]		    : X[fluid.IX(i,j,1)];
-			X[fluid.IX(i,j,fluid.N)]  = b == 3 ? -X[fluid.IX(i,j,fluid.N-1)]	: X[fluid.IX(i,j,fluid.N-1)];
+			X[fluid.IX(i,j,fluid.N)]    = b == 3 ? -X[fluid.IX(i,j,fluid.N-1)]	: X[fluid.IX(i,j,fluid.N-1)];
 		}
 	}
 	for (std::uint32_t k = 1; k <= fluid.N; ++k)
@@ -325,7 +326,7 @@ void Fluids::setBnd(Fluid3D& fluid, std::vector<float>& X, std::uint8_t b) const
 		for (std::uint32_t i = 1; i <= fluid.N; ++i)
 		{
 			X[fluid.IX(i,0,k)]		    = b == 2 ? -X[fluid.IX(i,1,k)]		    : X[fluid.IX(i,1,k)];
-			X[fluid.IX(i,fluid.N,k)]  = b == 2 ? -X[fluid.IX(i,fluid.N-1,k)]	: X[fluid.IX(i,fluid.N-1,k)];
+			X[fluid.IX(i,fluid.N,k)]    = b == 2 ? -X[fluid.IX(i,fluid.N-1,k)]	: X[fluid.IX(i,fluid.N-1,k)];
 		}
 	}
 	for (std::uint32_t k = 1; k <= fluid.N; ++k)
@@ -333,39 +334,39 @@ void Fluids::setBnd(Fluid3D& fluid, std::vector<float>& X, std::uint8_t b) const
 		for (std::uint32_t j = 1; j <= fluid.N; ++j)
 		{
 			X[fluid.IX(0,j,k)]		    = b == 1 ? -X[fluid.IX(1,j,k)]		    : X[fluid.IX(1,j,k)];
-			X[fluid.IX(fluid.N,j,k)]  = b == 1 ? -X[fluid.IX(fluid.N-1,j,k)]	: X[fluid.IX(fluid.N-1,j,k)];
+			X[fluid.IX(fluid.N,j,k)]    = b == 1 ? -X[fluid.IX(fluid.N-1,j,k)]	: X[fluid.IX(fluid.N-1,j,k)];
 		}
 	}
 
 	// Edges
 	for (std::uint32_t i = 1; i <= fluid.N; ++i)
 	{
-		X[fluid.IX(i,0,0)]              = 0.5f*(X[fluid.IX(i,1,0)]              +X[fluid.IX(i,0,1)]);
-		X[fluid.IX(i,fluid.N,0)]        = 0.5f*(X[fluid.IX(i,fluid.N-1,0)]      +X[fluid.IX(i,fluid.N,1)]);
-		X[fluid.IX(i,0,fluid.N)]        = 0.5f*(X[fluid.IX(i,0,fluid.N-1)]      +X[fluid.IX(i,1,fluid.N)]);
-		X[fluid.IX(i,fluid.N,fluid.N)]  = 0.5f*(X[fluid.IX(i,fluid.N-1,fluid.N)]+X[fluid.IX(i,fluid.N,fluid.N-1)]);
+		X[fluid.IX(i,0,0)]              = 0.5*(X[fluid.IX(i,1,0)]              +X[fluid.IX(i,0,1)]);
+		X[fluid.IX(i,fluid.N,0)]        = 0.5*(X[fluid.IX(i,fluid.N-1,0)]      +X[fluid.IX(i,fluid.N,1)]);
+		X[fluid.IX(i,0,fluid.N)]        = 0.5*(X[fluid.IX(i,0,fluid.N-1)]      +X[fluid.IX(i,1,fluid.N)]);
+		X[fluid.IX(i,fluid.N,fluid.N)]  = 0.5*(X[fluid.IX(i,fluid.N-1,fluid.N)]+X[fluid.IX(i,fluid.N,fluid.N-1)]);
 
-		X[fluid.IX(0,i,0)]              = 0.5f*(X[fluid.IX(1,i,0)]              +X[fluid.IX(0,i,1)]);
-		X[fluid.IX(fluid.N,i,0)]        = 0.5f*(X[fluid.IX(fluid.N-1,i,0)]      +X[fluid.IX(fluid.N,i,1)]);
-		X[fluid.IX(0,i,fluid.N)]        = 0.5f*(X[fluid.IX(0,i,fluid.N-1)]      +X[fluid.IX(1,i,fluid.N)]);
-		X[fluid.IX(fluid.N,i,fluid.N)]  = 0.5f*(X[fluid.IX(fluid.N-1,i,fluid.N)]+X[fluid.IX(fluid.N,i,0)]);
+		X[fluid.IX(0,i,0)]              = 0.5*(X[fluid.IX(1,i,0)]              +X[fluid.IX(0,i,1)]);
+		X[fluid.IX(fluid.N,i,0)]        = 0.5*(X[fluid.IX(fluid.N-1,i,0)]      +X[fluid.IX(fluid.N,i,1)]);
+		X[fluid.IX(0,i,fluid.N)]        = 0.5*(X[fluid.IX(0,i,fluid.N-1)]      +X[fluid.IX(1,i,fluid.N)]);
+		X[fluid.IX(fluid.N,i,fluid.N)]  = 0.5*(X[fluid.IX(fluid.N-1,i,fluid.N)]+X[fluid.IX(fluid.N,i,0)]);
 
-		X[fluid.IX(0,0,i)]              = 0.5f*(X[fluid.IX(0,1,i)]              +X[fluid.IX(1,0,i)]);
-		X[fluid.IX(0,fluid.N,i)]        = 0.5f*(X[fluid.IX(0,fluid.N-1,i)]      +X[fluid.IX(1,fluid.N,i)]);
-		X[fluid.IX(fluid.N,0,i)]        = 0.5f*(X[fluid.IX(fluid.N-1,0,i)]      +X[fluid.IX(fluid.N,1,i)]);
-		X[fluid.IX(fluid.N,fluid.N,i)]  = 0.5f*(X[fluid.IX(fluid.N,fluid.N-1,i)]+X[fluid.IX(fluid.N-1,fluid.N,i)]);
+		X[fluid.IX(0,0,i)]              = 0.5*(X[fluid.IX(0,1,i)]              +X[fluid.IX(1,0,i)]);
+		X[fluid.IX(0,fluid.N,i)]        = 0.5*(X[fluid.IX(0,fluid.N-1,i)]      +X[fluid.IX(1,fluid.N,i)]);
+		X[fluid.IX(fluid.N,0,i)]        = 0.5*(X[fluid.IX(fluid.N-1,0,i)]      +X[fluid.IX(fluid.N,1,i)]);
+		X[fluid.IX(fluid.N,fluid.N,i)]  = 0.5*(X[fluid.IX(fluid.N,fluid.N-1,i)]+X[fluid.IX(fluid.N-1,fluid.N,i)]);
 	}
 
 	// Corners
-	X[fluid.IX(0,0,0)]				    = 0.33f*(X[fluid.IX(1,0,0)]             +X[fluid.IX(0,1,0)]                 +X[fluid.IX(0,0,1)]);
-	X[fluid.IX(0,fluid.N,0)]		    = 0.33f*(X[fluid.IX(1,fluid.N,0)]       +X[fluid.IX(0,fluid.N-1,0)]         +X[fluid.IX(0,fluid.N,1)]);
-	X[fluid.IX(0,0,fluid.N)]		    = 0.33f*(X[fluid.IX(1,0,fluid.N)]       +X[fluid.IX(0,1,fluid.N)]           +X[fluid.IX(0,0,fluid.N+1)]);
-	X[fluid.IX(0,fluid.N,fluid.N)]      = 0.33f*(X[fluid.IX(1,fluid.N,fluid.N)] +X[fluid.IX(0,fluid.N-1,fluid.N)]   +X[fluid.IX(0,fluid.N,fluid.N-1)]);
+	X[fluid.IX(0,0,0)]				    = 0.33*(X[fluid.IX(1,0,0)]             +X[fluid.IX(0,1,0)]                 +X[fluid.IX(0,0,1)]);
+	X[fluid.IX(0,fluid.N,0)]		    = 0.33*(X[fluid.IX(1,fluid.N,0)]       +X[fluid.IX(0,fluid.N-1,0)]         +X[fluid.IX(0,fluid.N,1)]);
+	X[fluid.IX(0,0,fluid.N)]		    = 0.33*(X[fluid.IX(1,0,fluid.N)]       +X[fluid.IX(0,1,fluid.N)]           +X[fluid.IX(0,0,fluid.N+1)]);
+	X[fluid.IX(0,fluid.N,fluid.N)]      = 0.33*(X[fluid.IX(1,fluid.N,fluid.N)] +X[fluid.IX(0,fluid.N-1,fluid.N)]   +X[fluid.IX(0,fluid.N,fluid.N-1)]);
 
-	X[fluid.IX(fluid.N,0,0)]				= 0.33f*(X[fluid.IX(fluid.N-1,0,0)]             +X[fluid.IX(fluid.N,1,0)]               +X[fluid.IX(fluid.N,0,1)]);
-	X[fluid.IX(fluid.N,fluid.N,0)]		    = 0.33f*(X[fluid.IX(fluid.N-1,fluid.N,0)]       +X[fluid.IX(fluid.N,fluid.N-1,0)]       +X[fluid.IX(fluid.N,fluid.N,1)]);
-	X[fluid.IX(fluid.N,0,fluid.N)]		    = 0.33f*(X[fluid.IX(fluid.N-1,0,fluid.N)]       +X[fluid.IX(fluid.N,1,fluid.N)]         +X[fluid.IX(fluid.N,0,fluid.N-1)]);
-	X[fluid.IX(fluid.N,fluid.N,fluid.N)]    = 0.33f*(X[fluid.IX(fluid.N-1,fluid.N,fluid.N)] +X[fluid.IX(fluid.N,fluid.N-1,fluid.N)] +X[fluid.IX(fluid.N,fluid.N,fluid.N-1)]);
+	X[fluid.IX(fluid.N,0,0)]				= 0.33*(X[fluid.IX(fluid.N-1,0,0)]             +X[fluid.IX(fluid.N,1,0)]               +X[fluid.IX(fluid.N,0,1)]);
+	X[fluid.IX(fluid.N,fluid.N,0)]		    = 0.33*(X[fluid.IX(fluid.N-1,fluid.N,0)]       +X[fluid.IX(fluid.N,fluid.N-1,0)]       +X[fluid.IX(fluid.N,fluid.N,1)]);
+	X[fluid.IX(fluid.N,0,fluid.N)]		    = 0.33*(X[fluid.IX(fluid.N-1,0,fluid.N)]       +X[fluid.IX(fluid.N,1,fluid.N)]         +X[fluid.IX(fluid.N,0,fluid.N-1)]);
+	X[fluid.IX(fluid.N,fluid.N,fluid.N)]    = 0.33*(X[fluid.IX(fluid.N-1,fluid.N,fluid.N)] +X[fluid.IX(fluid.N,fluid.N-1,fluid.N)] +X[fluid.IX(fluid.N,fluid.N,fluid.N-1)]);
 }
 
 void Fluids::updateRender(Fluid3D& fluid)
@@ -373,7 +374,7 @@ void Fluids::updateRender(Fluid3D& fluid)
 	std::vector<std::uint8_t> texture((fluid.N+2)*(fluid.N+2)*(fluid.N+2), 0);
 
     float maxDensity = 0.0f;
-    float sumDensity = 0.0f;
+    //float sumDensity = 0.0f;
 	for (std::uint32_t i = 0; i < (fluid.N+2)*(fluid.N+2)*(fluid.N); ++i)
 	{
         std::uint32_t density = fluid.substanceField[i];
@@ -381,7 +382,7 @@ void Fluids::updateRender(Fluid3D& fluid)
         {
             maxDensity = density;
         }
-        sumDensity += density;
+        //sumDensity += density;
 		//texture[i] = std::clamp(fluid.substanceField[i], 0.0f, 255.0f);;
 	}
     //std::cout << sumDensity << std::endl;
@@ -438,16 +439,16 @@ void Fluids::fluidDebugTool()
     {
         const char* labels[] = {"sstep","vstep","texture"};
         float meanSstepTime = 0.0f;
-        for (const auto& t : _debugSstepTimes)
-            meanSstepTime += t;
+        if (_debugSstepTimes.size() > 0)
+            meanSstepTime = std::accumulate(std::next(_debugSstepTimes.begin()), _debugSstepTimes.end(), _debugSstepTimes.front());
         meanSstepTime /= TIME_ECHANT_NB;
         float meanVstepTime = 0.0f;
-        for (const auto& t : _debugVstepTimes)
-            meanVstepTime += t;
+        if (_debugVstepTimes.size() > 0)
+            meanVstepTime = std::accumulate(std::next(_debugVstepTimes.begin()), _debugVstepTimes.end(), _debugVstepTimes.front());
         meanVstepTime /= TIME_ECHANT_NB;
         float meanTextureTime = 0.0f;
-        for (const auto& t : _debugTextureTimes)
-            meanTextureTime += t;
+        if (_debugTextureTimes.size() > 0)
+            meanTextureTime = std::accumulate(std::next(_debugTextureTimes.begin()), _debugTextureTimes.end(), _debugTextureTimes.front());
         meanTextureTime /= TIME_ECHANT_NB;
         float data[] = {meanSstepTime,meanVstepTime,meanTextureTime};
         ImPlot::PlotPieChart(labels, data, 3, 0.0f, 0.0f, 0.5f, true, "");
@@ -459,16 +460,16 @@ void Fluids::fluidDebugTool()
     {
         const char* labels[] = {"diffuse","advect","project"};
         float meanVstepDiffuseTime = 0.0f;
-        for (const auto& t : _debugVstepDiffuseTimes)
-            meanVstepDiffuseTime += t;
+        if (_debugVstepDiffuseTimes.size() > 0)
+            meanVstepDiffuseTime = std::accumulate(std::next(_debugVstepDiffuseTimes.begin()), _debugVstepDiffuseTimes.end(), _debugVstepDiffuseTimes.front());
         meanVstepDiffuseTime /= TIME_ECHANT_NB;
         float meanVstepAdvectTime = 0.0f;
-        for (const auto& t : _debugVstepAdvectTimes)
-            meanVstepAdvectTime += t;
+        if (_debugVstepAdvectTimes.size() > 0)
+            meanVstepAdvectTime = std::accumulate(std::next(_debugVstepAdvectTimes.begin()), _debugVstepAdvectTimes.end(), _debugVstepAdvectTimes.front());
         meanVstepAdvectTime /= TIME_ECHANT_NB;
         float meanVstepProjectTime = 0.0f;
-        for (const auto& t : _debugVstepProjectTimes)
-            meanVstepProjectTime += t;
+        if (_debugVstepProjectTimes.size() > 0)
+            meanVstepProjectTime = std::accumulate(std::next(_debugVstepProjectTimes.begin()), _debugVstepProjectTimes.end(), _debugVstepProjectTimes.front());
         meanVstepProjectTime /= TIME_ECHANT_NB;
         float data[] = {meanVstepDiffuseTime,meanVstepAdvectTime,meanVstepProjectTime};
         ImPlot::PlotPieChart(labels, data, 3, 0.0f, 0.0f, 0.5f, true, "");
@@ -480,12 +481,12 @@ void Fluids::fluidDebugTool()
     {
         const char* labels[] = {"diffuse","advect"};
         float meanSstepDiffuseTime = 0.0f;
-        for (const auto& t : _debugSstepDiffuseTimes)
-            meanSstepDiffuseTime += t;
+        if (_debugSstepDiffuseTimes.size() > 0)
+            meanSstepDiffuseTime = std::accumulate(std::next(_debugSstepDiffuseTimes.begin()), _debugSstepDiffuseTimes.end(), _debugSstepDiffuseTimes.front());
         meanSstepDiffuseTime /= TIME_ECHANT_NB;
         float meanSstepAdvectTime = 0.0f;
-        for (const auto& t : _debugSstepAdvectTimes)
-            meanSstepAdvectTime += t;
+        if (_debugSstepAdvectTimes.size() > 0)
+            meanSstepAdvectTime = std::accumulate(std::next(_debugSstepAdvectTimes.begin()), _debugSstepAdvectTimes.end(), _debugSstepAdvectTimes.front());
         meanSstepAdvectTime /= TIME_ECHANT_NB;
         float data[] = {meanSstepDiffuseTime,meanSstepAdvectTime};
         ImPlot::PlotPieChart(labels, data, 2, 0.0f, 0.0f, 0.5f, true, "");

@@ -50,9 +50,9 @@ public:
 
 private:
 	std::shared_ptr<Window> _window = nullptr;
-    FrameBuffer _screenbuffer;
-    FrameBuffer _raymarchingbuffer;
-    WindowInfos _windowInfos;
+    FrameBuffer _screenbuffer {};
+    FrameBuffer _raymarchingbuffer {};
+    WindowInfos _windowInfos {};
 
     void _initFrameBuffer(FrameBuffer& framebuffer, std::string vert, std::string frag);
 

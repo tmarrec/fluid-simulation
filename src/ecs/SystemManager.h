@@ -23,7 +23,7 @@ public:
 	}
 
 	template<typename T>
-	void SetSignature(Signature signature)
+	void SetSignature(const Signature signature)
 	{
 		const char* typeName = typeid(T).name();
 
@@ -45,7 +45,7 @@ public:
 		}
 	}
 
-	void EntitySignatureChanged(Entity entity, Signature entitySignature)
+	void EntitySignatureChanged(Entity entity, const Signature& entitySignature)
 	{
 		// Notify each system that an entity's signature changed
 		for (auto const& pair : mSystems)

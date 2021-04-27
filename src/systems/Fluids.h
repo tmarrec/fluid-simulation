@@ -3,10 +3,16 @@
 #include "../ecs/Coordinator.h"
 #include "../Components.h"
 #include "../BasicEntities.h"
+
+#include <Eigen/Sparse>
+#include <Eigen/src/Core/Matrix.h>
+#include <Eigen/src/Core/util/Constants.h>
+#include <Eigen/src/IterativeLinearSolvers/BasicPreconditioners.h>
 #include <cstdint>
 #include <vector>
 #include <unistd.h>
 #include <ctime>
+#include <numeric>
 
 extern Coordinator gCoordinator;
 
@@ -26,43 +32,43 @@ private:
     void Vstep(Fluid3D& fluid);
     void Sstep(Fluid3D& fluid);
 
-    void addSource(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& S) const;
-    void diffuse(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, std::uint8_t b, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper>& cg);
+    void addSource(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& S) const;
+    void diffuse(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t b, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>>& cg);
 
-    void advect(Fluid3D& fluid, std::vector<float>& D, std::vector<float>& Dprev, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& Z, std::uint8_t b) const;
-    void project(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Y, std::vector<float>& Z, std::vector<float>& p, std::vector<float>& div);
+    void advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<double>& Dprev, const std::vector<double>& X, const std::vector<double>& Y, const std::vector<double>& Z, const std::uint8_t b) const;
+    void project(const Fluid3D& fluid, std::vector<double>& X, std::vector<double>& Y, std::vector<double>& Z, std::vector<double>& p, std::vector<double>& div);
 
-    void ConjugateGradientMethodLinSolve(Fluid3D& fluid, std::vector<float>& X, std::vector<float>& Xprev, std::uint8_t b, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper>& cg);
+    void ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t bs, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>>& cg);
 
-    void setBnd(Fluid3D& fluid, std::vector<float>& X, std::uint8_t b) const;
+    void setBnd(const Fluid3D& fluid, std::vector<double>& X, const std::uint8_t b) const;
 
     void updateRender(Fluid3D& fluid);
 
     std::shared_ptr<Renderer> _renderer = nullptr;
 
     bool _initCG = false;
-    Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper> _cgProject {};
-    Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper> _cgDiffuse {};
-    Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper> _cgViscosity {};
+    Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>> _cgProject {};
+    Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>> _cgDiffuse {};
+    Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>> _cgViscosity {};
 
 #ifdef DEBUG_GUI
-    float _debugViscosity;
-    float _debugDiffusion;
-    float _debugDt;
-    float _debugAbsorption;
-    float _debugLightIntensity[3];
-    int _debugN;
+    float _debugViscosity = 0;
+    float _debugDiffusion = 0;
+    float _debugDt = 0;
+    float _debugAbsorption = 0;
+    float _debugLightIntensity[3] = {0, 0, 0};
+    int _debugN = 0;
 
-    std::deque<float> _debugVstepTimes;
-    std::deque<float> _debugSstepTimes;
-    std::deque<float> _debugTextureTimes;
+    std::deque<float> _debugVstepTimes {};
+    std::deque<float> _debugSstepTimes {};
+    std::deque<float> _debugTextureTimes {};
 
-    std::deque<float> _debugVstepDiffuseTimes;
-    std::deque<float> _debugVstepProjectTimes;
-    std::deque<float> _debugVstepAdvectTimes;
+    std::deque<float> _debugVstepDiffuseTimes {};
+    std::deque<float> _debugVstepProjectTimes {};
+    std::deque<float> _debugVstepAdvectTimes {};
 
-    std::deque<float> _debugSstepDiffuseTimes;
-    std::deque<float> _debugSstepAdvectTimes;
+    std::deque<float> _debugSstepDiffuseTimes {};
+    std::deque<float> _debugSstepAdvectTimes {};
 #endif
 
 };

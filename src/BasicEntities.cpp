@@ -128,7 +128,7 @@ void BasicEntities::initBasicEntities(std::shared_ptr<Renderer> renderer)
     renderer->initMesh(_cube);
 }
 
-void BasicEntities::addTransform(Entity& entity, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+void BasicEntities::addTransform(const Entity& entity, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
     gCoordinator.AddComponent(entity, Transform
     {

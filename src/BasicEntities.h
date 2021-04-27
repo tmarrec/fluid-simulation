@@ -19,7 +19,7 @@ public:
     static void addFluid3D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 
 private:
-    static void addTransform(Entity& entity, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
+    static void addTransform(const Entity& entity, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
     static Mesh _vector;
     static Mesh _plane;
     static Mesh _cube;

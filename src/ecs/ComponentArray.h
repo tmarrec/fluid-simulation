@@ -84,5 +84,5 @@ private:
 	std::unordered_map<std::uint64_t, Entity> mIndexToEntityMap;
 
 	// Total size of valid entries in the array.
-	std::uint64_t mSize;
+	std::uint64_t mSize = 0;
 };

@@ -141,7 +141,7 @@ void Shader::init()
 
     // 2. compile shaders
     // Vertex shader
-    GLuint vertex;
+    GLuint vertex = 0;
     if (!_vertPath.empty())
     {
         const char* vShaderCode = vertexCode.c_str();
@@ -151,7 +151,7 @@ void Shader::init()
         checkCompilation(vertex, "VERTEX");
     }
     // Fragment Shader
-    GLuint fragment;
+    GLuint fragment = 0;
     if (!_fragPath.empty())
     {
         const char* fShaderCode = fragmentCode.c_str();
@@ -161,7 +161,7 @@ void Shader::init()
         checkCompilation(fragment, "FRAGMENT");
     }
     // Geometry Shader
-    GLuint geometry;
+    GLuint geometry = 0;
     if (!_geoPath.empty())
     {
         const char* gShaderCode = geoCode.c_str();

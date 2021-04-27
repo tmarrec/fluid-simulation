@@ -26,7 +26,11 @@ SET (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -fopenmp")
 
 FIND_PACKAGE (OpenGL REQUIRED)
 
-FIND_PACKAGE (Eigen3 3.3 REQUIRED NO_MODULE)
+# ╔════════════════════════════╗
+# ║ eigen3 compilation options ║
+# ╚════════════════════════════╝
+
+INCLUDE_DIRECTORIES(extern/eigen)
 
 # ╔══════════════════════════╗
 # ║ glfw compilation options ║
@@ -113,7 +117,6 @@ ADD_EXECUTABLE (${PROJECT_NAME}
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} OpenGL::GL)
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} glfw)
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} glad)
-TARGET_LINK_LIBRARIES (${PROJECT_NAME} Eigen3::Eigen)
 TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} PRIVATE "extern/glm")
 TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} PRIVATE "extern/imgui")
 TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} PRIVATE "extern/imgui/backends")

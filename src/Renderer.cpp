@@ -300,12 +300,9 @@ void Renderer::debugGUI(float dt, float fluidTime, float renderTime, float input
     float fps = 1.0f/dt;
     ImGui::Text("%f fps", fps);
 
-    std::vector<float> data;
-    for (const auto& t : _debugFPSTimes)
-    {
-        data.emplace_back(t);
-    }
-    ImGui::PlotLines("", data.data(), data.size(), 0, "", 0.0f, FLT_MAX, ImVec2(256,86));
+    std::vector<float> fpsTimes(_debugFPSTimes.size());
+    std::copy(_debugFPSTimes.begin(), _debugFPSTimes.end(), fpsTimes.begin());
+    ImGui::PlotLines("", fpsTimes.data(), fpsTimes.size(), 0, "", 0.0f, FLT_MAX, ImVec2(256,86));
     if (dt > 0.0f)
     {
         _debugFPSTimes.emplace_back(fps);

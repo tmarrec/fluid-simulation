@@ -9,6 +9,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <omp.h>
 
 #define INFO(m) \
 	std::cerr << std::endl; \
