@@ -42,7 +42,7 @@ public:
 		--mLivingEntityCount;
 	}
 
-	void SetSignature(Entity entity, Signature signature)
+	void SetSignature(Entity entity, const Signature& signature)
 	{
 		ASSERT(entity < MAX_ENTITIES, "Entity out of range.");
 

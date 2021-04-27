@@ -19,7 +19,7 @@ struct glfwDeleter
 class Window
 {
 public:
-	void init(WindowInfos windowInfos);
+	void init(const WindowInfos& windowInfos);
 	bool windowShouldClose() const;
 	void pollEvents();
     void swapBuffers();
@@ -35,5 +35,5 @@ private:
 	static void glfwError(int error, const char* description);
 
 	std::unique_ptr<GLFWwindow, glfwDeleter> _glfwWindow = nullptr;
-    WindowInfos _windowInfos;
+    WindowInfos _windowInfos {};
 };

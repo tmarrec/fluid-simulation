@@ -1,6 +1,6 @@
 #include "Window.h"
 
-void Window::init(WindowInfos windowInfos)
+void Window::init(const WindowInfos& windowInfos)
 {
     _windowInfos = windowInfos;
 	if (glfwInit() != GLFW_TRUE)

@@ -84,20 +84,20 @@ void Game::mainLoop()
         _renderer.beginImgui();
         _fluidsSys->fluidDebugTool();
         float meanFluidTime = 0.0f;
-        for (const auto& t : fluidTime)
-            meanFluidTime += t;
+        if (fluidTime.size() > 0)
+            meanFluidTime = std::accumulate(std::next(fluidTime.begin()), fluidTime.end(), fluidTime.front());
         meanFluidTime /= TIME_ECHANT_NB;
         float meanRenderTime = 0.0f;
-        for (const auto& t : renderTime)
-            meanRenderTime += t;
+        if (renderTime.size() > 0)
+            meanRenderTime = std::accumulate(std::next(renderTime.begin()), renderTime.end(), renderTime.front());
         meanRenderTime /= TIME_ECHANT_NB;
         float meanInputTime = 0.0f;
-        for (const auto& t : inputTime)
-            meanInputTime += t;
+        if (inputTime.size() > 0)
+            meanInputTime = std::accumulate(std::next(inputTime.begin()), inputTime.end(), inputTime.front());
         meanInputTime /= TIME_ECHANT_NB;
         float meanDtTime = 0.0f;
-        for (const auto& t : dtMean)
-            meanDtTime += t;
+        if (dtMean.size() > 0)
+            meanDtTime = std::accumulate(std::next(dtMean.begin()), dtMean.end(), dtMean.front());
         meanDtTime /= TIME_ECHANT_NB;
         _renderer.debugGUI(meanDtTime, meanFluidTime, meanRenderTime, meanInputTime);
         auto renderTimeStart = std::chrono::high_resolution_clock::now();
