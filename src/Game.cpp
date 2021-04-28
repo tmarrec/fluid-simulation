@@ -17,13 +17,13 @@ void Game::initECS()
     _meshRendererSys = gCoordinator.RegisterSystem<MeshRenderer>();
     Camera camera
     {
-        .yaw = 227,
-        .pitch = -37,
+        .yaw = 226,
+        .pitch = -29,
         .speed = 0.1f,
-        .FOV = 60,
+        .FOV = 90,
         .transform = Transform
             {
-                .position = {6.05, 5.84, 6.28},
+                .position = {9.0, 6.26, 9.0},
                 .rotation = {0, 0, 0},
                 .scale = {1, 1, 1}
             }
@@ -49,6 +49,7 @@ void Game::run(WindowInfos windowInfos)
 	_window->init(windowInfos);
 	_renderer.init(_window);
     initECS();
+
     BasicEntities::initBasicEntities(std::make_shared<Renderer>(_renderer));
 
     BasicEntities::addFluid3D(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
