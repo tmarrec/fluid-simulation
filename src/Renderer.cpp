@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "glm/gtx/string_cast.hpp"
 
 void Renderer::init(std::shared_ptr<Window> window)
 {
@@ -166,6 +167,7 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
     const WindowInfos windowInfos = _window->windowInfos();
     const glm::mat4 projection = glm::infinitePerspective(glm::radians(camera.FOV), static_cast<float>(windowInfos.x)/windowInfos.y, 0.1f);
     const glm::mat4 view = glm::lookAt(camera.transform.position, camera.transform.position+camera.front, camera.up);
+
 
     shader.setMat4("model", model);
     shader.setMat4("view", view);

@@ -6,7 +6,7 @@ void Fluids::init(std::shared_ptr<Renderer> renderer)
     std::srand(std::time(nullptr));
     
     // Temp for eigen
-    omp_set_num_threads(0);
+    //omp_set_num_threads(0);
 }
 
 
@@ -107,6 +107,12 @@ void Fluids::Vstep(Fluid3D& fluid)
 #ifdef DEBUG_GUI
     auto VstepDiffuseTimeStart = std::chrono::high_resolution_clock::now();
 #endif
+    /*
+    float a = fluid.dt * fluid.viscosity * fluid.N;
+    GaussSeidelRelaxationLinSolve(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, a, 1+6*a, 1);
+    GaussSeidelRelaxationLinSolve(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, a, 1+6*a, 2);
+    GaussSeidelRelaxationLinSolve(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, a, 1+6*a, 3);
+    */
 	diffuse(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, 1, _cgViscosity);
 	diffuse(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, 2, _cgViscosity);
 	diffuse(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, 3, _cgViscosity);
@@ -152,6 +158,10 @@ void Fluids::Sstep(Fluid3D& fluid)
 #ifdef DEBUG_GUI
     auto SstepDiffuseTimeStart = std::chrono::high_resolution_clock::now();
 #endif
+    /*
+    float a = fluid.dt * fluid.diffusion * fluid.N;
+    GaussSeidelRelaxationLinSolve(fluid, fluid.substanceFieldPrev, fluid.substanceField, a, 1+6*a, 0);
+    */
 	diffuse(fluid, fluid.substanceFieldPrev, fluid.substanceField, 0, _cgDiffuse);
 
 #ifdef DEBUG_GUI
@@ -229,11 +239,41 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
 	setBnd(fluid, D, b);
 }
 
+void Fluids::GaussSeidelRelaxationLinSolve(const Fluid3D& fluid, std::vector<double>& X, std::vector<double>& Xprev, float a, float c, std::uint8_t b) const
+{
+    std::cout << "Why do you use GaussSeidelRelaxationLinSolve?" << std::endl;
+    exit(0);
+	float cinv = 1.0f/c;
+	for (std::uint32_t l = 0; l < 8; l++)
+	{
+		for (std::uint32_t k = 1; k <= fluid.N; k++)
+        {
+			for (std::uint32_t j = 1; j <= fluid.N; j++)
+            {
+				for (std::uint32_t i = 1; i <= fluid.N; i++)
+                {
+					X[fluid.IX(i,j,k)] =
+                        (Xprev[fluid.IX(i,j,k)]
+							+a*(X[fluid.IX(i+1,j,k)]+
+								X[fluid.IX(i-1,j,k)]+
+								X[fluid.IX(i,j+1,k)]+
+								X[fluid.IX(i,j-1,k)]+
+								X[fluid.IX(i,j,k+1)]+
+								X[fluid.IX(i,j,k-1)]
+						   ))*cinv;
+				}
+			}
+		}
+		setBnd(fluid, X, b);
+	}
+}
+
 void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t bs, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>>& cg)
 {
     std::uint32_t n = (fluid.N)*(fluid.N)*(fluid.N);
     Eigen::VectorXd x(n);
     Eigen::VectorXd b(n);
+
 
     // Filling matrices
     std::uint32_t bIt = 0;
@@ -250,10 +290,14 @@ void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<d
     }
     
     // Solve the linear system
-    do
-    {
-        x = cg.solve(b);
-    } while (cg.error() > 10e-4);
+    cg.setTolerance(10e-5);
+    
+    //auto startTime = std::chrono::high_resolution_clock::now();
+    x = cg.solve(b);
+    //auto stopTime = std::chrono::high_resolution_clock::now();
+    //auto t = std::chrono::duration<float, std::chrono::seconds::period>(stopTime - startTime).count();
+    //std::cout << t << std::endl;
+    //std::cout << cg.iterations() << std::endl;
     
     // Write the results
     for (std::uint32_t k = 1; k <= fluid.N; k++)
@@ -291,6 +335,7 @@ void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<d
 	setBnd(fluid, p, 0);
 
     ConjugateGradientMethodLinSolve(fluid, p, div, 0, _cgProject);
+    //GaussSeidelRelaxationLinSolve(fluid, p, div, 1, 6, 0);
 
 	for (std::uint32_t k = 1; k <= fluid.N; ++k)
 	{
@@ -419,7 +464,7 @@ void Fluids::fluidSetupDebug()
 void Fluids::fluidDebugTool()
 {
     ImGui::Begin("Fluid");
-    ImGui::SliderInt("N", &_debugN, 4, 40);
+    ImGui::SliderInt("N", &_debugN, 4, 128);
     ImGui::SliderFloat("viscosity", &_debugViscosity, 0.0f, 16.0f);
     ImGui::SliderFloat("diffusion", &_debugDiffusion, 0.0f, 16.0f);
     ImGui::SliderFloat("dt", &_debugDt, 0.000001f, 0.0002f, "%.8f");
