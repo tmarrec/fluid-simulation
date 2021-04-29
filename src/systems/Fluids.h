@@ -39,7 +39,7 @@ private:
     void project(const Fluid3D& fluid, std::vector<double>& X, std::vector<double>& Y, std::vector<double>& Z, std::vector<double>& p, std::vector<double>& div);
 
     void GaussSeidelRelaxationLinSolve(const Fluid3D& fluid, std::vector<double>& X, std::vector<double>& Xprev, float a, float c, std::uint8_t b) const;
-    void ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t bs, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>>& cg);
+    void ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t bs, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>>& cg, std::uint8_t minus);
 
     void setBnd(const Fluid3D& fluid, std::vector<double>& X, const std::uint8_t b) const;
 
@@ -52,25 +52,7 @@ private:
     Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>> _cgDiffuse {};
     Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>> _cgViscosity {};
 
-#ifdef DEBUG_GUI
-    float _debugViscosity = 0;
-    float _debugDiffusion = 0;
-    float _debugDt = 0;
-    float _debugAbsorption = 0;
-    float _debugLightIntensity[3] = {0, 0, 0};
-    int _debugN = 0;
-
-    std::deque<float> _debugVstepTimes {};
-    std::deque<float> _debugSstepTimes {};
-    std::deque<float> _debugTextureTimes {};
-
-    std::deque<float> _debugVstepDiffuseTimes {};
-    std::deque<float> _debugVstepProjectTimes {};
-    std::deque<float> _debugVstepAdvectTimes {};
-
-    std::deque<float> _debugSstepDiffuseTimes {};
-    std::deque<float> _debugSstepAdvectTimes {};
-#endif
+    std::uint32_t iteration = 0;
 
 };
 

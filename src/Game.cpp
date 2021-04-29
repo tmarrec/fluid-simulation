@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "BasicEntities.h"
+#include <cstdint>
 
 Coordinator gCoordinator;
 
@@ -69,8 +70,15 @@ void Game::mainLoop()
     std::deque<float> inputTime;
     _fluidsSys->fluidSetupDebug();
 #endif
+    std::uint32_t iterations = 0;
+
 	while (!_window->windowShouldClose())
 	{
+        std::cout << iterations << std::endl;
+        if (iterations == 2048)
+        {
+            //exit(0);
+        }
         auto startTime = std::chrono::high_resolution_clock::now();
 
 #ifdef DEBUG_GUI
@@ -137,6 +145,7 @@ void Game::mainLoop()
         if (dtMean.size() > TIME_ECHANT_NB)
             dtMean.pop_front();
 #endif
+        iterations++;
 	}
 }
 

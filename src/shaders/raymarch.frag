@@ -20,7 +20,7 @@ const float maxDist = sqrt(3.0f);
 const float scale = maxDist / float(numSamples);
 const int numLightSamples = 40;
 const float lscale = maxDist / float(numLightSamples);
-const vec3 lightPos = vec3(2,8,1);
+const vec3 lightPos = vec3(2,4,1);
 
 float getCubeDist(vec3 p)
 {
