@@ -39,7 +39,6 @@ public:
     void freeMesh(Mesh& mesh) const;
     void applyMaterial(Material& material, Camera& camera, Transform& transform) const;
     void initMaterial(Material& material) const;
-    void initTexture(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
     void initTexture3D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
 
 #ifdef DEBUG_GUI
