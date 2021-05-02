@@ -1,5 +1,10 @@
 #include "Renderer.h"
-#include "glm/gtx/string_cast.hpp"
+#include <GL/gl.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 void Renderer::init(std::shared_ptr<Window> window)
 {
@@ -30,6 +35,7 @@ void Renderer::init(std::shared_ptr<Window> window)
     ImGui_ImplOpenGL3_Init("#version 460 core");
 #endif
 }
+
 
 void Renderer::prePass()
 {
@@ -63,6 +69,24 @@ void Renderer::endPass() const
 	glBindTexture(GL_TEXTURE_2D, _raymarchingbuffer.texture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glDisable(GL_BLEND);
+}
+
+void Renderer::writeImg(const std::uint32_t iteration) const
+{
+    GLsizei nbChannels = 3;
+    GLsizei stride = nbChannels * _windowInfos.x;
+    stride += (stride % 4) ? (4 - stride % 4) : 0;
+    GLsizei bufferSize = stride * _windowInfos.y;
+    std::vector<std::uint8_t> buffer(bufferSize);
+    glPixelStorei(GL_PACK_ALIGNMENT, 4);
+    glReadBuffer(GL_FRONT);
+    glReadPixels(0, 0, _windowInfos.x, _windowInfos.y, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
+    stbi_flip_vertically_on_write(true);
+    std::string path = "result/";
+    path += std::to_string(iteration);
+    path += ".png";
+    stbi_write_png(path.c_str(), _windowInfos.x, _windowInfos.y, nbChannels, buffer.data(), stride);
+
 }
 
 void Renderer::drawMesh(Mesh& mesh) const
@@ -252,10 +276,10 @@ void Renderer::initTexture3D(const std::vector<std::uint8_t>& texture, const std
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_COMPRESSED_RED, size, size, size, 0, GL_RED, GL_UNSIGNED_BYTE, texture.data());
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, size, size, size, 0, GL_RED, GL_UNSIGNED_BYTE, texture.data());
     glGenerateMipmap(GL_TEXTURE_3D);
 }
 
@@ -281,35 +305,5 @@ void Renderer::endImgui() const
     ImGui::Render();
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-}
-
-void Renderer::debugGUI(float dt, float fluidTime, float renderTime, float inputTime)
-{
-    ImGui::Begin("Renderer");
-    float fps = 1.0f/dt;
-    ImGui::Text("%f fps", fps);
-
-    std::vector<float> fpsTimes(_debugFPSTimes.size());
-    std::copy(_debugFPSTimes.begin(), _debugFPSTimes.end(), fpsTimes.begin());
-    ImGui::PlotLines("", fpsTimes.data(), fpsTimes.size(), 0, "", 0.0f, FLT_MAX, ImVec2(256,86));
-    if (dt > 0.0f)
-    {
-        _debugFPSTimes.emplace_back(fps);
-        if (_debugFPSTimes.size() > 2048)
-        {
-            _debugFPSTimes.pop_front();
-        }
-    }
-
-    ImPlot::SetNextPlotLimits(-0.5f, 0.5f, -0.5f, 0.5f);
-    if (ImPlot::BeginPlot("frame time", NULL, NULL, ImVec2(256,256)))
-    {
-        const char* labels[] = {"fluid","render","input"};
-        float data[] = {fluidTime, renderTime, inputTime};
-        ImPlot::PlotPieChart(labels, data, 3, 0.0f, 0.0f, 0.5f, true, "");
-        ImPlot::EndPlot();
-    }
-
-    ImGui::End();
 }
 #endif

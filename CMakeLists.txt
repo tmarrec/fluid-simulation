@@ -10,6 +10,12 @@ IF (DEBUG_GUI)
     MESSAGE ("[cowboy-engine] Using debug GUI")
 ENDIF()
 
+OPTION (DISABLE_GUI "Disable window" OFF)
+IF (DISABLE_GUI)
+    ADD_DEFINITIONS(-DDISABLE_GUI)
+    MESSAGE ("[cowboy-engine] GUI is disabled")
+ENDIF()
+
 # ╔═════════════════════════╗
 # ║ C++ Compilation options ║
 # ╚═════════════════════════╝
@@ -30,7 +36,7 @@ FIND_PACKAGE (OpenGL REQUIRED)
 # ║ eigen3 compilation options ║
 # ╚════════════════════════════╝
 
-INCLUDE_DIRECTORIES(extern/eigen)
+INCLUDE_DIRECTORIES(SYSTEM extern/eigen)
 
 # ╔══════════════════════════╗
 # ║ glfw compilation options ║
@@ -41,13 +47,11 @@ SET (GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 SET (GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 ADD_SUBDIRECTORY (extern/glfw)
 
-
 # ╔══════════════════════════╗
 # ║ glad compilation options ║
 # ╚══════════════════════════╝
 
 ADD_SUBDIRECTORY (extern/glad)
-
 
 # ╔═════════════╗
 # ║ Vim options ║
@@ -87,17 +91,17 @@ ADD_EXECUTABLE (${PROJECT_NAME}
     # Engine
 	src/Game.h
 	src/Renderer.h
-	src/Window.h
     src/Shader.h
-    src/Input.h
     src/BasicEntities.h
+	src/Window.h
+    src/Input.h
 
 	src/Game.cpp
 	src/Renderer.cpp
-	src/Window.cpp
     src/Shader.cpp
-    src/Input.cpp
     src/BasicEntities.cpp
+	src/Window.cpp
+    src/Input.cpp
 
     # imgui
     extern/imgui/imgui.cpp
@@ -108,6 +112,9 @@ ADD_EXECUTABLE (${PROJECT_NAME}
     extern/imgui/backends/imgui_impl_opengl3.cpp
     extern/implot/implot.cpp
     extern/implot/implot_items.cpp
+
+    # stb
+    extern/stb/stb_image_write.h
 )
 
 # ╔═════════╗
@@ -117,10 +124,12 @@ ADD_EXECUTABLE (${PROJECT_NAME}
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} OpenGL::GL)
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} glfw)
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} glad)
-TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} PRIVATE "extern/glm")
-TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} PRIVATE "extern/imgui")
-TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} PRIVATE "extern/imgui/backends")
-TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} PRIVATE "extern/implot")
+
+TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/imgui")
+TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/imgui/backends")
+TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/implot")
+TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/glm")
+TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/stb")
 
 FILE (COPY src/shaders DESTINATION .)
 

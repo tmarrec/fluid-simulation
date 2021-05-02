@@ -78,9 +78,9 @@ struct Fluid3D
     std::vector<double> substanceField = {};
     std::vector<double> substanceFieldPrev = {};
 
-    Eigen::SparseMatrix<double> laplacianProject;
-    Eigen::SparseMatrix<double> laplacianViscosity;
-    Eigen::SparseMatrix<double> laplacianDiffuse;
+    Eigen::SparseMatrix<double> laplacianProject {};
+    Eigen::SparseMatrix<double> laplacianViscosity {};
+    Eigen::SparseMatrix<double> laplacianDiffuse {};
 
     std::uint32_t IX(const std::uint32_t x, const std::uint32_t y, const std::uint32_t z) const
     { 
