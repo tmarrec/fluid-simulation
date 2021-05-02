@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Shader.h"
-#include "Window.h"
 #include "Components.h"
 #include "types.h"
 #include "utils.h"
+#include "Window.h"
 
 #ifdef DEBUG_GUI
 #include "imgui.h"
@@ -40,11 +40,11 @@ public:
     void applyMaterial(Material& material, Camera& camera, Transform& transform) const;
     void initMaterial(Material& material) const;
     void initTexture3D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
+    void writeImg(const std::uint32_t iteration) const;
 
 #ifdef DEBUG_GUI
     void beginImgui() const;
     void endImgui() const;
-    void debugGUI(float dt, float fluidTime, float renderTime, float inputTime);
 #endif
 
 private:
@@ -52,11 +52,8 @@ private:
     FrameBuffer _screenbuffer {};
     FrameBuffer _raymarchingbuffer {};
     WindowInfos _windowInfos {};
+    std::uint32_t _iterations = 0;
 
     void _initFrameBuffer(FrameBuffer& framebuffer, std::string vert, std::string frag);
-
-#ifdef DEBUG_GUI
-    std::deque<float> _debugFPSTimes;
-#endif
 };
 

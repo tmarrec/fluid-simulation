@@ -3,12 +3,12 @@
 #include <numeric>
 
 #include "Renderer.h"
-#include "Window.h"
 #include "types.h"
 #include "Components.h"
 #include "Shader.h"
 #include "ecs/Coordinator.h"
 #include "BasicEntities.h"
+#include "Window.h"
 
 #include "systems/MeshRenderer.h"
 #include "systems/Fluids.h"

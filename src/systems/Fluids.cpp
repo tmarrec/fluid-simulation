@@ -1,4 +1,5 @@
 #include "Fluids.h"
+#include <cmath>
 #include <cstdint>
 #include <omp.h>
 
@@ -9,29 +10,15 @@ float debugDt = 0;
 float debugAbsorption = 0;
 float debugLightIntensity[3] = {0, 0, 0};
 int debugN = 0;
-
-std::deque<float> debugVstepTimes {};
-std::deque<float> debugSstepTimes {};
-std::deque<float> debugTextureTimes {};
-
-std::deque<float> debugVstepDiffuseTimes {};
-std::deque<float> debugVstepProjectTimes {};
-std::deque<float> debugVstepAdvectTimes {};
-
-std::deque<float> debugSstepDiffuseTimes {};
-std::deque<float> debugSstepAdvectTimes {};
 #endif
 
 void Fluids::init(std::shared_ptr<Renderer> renderer)
 {
 	_renderer = renderer;
     std::srand(std::time(nullptr));
-    // TODO temp
-    omp_set_num_threads(0);
 }
 
-
-void Fluids::reset(bool force)
+void Fluids::reset([[maybe_unused]] bool force)
 {
 #ifdef DEBUG_GUI
 	for (auto const& entity : mEntities)
@@ -58,7 +45,7 @@ void Fluids::reset(bool force)
 #endif
 }
 
-void Fluids::update()
+void Fluids::update(std::uint32_t iteration)
 {
     if (mEntities.size() > 1)
     {
@@ -83,30 +70,19 @@ void Fluids::update()
 		int N = fluid.N/2;
 
         float p = 64;
-        iteration++;
-        if (iteration > 256)
+        float z = 512;
+        if (iteration > 0)
         {
-            fluid.substanceField[fluid.IX(N, 2, N)] = p;
-            fluid.substanceField[fluid.IX(N+1, 2, N)] = p;
-            fluid.substanceField[fluid.IX(N-1, 2, N)] = p;
-            fluid.substanceField[fluid.IX(N, 2, N+1)] = p;
-            fluid.substanceField[fluid.IX(N, 2, N-1)] = p;
+            for (std::uint32_t i = 0; i < 3; ++i)
+            {
+                for (std::uint32_t j = 0; j < 3; ++j)
+                {
+                    fluid.substanceField[fluid.IX(N+i-(i/2), 2, N+j-(j/2))] = p;
+	                fluid.velocityFieldY[fluid.IX(N+i-(i/2), 2, N+j-(j/2))] = z;
+                }
+            }
         }
 
-        /*
-	    fluid.substanceField[fluid.IX(N, N, 2)] = p;
-	    fluid.substanceField[fluid.IX(N, N, fluid.N-2)] = p;
-	    fluid.substanceField[fluid.IX(2, N, N)] = p;
-	    fluid.substanceField[fluid.IX(fluid.N-2, N, N)] = p;
-        */
-	    //fluid.substanceField[fluid.IX(N, N, 2)] = p;
-
-        float z = 512;
-	    fluid.velocityFieldY[fluid.IX(N, 2, N)] = z;
-        fluid.velocityFieldY[fluid.IX(N+1, 2, N)] = z;
-        fluid.velocityFieldY[fluid.IX(N-1, 2, N)] = z;
-        fluid.velocityFieldY[fluid.IX(N, 2, N+1)] = z;
-        fluid.velocityFieldY[fluid.IX(N, 2, N-1)] = z;
         float e = 1024*9; //7
         float u = 1024*9;
 
@@ -137,37 +113,14 @@ void Fluids::update()
 	    fluid.velocityFieldY[fluid.IX(N, N, fluid.N-2)] = u;
 	    fluid.velocityFieldY[fluid.IX(2, N, N)] = u;
 	    fluid.velocityFieldY[fluid.IX(fluid.N-2, N, N)] = u;
-
         /* End Testings */
 
-#ifdef DEBUG_GUI
-        auto VstepTimeStart = std::chrono::high_resolution_clock::now();
-#endif
 		Vstep(fluid);
-#ifdef DEBUG_GUI
-        auto VstepTimeStop = std::chrono::high_resolution_clock::now();
-        debugVstepTimes.emplace_back(std::chrono::duration<float, std::chrono::seconds::period>(VstepTimeStop - VstepTimeStart).count());
-        if (debugVstepTimes.size() > TIME_ECHANT_NB)
-            debugVstepTimes.pop_front();
-        auto SstepTimeStart = std::chrono::high_resolution_clock::now();
-#endif
 		Sstep(fluid);
-#ifdef DEBUG_GUI
-        auto SstepTimeStop = std::chrono::high_resolution_clock::now();
-        debugSstepTimes.emplace_back(std::chrono::duration<float, std::chrono::seconds::period>(SstepTimeStop - SstepTimeStart).count());
-        if (debugSstepTimes.size() > TIME_ECHANT_NB)
-            debugSstepTimes.pop_front();
-        auto TextureTimeStart = std::chrono::high_resolution_clock::now();
-#endif
 		updateRender(fluid);
-#ifdef DEBUG_GUI
-        auto TextureTimeStop = std::chrono::high_resolution_clock::now();
-        debugTextureTimes.emplace_back(std::chrono::duration<float, std::chrono::seconds::period>(TextureTimeStop - TextureTimeStart).count());
-        if (debugTextureTimes.size() > TIME_ECHANT_NB)
-            debugTextureTimes.pop_front();
-#endif
 	}
 }
+
 
 void Fluids::Vstep(Fluid3D& fluid)
 {
@@ -175,81 +128,38 @@ void Fluids::Vstep(Fluid3D& fluid)
 	//addSource(fluid, fluid.velocityFieldY, fluid.velocityFieldPrevY);
 	//addSource(fluid, fluid.velocityFieldZ, fluid.velocityFieldPrevZ);
 
-#ifdef DEBUG_GUI
-    auto VstepDiffuseTimeStart = std::chrono::high_resolution_clock::now();
-#endif
     /*
     float a = fluid.dt * fluid.viscosity * fluid.N;
     GaussSeidelRelaxationLinSolve(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, a, 1+6*a, 1);
     GaussSeidelRelaxationLinSolve(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, a, 1+6*a, 2);
     GaussSeidelRelaxationLinSolve(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, a, 1+6*a, 3);
     */
-	diffuse(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, 1, _cgViscosity);
-	diffuse(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, 2, _cgViscosity);
-	diffuse(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, 3, _cgViscosity);
-#ifdef DEBUG_GUI
-    auto VstepDiffuseTimeStop = std::chrono::high_resolution_clock::now();
-    debugVstepDiffuseTimes.emplace_back(std::chrono::duration<float, std::chrono::seconds::period>(VstepDiffuseTimeStop - VstepDiffuseTimeStart).count());
-    if (debugVstepDiffuseTimes.size() > TIME_ECHANT_NB)
-        debugVstepDiffuseTimes.pop_front();
+	//diffuse(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, 1, _cgViscosity);
+    ConjugateGradientMethodLinSolve(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, 1, _cgViscosity, 0, fluid.laplacianViscosity);
+	//diffuse(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, 2, _cgViscosity);
+    ConjugateGradientMethodLinSolve(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, 2, _cgViscosity, 0, fluid.laplacianViscosity);
+	//diffuse(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, 3, _cgViscosity);
+    ConjugateGradientMethodLinSolve(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, 3, _cgViscosity, 0, fluid.laplacianViscosity);
 
-    auto VstepProjectTimeStart = std::chrono::high_resolution_clock::now();
-#endif
 	project(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, fluid.velocityFieldX, fluid.velocityFieldY);
-#ifdef DEBUG_GUI
-    auto VstepProjectTimeStop = std::chrono::high_resolution_clock::now();
-    debugVstepProjectTimes.emplace_back(std::chrono::duration<float, std::chrono::seconds::period>(VstepProjectTimeStop - VstepProjectTimeStart).count());
-    if (debugVstepProjectTimes.size() > TIME_ECHANT_NB)
-        debugVstepProjectTimes.pop_front();
 
-    auto VstepAdvectTimeStart = std::chrono::high_resolution_clock::now();
-#endif
 	advect(fluid, fluid.velocityFieldX, fluid.velocityFieldPrevX, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 1);
 	advect(fluid, fluid.velocityFieldY, fluid.velocityFieldPrevY, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 2);
 	advect(fluid, fluid.velocityFieldZ, fluid.velocityFieldPrevZ, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 3);
-#ifdef DEBUG_GUI
-    auto VstepAdvectTimeStop = std::chrono::high_resolution_clock::now();
-    debugVstepAdvectTimes.emplace_back(std::chrono::duration<float, std::chrono::seconds::period>(VstepAdvectTimeStop - VstepAdvectTimeStart).count());
-    if (debugVstepAdvectTimes.size() > TIME_ECHANT_NB)
-        debugVstepAdvectTimes.pop_front();
 
-    VstepProjectTimeStart = std::chrono::high_resolution_clock::now();
-#endif
 	project(fluid, fluid.velocityFieldX, fluid.velocityFieldY, fluid.velocityFieldZ, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY);
-#ifdef DEBUG_GUI
-    VstepProjectTimeStop = std::chrono::high_resolution_clock::now();
-    debugVstepProjectTimes.back() += std::chrono::duration<float, std::chrono::seconds::period>(VstepProjectTimeStop - VstepProjectTimeStart).count();
-#endif
 }
 
 void Fluids::Sstep(Fluid3D& fluid)
 {
 	//addSource(fluid, fluid.substanceField, fluid.substanceFieldPrev);
-    
-#ifdef DEBUG_GUI
-    auto SstepDiffuseTimeStart = std::chrono::high_resolution_clock::now();
-#endif
     /*
     float a = fluid.dt * fluid.diffusion * fluid.N;
     GaussSeidelRelaxationLinSolve(fluid, fluid.substanceFieldPrev, fluid.substanceField, a, 1+6*a, 0);
     */
-	diffuse(fluid, fluid.substanceFieldPrev, fluid.substanceField, 0, _cgDiffuse);
-
-#ifdef DEBUG_GUI
-    auto SstepDiffuseTimeStop = std::chrono::high_resolution_clock::now();
-    debugSstepDiffuseTimes.emplace_back(std::chrono::duration<float, std::chrono::seconds::period>(SstepDiffuseTimeStop - SstepDiffuseTimeStart).count());
-    if (debugSstepDiffuseTimes.size() > TIME_ECHANT_NB)
-        debugSstepDiffuseTimes.pop_front();
-
-    auto SstepAdvectTimeStart = std::chrono::high_resolution_clock::now();
-#endif
+	//diffuse(fluid, fluid.substanceFieldPrev, fluid.substanceField, 0, _cgDiffuse);
+    ConjugateGradientMethodLinSolve(fluid, fluid.substanceFieldPrev, fluid.substanceField, 0, _cgDiffuse, 0, fluid.laplacianDiffuse);
 	advect(fluid, fluid.substanceField, fluid.substanceFieldPrev, fluid.velocityFieldX, fluid.velocityFieldY, fluid.velocityFieldZ, 0);
-#ifdef DEBUG_GUI
-    auto SstepAdvectTimeStop = std::chrono::high_resolution_clock::now();
-    debugSstepAdvectTimes.emplace_back(std::chrono::duration<float, std::chrono::seconds::period>(SstepAdvectTimeStop - SstepAdvectTimeStart).count());
-    if (debugSstepAdvectTimes.size() > TIME_ECHANT_NB)
-        debugSstepAdvectTimes.pop_front();
-#endif
 }
 
 void Fluids::addSource(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& S) const
@@ -262,7 +172,7 @@ void Fluids::addSource(const Fluid3D& fluid, std::vector<double>& X, const std::
 
 void Fluids::diffuse(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t b, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>>& cg)
 {
-    ConjugateGradientMethodLinSolve(fluid, X, Xprev, b, cg, 0);
+    //ConjugateGradientMethodLinSolve(fluid, X, Xprev, b, cg, 0);
 }
 
 void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<double>& Dprev, const std::vector<double>& X, const std::vector<double>& Y, const std::vector<double>& Z, const std::uint8_t b) const
@@ -337,7 +247,20 @@ void Fluids::GaussSeidelRelaxationLinSolve(const Fluid3D& fluid, std::vector<dou
 	}
 }
 
-void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t bs, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>>& cg, std::uint8_t minus)
+Eigen::VectorXd Fluids::applyPreconditioner(Eigen::VectorXd& M) const
+{
+    double to = 0.97;
+    for (std::uint32_t i = 1; i <= M.cols(); ++i)
+    {
+        for (std::uint32_t j = 1; j <= M.rows(); ++j)
+        {
+            
+        }
+    }
+    return M;
+}
+
+void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t bs, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>>& cg, std::uint8_t minus, const Eigen::SparseMatrix<double>& A)
 {
     std::uint32_t n = (fluid.N)*(fluid.N)*(fluid.N);
     Eigen::VectorXd x(n-minus);
@@ -362,8 +285,36 @@ void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<d
     }
     
     // Solve the linear system
-    x = cg.solve(b);
+    //x = cg.solve(b);
+
+    Eigen::VectorXd r = b;
+    Eigen::VectorXd p = Eigen::VectorXd::Zero(n-minus);
+    Eigen::VectorXd z = applyPreconditioner(r);
+    Eigen::VectorXd s = z;
+    double sig = z.dot(r);
+
+    if (sig == 0)
+    {
+        X = Xprev;
+        return;
+    }
     
+    for (std::uint32_t i = 0; i < b.size(); ++i)
+    {
+        z = A * s;
+        double alpha = sig / z.dot(s);
+        p = p + alpha * s;
+        r = r - alpha * z;
+        if (std::abs(r.maxCoeff()) < 10e-5)
+        {
+            break;
+        }
+        z = applyPreconditioner(r);
+        double signew = z.dot(r);
+        s = z + (signew / sig) * s;
+        sig = signew;
+    }
+
     // Write the results
     for (std::uint32_t k = 1; k <= fluid.N; k++)
     {
@@ -377,7 +328,7 @@ void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<d
                     //X[fluid.IX(i,j,k)] = 0;
                     break;
                 }
-                X[fluid.IX(i,j,k)] = x.coeffRef(ind);
+                X[fluid.IX(i,j,k)] = p.coeffRef(ind);
             }
         }
     }
@@ -405,7 +356,7 @@ void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<d
 	setBnd(fluid, div, 0);
 	setBnd(fluid, p, 0);
 
-    ConjugateGradientMethodLinSolve(fluid, p, div, 0, _cgProject, 1);
+    ConjugateGradientMethodLinSolve(fluid, p, div, 0, _cgProject, 1, fluid.laplacianProject);
     //GaussSeidelRelaxationLinSolve(fluid, p, div, 1, 6, 0);
 
 	for (std::uint32_t k = 1; k <= fluid.N; ++k)
@@ -535,66 +486,6 @@ void Fluids::fluidDebugTool()
     {
         reset(true);
     }
-
-    ImPlot::SetNextPlotLimits(-0.5f, 0.5f, -0.5f, 0.5f);
-    if (ImPlot::BeginPlot("Simulation time", NULL, NULL, ImVec2(175,175)))
-    {
-        const char* labels[] = {"sstep","vstep","texture"};
-        float meanSstepTime = 0.0f;
-        if (debugSstepTimes.size() > 0)
-            meanSstepTime = std::accumulate(std::next(debugSstepTimes.begin()), debugSstepTimes.end(), debugSstepTimes.front());
-        meanSstepTime /= TIME_ECHANT_NB;
-        float meanVstepTime = 0.0f;
-        if (debugVstepTimes.size() > 0)
-            meanVstepTime = std::accumulate(std::next(debugVstepTimes.begin()), debugVstepTimes.end(), debugVstepTimes.front());
-        meanVstepTime /= TIME_ECHANT_NB;
-        float meanTextureTime = 0.0f;
-        if (debugTextureTimes.size() > 0)
-            meanTextureTime = std::accumulate(std::next(debugTextureTimes.begin()), debugTextureTimes.end(), debugTextureTimes.front());
-        meanTextureTime /= TIME_ECHANT_NB;
-        float data[] = {meanSstepTime,meanVstepTime,meanTextureTime};
-        ImPlot::PlotPieChart(labels, data, 3, 0.0f, 0.0f, 0.5f, true, "");
-        ImPlot::EndPlot();
-    }
-
-    ImPlot::SetNextPlotLimits(-0.5f, 0.5f, -0.5f, 0.5f);
-    if (ImPlot::BeginPlot("vstep time", NULL, NULL, ImVec2(175,175)))
-    {
-        const char* labels[] = {"diffuse","advect","project"};
-        float meanVstepDiffuseTime = 0.0f;
-        if (debugVstepDiffuseTimes.size() > 0)
-            meanVstepDiffuseTime = std::accumulate(std::next(debugVstepDiffuseTimes.begin()), debugVstepDiffuseTimes.end(), debugVstepDiffuseTimes.front());
-        meanVstepDiffuseTime /= TIME_ECHANT_NB;
-        float meanVstepAdvectTime = 0.0f;
-        if (debugVstepAdvectTimes.size() > 0)
-            meanVstepAdvectTime = std::accumulate(std::next(debugVstepAdvectTimes.begin()), debugVstepAdvectTimes.end(), debugVstepAdvectTimes.front());
-        meanVstepAdvectTime /= TIME_ECHANT_NB;
-        float meanVstepProjectTime = 0.0f;
-        if (debugVstepProjectTimes.size() > 0)
-            meanVstepProjectTime = std::accumulate(std::next(debugVstepProjectTimes.begin()), debugVstepProjectTimes.end(), debugVstepProjectTimes.front());
-        meanVstepProjectTime /= TIME_ECHANT_NB;
-        float data[] = {meanVstepDiffuseTime,meanVstepAdvectTime,meanVstepProjectTime};
-        ImPlot::PlotPieChart(labels, data, 3, 0.0f, 0.0f, 0.5f, true, "");
-        ImPlot::EndPlot();
-    }
-
-    ImPlot::SetNextPlotLimits(-0.5f, 0.5f, -0.5f, 0.5f);
-    if (ImPlot::BeginPlot("sstep time", NULL, NULL, ImVec2(175,175)))
-    {
-        const char* labels[] = {"diffuse","advect"};
-        float meanSstepDiffuseTime = 0.0f;
-        if (debugSstepDiffuseTimes.size() > 0)
-            meanSstepDiffuseTime = std::accumulate(std::next(debugSstepDiffuseTimes.begin()), debugSstepDiffuseTimes.end(), debugSstepDiffuseTimes.front());
-        meanSstepDiffuseTime /= TIME_ECHANT_NB;
-        float meanSstepAdvectTime = 0.0f;
-        if (debugSstepAdvectTimes.size() > 0)
-            meanSstepAdvectTime = std::accumulate(std::next(debugSstepAdvectTimes.begin()), debugSstepAdvectTimes.end(), debugSstepAdvectTimes.front());
-        meanSstepAdvectTime /= TIME_ECHANT_NB;
-        float data[] = {meanSstepDiffuseTime,meanSstepAdvectTime};
-        ImPlot::PlotPieChart(labels, data, 2, 0.0f, 0.0f, 0.5f, true, "");
-        ImPlot::EndPlot();
-    }
-
     ImGui::End();
 }
 #endif
