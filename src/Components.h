@@ -59,13 +59,25 @@ struct Material
     std::vector<float> texCoords = {};
 };
 
+struct Laplacian
+{
+    Eigen::SparseMatrix<double> A; 
+    Eigen::VectorXd diag;
+    Eigen::VectorXd plusi;
+    Eigen::VectorXd plusj;
+    Eigen::VectorXd plusk;
+    Eigen::VectorXd precon;
+};
+
 struct Fluid3D
 {
     Entity entity;
     double viscosity = 0.2;
     double diffusion = 0.0;
     double dt = 0.0001;
-    std::uint32_t N = 24;
+    std::uint32_t N = 40;
+    std::uint32_t N2 = N*N;
+    std::uint32_t N3 = N*N*N;
 
     std::vector<double> velocityFieldX = {};
     std::vector<double> velocityFieldY = {};
@@ -78,14 +90,126 @@ struct Fluid3D
     std::vector<double> substanceField = {};
     std::vector<double> substanceFieldPrev = {};
 
-    Eigen::SparseMatrix<double> laplacianProject {};
-    Eigen::SparseMatrix<double> laplacianViscosity {};
-    Eigen::SparseMatrix<double> laplacianDiffuse {};
+    Laplacian laplacianProject {};
+    Laplacian laplacianViscosity {};
+    Laplacian laplacianDiffuse {};
 
     std::uint32_t IX(const std::uint32_t x, const std::uint32_t y, const std::uint32_t z) const
     { 
         return x + y * (N+2) + z * ((N+2)*(N+2));
     };
+
+    void setAMatricese(Laplacian& laplacian, std::uint32_t minus) const
+    {
+        laplacian.diag = Eigen::VectorXd::Zero(N3-minus);
+        laplacian.plusi = Eigen::VectorXd::Zero(N3-minus);
+        laplacian.plusj = Eigen::VectorXd::Zero(N3-minus);
+        laplacian.plusk = Eigen::VectorXd::Zero(N3-minus);
+        for (std::uint32_t k = 0; k < N; ++k)
+        {
+            for (std::uint32_t j = 0; j < N; ++j)
+            {
+                for (std::uint32_t i = 0; i < N; ++i)
+                {
+                    std::uint32_t ind = i+j*N+k*N2;
+                    if (ind < N3-minus)
+                    {
+                        laplacian.diag.coeffRef(ind) = laplacian.A.coeff(ind, ind);
+                        if (ind+1 < N3-minus && i+1 < N)
+                        {
+                            laplacian.plusi[ind] = laplacian.A.coeff(ind, (i+1)+j*N+k*N2);
+                        }
+                        
+                        if (ind+N < N3-minus)
+                        {
+                            laplacian.plusj[ind] = laplacian.A.coeff(ind, i+(j+1)*N+k*N2);
+                        }
+
+                        if (ind+N2 < N3-minus)
+                        {
+                            laplacian.plusk[ind] = laplacian.A.coeff(ind, i+j*N+(k+1)*N2);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void setPrecon(Laplacian& A, std::uint32_t minus) const
+    {
+        A.precon = Eigen::VectorXd::Zero(N3-minus);
+        for (std::uint32_t k = 0; k < N; ++k)
+        {
+            for (std::uint32_t j = 0; j < N; ++j)
+            {
+                for (std::uint32_t i = 0; i < N; ++i)
+                {
+                    std::uint32_t ind = i+j*N+k*N2;
+                    if (ind < N3-minus)
+                    {
+                        std::uint32_t indmi = (i-1)+j*N+k*N2;
+                        std::uint32_t indmj = i+(j-1)*N+k*N2;
+                        std::uint32_t indmk = i+j*N+(k-1)*N2;
+
+                        double a = 0;
+                        double b = 0;
+                        double c = 0;
+
+                        double i0 = 0;
+                        double i1 = 0;
+                        double i2 = 0;
+                        double i3 = 0;
+                        double j0 = 0;
+                        double j1 = 0;
+                        double j2 = 0;
+                        double j3 = 0;
+                        double k0 = 0;
+                        double k1 = 0;
+                        double k2 = 0;
+                        double k3 = 0;
+
+                        if (i > 0)
+                        {
+                            a = std::pow(A.plusi.coeff(indmi) * A.precon.coeff(indmi), 2);
+                            i0 = A.plusi.coeff(indmi);
+                            i1 = A.plusj.coeff(indmi);
+                            i2 = A.plusk.coeff(indmi);
+                            i3 = std::pow(A.precon.coeff(indmi), 2);
+                        }
+                        if (j > 0)
+                        {
+                            b = std::pow(A.plusj.coeff(indmj) * A.precon.coeff(indmj), 2);
+                            j0 = A.plusj.coeff(indmj);
+                            j1 = A.plusi.coeff(indmj);
+                            j2 = A.plusk.coeff(indmj);
+                            j3 = std::pow(A.precon.coeff(indmj), 2);
+                        }
+                        if (k > 0)
+                        {
+                            c = std::pow(A.plusk.coeff(indmk) * A.precon.coeff(indmk), 2);
+                            k0 = A.plusk.coeff(indmk);
+                            k1 = A.plusi.coeff(indmk);
+                            k2 = A.plusj.coeff(indmk);
+                            k3 = std::pow(A.precon.coeff(indmk), 2);
+                        }
+
+                        double e = A.diag.coeff(ind) - a - b - c 
+                            - 0.97 * (
+                                    i0 * (i1 + i2) * i3
+                                +   j0 * (j1 + j2) * j3
+                                +   k0 * (k1 + k2) * k3
+                            );
+
+                        if (e < 0.25 * A.diag.coeff(ind))
+                        {
+                            e = A.diag.coeff(ind);
+                        }
+                        A.precon.coeffRef(ind) = 1/std::sqrt(e);
+                    }
+                }
+            }
+        }
+    }
 
     void init()
     {
@@ -105,97 +229,78 @@ struct Fluid3D
         double visc = dt * viscosity * N;
         double diff = dt * diffusion * N;
 
-        std::uint32_t n = N*N*N;
+        const std::uint32_t minus = 1;
 
-        laplacianProject = Eigen::SparseMatrix<double>(n-1, n-1);
-        laplacianViscosity = Eigen::SparseMatrix<double>(n, n);
-        laplacianDiffuse = Eigen::SparseMatrix<double>(n, n);
-
-        laplacianProject.reserve(Eigen::VectorXi::Constant(n-1, 7));
-        laplacianViscosity.reserve(Eigen::VectorXi::Constant(n, 7));
-        laplacianDiffuse.reserve(Eigen::VectorXi::Constant(n, 7));
+        Eigen::SparseMatrix<double> AProject    = Eigen::SparseMatrix<double>(N3-minus, N3-minus);
+        Eigen::SparseMatrix<double> AViscosity  = Eigen::SparseMatrix<double>(N3, N3);
+        Eigen::SparseMatrix<double> ADiffuse    = Eigen::SparseMatrix<double>(N3, N3);
 
         std::vector<Eigen::Triplet<double>> tripletListProject;
         std::vector<Eigen::Triplet<double>> tripletListViscosity;
         std::vector<Eigen::Triplet<double>> tripletListDiffuse;
 
-        tripletListProject.reserve(7*(n-1));
-        tripletListViscosity.reserve(7*(n));
-        tripletListDiffuse.reserve(7*(n));
-
-        std::uint32_t entities = 0;
-        for(std::uint32_t i = 0; i < n; ++i)
+        for(std::uint32_t i = 0; i < N3; ++i)
         {
-            if (i > 0 && (i-1)%N != 0)
+            if (i+1 < N3 && i%N != N-1)
             {
-                if (i < n-1)
-                {
-                    tripletListProject.emplace_back(Eigen::Triplet<double>(i, i-1, 1));
-                }
-                tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i-1, visc));
-                tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i-1, diff));
-                entities++;
+                tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i+1, -visc));
+                tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i+1, -diff));
             }
-            if (i >= N)
+            if (i+1 < N3-minus && i%N != N-1)
             {
-                if (i < n-1)
-                {
-                    tripletListProject.emplace_back(Eigen::Triplet<double>(i, i-N, 1));
-                }
-                tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i-N, visc));
-                tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i-N, diff));
-                entities++;
+                tripletListProject.emplace_back(Eigen::Triplet<double>(i, i+1, -1));
             }
-            if (i >= N * N)
+            if (i+N < N3 && (i+N)%(N*N) >= N)
             {
-                if (i < n-1)
-                {
-                    tripletListProject.emplace_back(Eigen::Triplet<double>(i, i-N*N, 1));
-                }
-                tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i-N*N, visc));
-                tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i-N*N, diff));
-                entities++;
+                tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i+N, -visc));
+                tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i+N, -diff));
             }
-            if (i < N*N*N-1 && (i+1)%N != 0)
+            if (i+N < N3-minus && (i+N)%(N*N) >= N)
             {
-                tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i+1, visc));
-                tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i+1, diff));
+                tripletListProject.emplace_back(Eigen::Triplet<double>(i, i+N, -1));
             }
-            if (i < N*N*N-1-1 && (i+1)%N != 0)
+            if (i+N*N < N3)
             {
-                tripletListProject.emplace_back(Eigen::Triplet<double>(i, i+1, 1));
-                entities++;
+                tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i+N*N, -visc));
+                tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i+N*N, -diff));
             }
-            if (i + N < N*N*N-1)
+            if (i+N*N < N3-minus)
             {
-                tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i+N, visc));
-                tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i+N, diff));
+                tripletListProject.emplace_back(Eigen::Triplet<double>(i, i+N*N, -1));
             }
-            if (i + N < N*N*N-1-1)
+            if (i < N3-minus)
             {
-                tripletListProject.emplace_back(Eigen::Triplet<double>(i, i+N, 1));
-                entities++;
+                tripletListProject.emplace_back(Eigen::Triplet<double>(i, i, 6));
             }
-            if (i + N*N < N*N*N-1)
-            {
-                tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i+N*N, visc));
-                tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i+N*N, diff));
-            }
-            if (i + N*N < N*N*N-1-1)
-            {
-                tripletListProject.emplace_back(Eigen::Triplet<double>(i, i+N*N, 1));
-                entities++;
-            }
-            if (i < n-1)
-            {
-                tripletListProject.emplace_back(Eigen::Triplet<double>(i, i, -6));
-            }
-            tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i, -(1+6*visc)));
-            tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i, -(1+6*diff)));
+            tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i, 1+6*visc));
+            tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i, 1+6*diff));
         }
-        laplacianProject.setFromTriplets(tripletListProject.begin(), tripletListProject.end());
-        laplacianViscosity.setFromTriplets(tripletListViscosity.begin(), tripletListViscosity.end());
-        laplacianDiffuse.setFromTriplets(tripletListDiffuse.begin(), tripletListDiffuse.end());
+        AProject.setFromTriplets(tripletListProject.begin(), tripletListProject.end());
+        AViscosity.setFromTriplets(tripletListViscosity.begin(), tripletListViscosity.end());
+        ADiffuse.setFromTriplets(tripletListDiffuse.begin(), tripletListDiffuse.end());
+        AProject = AProject+Eigen::SparseMatrix<double>(AProject.transpose());
+        AViscosity = AViscosity+Eigen::SparseMatrix<double>(AViscosity.transpose());
+        ADiffuse = ADiffuse+Eigen::SparseMatrix<double>(ADiffuse.transpose());
+        for(std::uint32_t i = 0; i < N3; ++i)
+        {
+            if (i < N3-minus)
+            {
+                AProject.coeffRef(i, i) *= 0.5;
+            }
+            AViscosity.coeffRef(i, i) *= 0.5;
+            ADiffuse.coeffRef(i, i) *= 0.5;
+        }
 
+        laplacianProject.A = AProject;
+        setAMatricese(laplacianProject, minus);
+        setPrecon(laplacianProject, minus);
+
+        laplacianViscosity.A = AViscosity;
+        setAMatricese(laplacianViscosity, 0);
+        setPrecon(laplacianViscosity, 0);
+
+        laplacianDiffuse.A = ADiffuse;
+        setAMatricese(laplacianDiffuse, 0);
+        setPrecon(laplacianDiffuse, 0);
     };
 };

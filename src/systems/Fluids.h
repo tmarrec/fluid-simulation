@@ -8,6 +8,7 @@
 #include <Eigen/src/Core/Matrix.h>
 #include <Eigen/src/Core/util/Constants.h>
 #include <Eigen/src/IterativeLinearSolvers/BasicPreconditioners.h>
+#include <Eigen/src/SparseCore/SparseMatrix.h>
 #include <cstdint>
 #include <vector>
 #include <unistd.h>
@@ -15,6 +16,7 @@
 #include <numeric>
 
 extern Coordinator gCoordinator;
+
 
 class Fluids : public System
 {
@@ -33,25 +35,21 @@ private:
     void Sstep(Fluid3D& fluid);
 
     void addSource(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& S) const;
-    void diffuse(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t b, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>>& cg);
+    void diffuse(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t b, const Laplacian& A);
 
     void advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<double>& Dprev, const std::vector<double>& X, const std::vector<double>& Y, const std::vector<double>& Z, const std::uint8_t b) const;
     void project(const Fluid3D& fluid, std::vector<double>& X, std::vector<double>& Y, std::vector<double>& Z, std::vector<double>& p, std::vector<double>& div);
 
     void GaussSeidelRelaxationLinSolve(const Fluid3D& fluid, std::vector<double>& X, std::vector<double>& Xprev, float a, float c, std::uint8_t b) const;
-    void ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t bs, Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>>& cg, std::uint8_t minus, const Eigen::SparseMatrix<double>& A);
+    void ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t bs, const Laplacian& A);
 
-    Eigen::VectorXd applyPreconditioner(Eigen::VectorXd& M) const;
+    void applyPreconditioner(const Fluid3D& fluid, const Eigen::VectorXd& r, const Laplacian& A, Eigen::VectorXd& z) const;
+    //Eigen::SparseMatrix<double> ichol(const Eigen::SparseMatrix<double>& A) const;
 
     void setBnd(const Fluid3D& fluid, std::vector<double>& X, const std::uint8_t b) const;
 
     void updateRender(Fluid3D& fluid);
 
     std::shared_ptr<Renderer> _renderer = nullptr;
-
-    bool _initCG = false;
-    Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>> _cgProject {};
-    Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>> _cgDiffuse {};
-    Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>> _cgViscosity {};
 };
 
