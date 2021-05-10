@@ -18,7 +18,7 @@ void Game::initECS()
     _meshRendererSys = gCoordinator.RegisterSystem<MeshRenderer>();
     Camera camera
     {
-        .yaw = 226,
+        .yaw = 225,
         .pitch = -29,
         .speed = 0.1f,
         .FOV = 90,

@@ -10,7 +10,7 @@ int main()
 
     WindowInfos windowInfos;
     windowInfos.title = "cowboy-engine";
-    windowInfos.x = 1400;
+    windowInfos.x = 800;
     windowInfos.y = 800;
 
 	Game game;
