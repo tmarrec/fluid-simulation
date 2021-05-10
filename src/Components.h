@@ -72,10 +72,10 @@ struct Laplacian
 struct Fluid3D
 {
     Entity entity;
-    double viscosity = 0.2;
-    double diffusion = 0.0;
+    double viscosity = 0.20;
+    double diffusion = 0.01;
     double dt = 0.0001;
-    std::uint32_t N = 40;
+    std::uint32_t N = 42;
     std::uint32_t N2 = N*N;
     std::uint32_t N3 = N*N*N;
 

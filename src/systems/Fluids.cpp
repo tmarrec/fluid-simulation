@@ -64,19 +64,29 @@ void Fluids::update(std::uint32_t iteration)
 
         float p = 64;
         float z = 512;
-        if (iteration > 0)
+
+        if (iteration >= 0)
         {
             for (std::uint32_t i = 0; i < 12; ++i)
             {
                 for (std::uint32_t j = 0; j < 12; ++j)
                 {
-                    fluid.substanceField[fluid.IX(N+i-(i/2), 2, N+j-(j/2))] = p;
-	                fluid.velocityFieldY[fluid.IX(N+i-(i/2), 2, N+j-(j/2))] = z;
+                    fluid.velocityFieldY[fluid.IX(N+i-(i/2), 3, N+j-(j/2))] = z;
+                    if (iteration >= 0)
+                    {
+                        fluid.substanceField[fluid.IX(N+i-(i/2), 3, N+j-(j/2))] = p;
+                    }
+                    /*
+                    fluid.velocityFieldY[fluid.IX(N+i-(i/2), fluid.N-3, N+j-(j/2))] = -z;
+                    fluid.substanceField[fluid.IX(N+i-(i/2), fluid.N-3, N+j-(j/2))] = p;
+                    */
+
                 }
             }
         }
 
-        float e = 1024*9; //7
+        /*
+        float e = 1024*9;
         float u = 1024*9;
 
 	    fluid.velocityFieldX[fluid.IX(N, fluid.N-2, 2)] = -e;
@@ -106,6 +116,8 @@ void Fluids::update(std::uint32_t iteration)
 	    fluid.velocityFieldY[fluid.IX(N, N, fluid.N-2)] = u;
 	    fluid.velocityFieldY[fluid.IX(2, N, N)] = u;
 	    fluid.velocityFieldY[fluid.IX(fluid.N-2, N, N)] = u;
+        */
+
         /* End Testings */
 
 		Vstep(fluid);
@@ -117,9 +129,11 @@ void Fluids::update(std::uint32_t iteration)
 
 void Fluids::Vstep(Fluid3D& fluid)
 {
-	//addSource(fluid, fluid.velocityFieldX, fluid.velocityFieldPrevX);
-	//addSource(fluid, fluid.velocityFieldY, fluid.velocityFieldPrevY);
-	//addSource(fluid, fluid.velocityFieldZ, fluid.velocityFieldPrevZ);
+    /*
+	addSource(fluid, fluid.velocityFieldX, fluid.velocityFieldPrevX);
+	addSource(fluid, fluid.velocityFieldY, fluid.velocityFieldPrevY);
+	addSource(fluid, fluid.velocityFieldZ, fluid.velocityFieldPrevZ);
+    */
 
     /*
     float a = fluid.dt * fluid.viscosity * fluid.N;
@@ -167,6 +181,7 @@ void Fluids::diffuse(const Fluid3D& fluid, std::vector<double>& X, const std::ve
 void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<double>& Dprev, const std::vector<double>& X, const std::vector<double>& Y, const std::vector<double>& Z, const std::uint8_t b) const
 {
 	double dt0 = fluid.dt * fluid.N;
+    // First backward advection
 	for (std::uint32_t k = 1; k <= fluid.N; ++k)
 	{
 		for (std::uint32_t j = 1; j <= fluid.N; ++j)
@@ -176,6 +191,9 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
 				double x = i-dt0*X[fluid.IX(i,j,k)];
 				double y = j-dt0*Y[fluid.IX(i,j,k)];
 				double z = k-dt0*Z[fluid.IX(i,j,k)];
+				x = std::clamp(x, 0.5, fluid.N + 0.5);
+				y = std::clamp(y, 0.5, fluid.N + 0.5);
+				z = std::clamp(z, 0.5, fluid.N + 0.5);
 
 				x = std::clamp(x, 0.5, fluid.N + 0.5);
 				std::uint32_t i0 = static_cast<std::uint32_t>(x);
@@ -187,6 +205,16 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
 				std::uint32_t k0 = static_cast<std::uint32_t>(z);
 				std::uint32_t k1 = k0 + 1;
 
+				x = std::clamp(x, 0.5, fluid.N + 0.5);
+				i0 = static_cast<std::uint32_t>(x);
+				i1 = i0 + 1;
+				y = std::clamp(y, 0.5, fluid.N + 0.5);
+				j0 = static_cast<std::uint32_t>(y);
+				j1 = j0 + 1;
+				z = std::clamp(z, 0.5, fluid.N + 0.5);
+				k0 = static_cast<std::uint32_t>(z);
+				k1 = k0 + 1;
+
 				double s1 = x	- i0;
 				double s0 = 1.0 - s1;
 				double t1 = y	- j0;
@@ -194,7 +222,8 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
 				double u1 = z	- k0;
 				double u0 = 1.0 - u1;
 
-				D[fluid.IX(i,j,k)] = 
+
+                D[fluid.IX(i,j,k)] =
 					s0*(t0*(u0*Dprev[fluid.IX(i0,j0,k0)]
 							+u1*Dprev[fluid.IX(i0,j0,k1)])
 						+(t1*(u0*Dprev[fluid.IX(i0,j1,k0)]
@@ -203,6 +232,90 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
 							+u1*Dprev[fluid.IX(i1,j0,k1)])
 						+(t1*(u0*Dprev[fluid.IX(i1,j1,k0)]
 							+u1*Dprev[fluid.IX(i1,j1,k1)])));
+			}
+		}
+	}
+    // Reverse advection to calculate errors made, than correct the first advection to reduce the errors
+	for (std::uint32_t k = 1; k <= fluid.N; ++k)
+	{
+		for (std::uint32_t j = 1; j <= fluid.N; ++j)
+		{
+			for (std::uint32_t i = 1; i <= fluid.N; ++i)
+			{
+				double x = i-dt0*X[fluid.IX(i,j,k)];
+				double y = j-dt0*Y[fluid.IX(i,j,k)];
+				double z = k-dt0*Z[fluid.IX(i,j,k)];
+				x = std::clamp(x, 0.5, fluid.N + 0.5);
+				y = std::clamp(y, 0.5, fluid.N + 0.5);
+				z = std::clamp(z, 0.5, fluid.N + 0.5);
+
+				x = std::clamp(x, 0.5, fluid.N + 0.5);
+				std::uint32_t i0 = static_cast<std::uint32_t>(x);
+				std::uint32_t i1 = i0 + 1;
+				y = std::clamp(y, 0.5, fluid.N + 0.5);
+				std::uint32_t j0 = static_cast<std::uint32_t>(y);
+				std::uint32_t j1 = j0 + 1;
+				z = std::clamp(z, 0.5, fluid.N + 0.5);
+				std::uint32_t k0 = static_cast<std::uint32_t>(z);
+				std::uint32_t k1 = k0 + 1;
+
+				x = std::clamp(x, 0.5, fluid.N + 0.5);
+				i0 = static_cast<std::uint32_t>(x);
+				i1 = i0 + 1;
+				y = std::clamp(y, 0.5, fluid.N + 0.5);
+				j0 = static_cast<std::uint32_t>(y);
+				j1 = j0 + 1;
+				z = std::clamp(z, 0.5, fluid.N + 0.5);
+				k0 = static_cast<std::uint32_t>(z);
+				k1 = k0 + 1;
+
+                double top = std::max({D[fluid.IX(i0,j0,k0)],D[fluid.IX(i0,j0,k1)],D[fluid.IX(i0,j1,k0)],D[fluid.IX(i0,j1,k1)],D[fluid.IX(i1,j0,k0)],D[fluid.IX(i1,j0,k1)],D[fluid.IX(i1,j1,k0)],D[fluid.IX(i1,j1,k1)]});
+                double bot = std::min({D[fluid.IX(i0,j0,k0)],D[fluid.IX(i0,j0,k1)],D[fluid.IX(i0,j1,k0)],D[fluid.IX(i0,j1,k1)],D[fluid.IX(i1,j0,k0)],D[fluid.IX(i1,j0,k1)],D[fluid.IX(i1,j1,k0)],D[fluid.IX(i1,j1,k1)]});
+
+				x = i+dt0*X[fluid.IX(i,j,k)];
+				y = j+dt0*Y[fluid.IX(i,j,k)];
+				z = k+dt0*Z[fluid.IX(i,j,k)];
+				x = std::clamp(x, 0.5, fluid.N + 0.5);
+				y = std::clamp(y, 0.5, fluid.N + 0.5);
+				z = std::clamp(z, 0.5, fluid.N + 0.5);
+
+				x = std::clamp(x, 0.5, fluid.N + 0.5);
+				i0 = static_cast<std::uint32_t>(x);
+				i1 = i0 + 1;
+				y = std::clamp(y, 0.5, fluid.N + 0.5);
+				j0 = static_cast<std::uint32_t>(y);
+				j1 = j0 + 1;
+				z = std::clamp(z, 0.5, fluid.N + 0.5);
+				k0 = static_cast<std::uint32_t>(z);
+				k1 = k0 + 1;
+
+				x = std::clamp(x, 0.5, fluid.N + 0.5);
+				i0 = static_cast<std::uint32_t>(x);
+				i1 = i0 + 1;
+				y = std::clamp(y, 0.5, fluid.N + 0.5);
+				j0 = static_cast<std::uint32_t>(y);
+				j1 = j0 + 1;
+				z = std::clamp(z, 0.5, fluid.N + 0.5);
+				k0 = static_cast<std::uint32_t>(z);
+				k1 = k0 + 1;
+
+				double s1 = x	- i0;
+				double s0 = 1.0 - s1;
+				double t1 = y	- j0;
+				double t0 = 1.0 - t1;
+				double u1 = z	- k0;
+				double u0 = 1.0 - u1;
+
+                double back = 
+					s0*(t0*(u0*D[fluid.IX(i0,j0,k0)]
+							+u1*D[fluid.IX(i0,j0,k1)])
+						+(t1*(u0*D[fluid.IX(i0,j1,k0)]
+							+u1*D[fluid.IX(i0,j1,k1)])))
+					+s1*(t0*(u0*D[fluid.IX(i1,j0,k0)]
+							+u1*D[fluid.IX(i1,j0,k1)])
+						+(t1*(u0*D[fluid.IX(i1,j1,k0)]
+							+u1*D[fluid.IX(i1,j1,k1)])));
+                D[fluid.IX(i,j,k)] = std::clamp(D[fluid.IX(i,j,k)] + 0.5 * (Dprev[fluid.IX(i,j,k)] - back), bot, top);
 			}
 		}
 	}
@@ -292,44 +405,6 @@ void Fluids::applyPreconditioner(const Fluid3D& fluid, const Eigen::VectorXd& r,
         }
     }
 }
-
-/*
-Eigen::SparseMatrix<double> Fluids::ichol(const Eigen::SparseMatrix<double>& A) const
-{
-    Eigen::SparseMatrix<double> res = A;
-    std::uint32_t n = A.rows();
-    for (std::uint32_t k = 0; k < n; ++k)
-    {
-        res.coeffRef(k, k) = std::sqrt(A.coeff(k, k));
-        for (std::uint32_t i = k+1; i < n; ++i)
-        {
-            if (A.coeff(i, k) != 0)
-            {
-                res.coeffRef(i, k) = A.coeff(i, k)/A.coeff(k, k);
-            }
-        }
-        for (std::uint32_t j = k+1; j < n; ++j)
-        {
-            for (std::uint32_t i = j; i < n; ++i)
-            {
-                if (A.coeff(i, j) != 0)
-                {
-                    res.coeffRef(i, j) = A.coeff(i, j) - A.coeff(i, k) * A.coeff(j, k);
-                }
-            }
-        }
-    }
-
-    for (std::uint32_t i = 0; i < n; ++i)
-    {
-        for (std::uint32_t j = i+1; j < n; ++j)
-        {
-            res.coeffRef(i, j) = 0;
-        }
-    }
-    return res;
-}
-*/
 
 void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t bs, const Laplacian& A)
 {

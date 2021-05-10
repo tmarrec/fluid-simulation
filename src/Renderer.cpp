@@ -86,6 +86,7 @@ void Renderer::writeImg(const std::uint32_t iteration) const
     path += std::to_string(iteration);
     path += ".png";
     stbi_write_png(path.c_str(), _windowInfos.x, _windowInfos.y, nbChannels, buffer.data(), stride);
+    stbi_write_png("last.png", _windowInfos.x, _windowInfos.y, nbChannels, buffer.data(), stride);
 
 }
 
