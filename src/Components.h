@@ -107,31 +107,29 @@ struct Fluid3D
         laplacian.plusi = Eigen::VectorXd::Zero(N3-minus);
         laplacian.plusj = Eigen::VectorXd::Zero(N3-minus);
         laplacian.plusk = Eigen::VectorXd::Zero(N3-minus);
-        for (std::uint32_t k = 0; k < N; ++k)
+        #pragma omp parallel for
+        for (std::uint32_t n = 0; n < N3; ++n)
         {
-            for (std::uint32_t j = 0; j < N; ++j)
+            const std::uint32_t m = n % N2;
+            const std::uint16_t i = m % N;
+            const std::uint16_t j = m / N;
+            const std::uint16_t k = n / N2;
+            if (n < N3-minus)
             {
-                for (std::uint32_t i = 0; i < N; ++i)
+                laplacian.diag.coeffRef(n) = laplacian.A.coeff(n, n);
+                if (n+1 < N3-minus && i+1 < N)
                 {
-                    std::uint32_t ind = i+j*N+k*N2;
-                    if (ind < N3-minus)
-                    {
-                        laplacian.diag.coeffRef(ind) = laplacian.A.coeff(ind, ind);
-                        if (ind+1 < N3-minus && i+1 < N)
-                        {
-                            laplacian.plusi[ind] = laplacian.A.coeff(ind, (i+1)+j*N+k*N2);
-                        }
-                        
-                        if (ind+N < N3-minus)
-                        {
-                            laplacian.plusj[ind] = laplacian.A.coeff(ind, i+(j+1)*N+k*N2);
-                        }
+                    laplacian.plusi[n] = laplacian.A.coeff(n, (i+1)+j*N+k*N2);
+                }
+                
+                if (n+N < N3-minus)
+                {
+                    laplacian.plusj[n] = laplacian.A.coeff(n, i+(j+1)*N+k*N2);
+                }
 
-                        if (ind+N2 < N3-minus)
-                        {
-                            laplacian.plusk[ind] = laplacian.A.coeff(ind, i+j*N+(k+1)*N2);
-                        }
-                    }
+                if (n+N2 < N3-minus)
+                {
+                    laplacian.plusk[n] = laplacian.A.coeff(n, i+j*N+(k+1)*N2);
                 }
             }
         }
@@ -140,75 +138,73 @@ struct Fluid3D
     void setPrecon(Laplacian& A, std::uint32_t minus) const
     {
         A.precon = Eigen::VectorXd::Zero(N3-minus);
-        for (std::uint32_t k = 0; k < N; ++k)
+        #pragma omp parallel for
+        for (std::uint32_t n = 0; n < N3; ++n)
         {
-            for (std::uint32_t j = 0; j < N; ++j)
+            const std::uint32_t m = n % N2;
+            const std::uint16_t i = m % N;
+            const std::uint16_t j = m / N;
+            const std::uint16_t k = n / N2;
+            if (n < N3-minus)
             {
-                for (std::uint32_t i = 0; i < N; ++i)
+                std::uint32_t indmi = (i-1)+j*N+k*N2;
+                std::uint32_t indmj = i+(j-1)*N+k*N2;
+                std::uint32_t indmk = i+j*N+(k-1)*N2;
+
+                double a = 0;
+                double b = 0;
+                double c = 0;
+
+                double i0 = 0;
+                double i1 = 0;
+                double i2 = 0;
+                double i3 = 0;
+                double j0 = 0;
+                double j1 = 0;
+                double j2 = 0;
+                double j3 = 0;
+                double k0 = 0;
+                double k1 = 0;
+                double k2 = 0;
+                double k3 = 0;
+
+                if (i > 0)
                 {
-                    std::uint32_t ind = i+j*N+k*N2;
-                    if (ind < N3-minus)
-                    {
-                        std::uint32_t indmi = (i-1)+j*N+k*N2;
-                        std::uint32_t indmj = i+(j-1)*N+k*N2;
-                        std::uint32_t indmk = i+j*N+(k-1)*N2;
-
-                        double a = 0;
-                        double b = 0;
-                        double c = 0;
-
-                        double i0 = 0;
-                        double i1 = 0;
-                        double i2 = 0;
-                        double i3 = 0;
-                        double j0 = 0;
-                        double j1 = 0;
-                        double j2 = 0;
-                        double j3 = 0;
-                        double k0 = 0;
-                        double k1 = 0;
-                        double k2 = 0;
-                        double k3 = 0;
-
-                        if (i > 0)
-                        {
-                            a = std::pow(A.plusi.coeff(indmi) * A.precon.coeff(indmi), 2);
-                            i0 = A.plusi.coeff(indmi);
-                            i1 = A.plusj.coeff(indmi);
-                            i2 = A.plusk.coeff(indmi);
-                            i3 = std::pow(A.precon.coeff(indmi), 2);
-                        }
-                        if (j > 0)
-                        {
-                            b = std::pow(A.plusj.coeff(indmj) * A.precon.coeff(indmj), 2);
-                            j0 = A.plusj.coeff(indmj);
-                            j1 = A.plusi.coeff(indmj);
-                            j2 = A.plusk.coeff(indmj);
-                            j3 = std::pow(A.precon.coeff(indmj), 2);
-                        }
-                        if (k > 0)
-                        {
-                            c = std::pow(A.plusk.coeff(indmk) * A.precon.coeff(indmk), 2);
-                            k0 = A.plusk.coeff(indmk);
-                            k1 = A.plusi.coeff(indmk);
-                            k2 = A.plusj.coeff(indmk);
-                            k3 = std::pow(A.precon.coeff(indmk), 2);
-                        }
-
-                        double e = A.diag.coeff(ind) - a - b - c 
-                            - 0.97 * (
-                                    i0 * (i1 + i2) * i3
-                                +   j0 * (j1 + j2) * j3
-                                +   k0 * (k1 + k2) * k3
-                            );
-
-                        if (e < 0.25 * A.diag.coeff(ind))
-                        {
-                            e = A.diag.coeff(ind);
-                        }
-                        A.precon.coeffRef(ind) = 1/std::sqrt(e);
-                    }
+                    a = std::pow(A.plusi.coeff(indmi) * A.precon.coeff(indmi), 2);
+                    i0 = A.plusi.coeff(indmi);
+                    i1 = A.plusj.coeff(indmi);
+                    i2 = A.plusk.coeff(indmi);
+                    i3 = std::pow(A.precon.coeff(indmi), 2);
                 }
+                if (j > 0)
+                {
+                    b = std::pow(A.plusj.coeff(indmj) * A.precon.coeff(indmj), 2);
+                    j0 = A.plusj.coeff(indmj);
+                    j1 = A.plusi.coeff(indmj);
+                    j2 = A.plusk.coeff(indmj);
+                    j3 = std::pow(A.precon.coeff(indmj), 2);
+                }
+                if (k > 0)
+                {
+                    c = std::pow(A.plusk.coeff(indmk) * A.precon.coeff(indmk), 2);
+                    k0 = A.plusk.coeff(indmk);
+                    k1 = A.plusi.coeff(indmk);
+                    k2 = A.plusj.coeff(indmk);
+                    k3 = std::pow(A.precon.coeff(indmk), 2);
+                }
+
+                double e = A.diag.coeff(n) - a - b - c 
+                    - 0.97 * (
+                            i0 * (i1 + i2) * i3
+                        +   j0 * (j1 + j2) * j3
+                        +   k0 * (k1 + k2) * k3
+                    );
+
+                if (e < 0.25 * A.diag.coeff(n))
+                {
+                    e = A.diag.coeff(n);
+                }
+                A.precon.coeffRef(n) = 1/std::sqrt(e);
             }
         }
     }
