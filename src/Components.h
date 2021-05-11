@@ -75,9 +75,11 @@ struct Fluid3D
     double viscosity = 0.20;
     double diffusion = 0.01;
     double dt = 0.0001;
-    std::uint32_t N = 42;
+    std::uint16_t N = 128;
     std::uint32_t N2 = N*N;
-    std::uint32_t N3 = N*N*N;
+    std::uint64_t N3 = N*N*N;
+    std::uint64_t N22 = (N+2)*(N+2);
+    std::uint64_t N32 = (N+2)*(N+2)*(N+2);
 
     std::vector<double> velocityFieldX = {};
     std::vector<double> velocityFieldY = {};
@@ -96,7 +98,7 @@ struct Fluid3D
 
     std::uint32_t IX(const std::uint32_t x, const std::uint32_t y, const std::uint32_t z) const
     { 
-        return x + y * (N+2) + z * ((N+2)*(N+2));
+        return x + y * (N+2) + z * N22;
     };
 
     void setAMatricese(Laplacian& laplacian, std::uint32_t minus) const
@@ -213,8 +215,8 @@ struct Fluid3D
 
     void init()
     {
-        velocityFieldX.reserve((N+2)*(N+2)*(N+2));
-        for (std::uint32_t i = 0; i < (N+2)*(N+2)*(N+2); ++i)
+        velocityFieldX.reserve(N32);
+        for (std::uint64_t i = 0; i < N32; ++i)
         {
             velocityFieldX.emplace_back(0);
         }
@@ -239,14 +241,14 @@ struct Fluid3D
         std::vector<Eigen::Triplet<double>> tripletListViscosity;
         std::vector<Eigen::Triplet<double>> tripletListDiffuse;
 
-        for(std::uint32_t i = 0; i < N3; ++i)
+        for(std::uint64_t i = 0; i < N3; ++i)
         {
-            if (i+1 < N3 && i%N != N-1)
+            if (i+1 < N3 && static_cast<std::uint16_t>(i%N) != N-1)
             {
                 tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i+1, -visc));
                 tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i+1, -diff));
             }
-            if (i+1 < N3-minus && i%N != N-1)
+            if (i+1 < N3-minus && static_cast<std::uint16_t>(i%N) != N-1)
             {
                 tripletListProject.emplace_back(Eigen::Triplet<double>(i, i+1, -1));
             }
