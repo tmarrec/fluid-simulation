@@ -1,0 +1,94 @@
+<scene version='2.2.1'>
+    <default name="spp" value="$spp"/>
+	<default name="res" value="$res"/>
+	<default name="scale" value="$cubescale"/>
+
+	<emitter type="envmap">
+		<string name="filename" value="snow.exr"/>
+	</emitter>
+
+    <integrator type='volpathmis'>
+        <integer name="max_depth" value="8"/>
+    </integrator>
+
+	<sensor type="perspective">
+		<float name="near_clip" value="1"/>
+		<float name="far_clip" value="1000"/>
+
+		<transform name="to_world">
+			<lookat target="0.0, 0.0, 0.0"
+					origin="$eyepos"
+					up	="0.0, 1.0, 0.0"/>
+		</transform>
+
+		<film type="hdrfilm">
+			<rfilter type="box"/>
+			<integer name="width" value="$res"/>
+			<integer name="height" value="$res"/>
+			<string name="pixel_format" value="rgb"/>
+			<string name="component_format" value="float16"/>
+		</film>
+
+		<sampler type="independent">
+			<integer name="sample_count" value="$spp"/>
+		</sampler>
+	</sensor>
+
+	<medium id="medium1" type="heterogeneous">
+		<float name="scale" value="1"/>
+
+		<rgb name="albedo" value="1, 1, 1"/>
+
+		<volume name="sigma_t" type="gridvolume">
+			<transform name="to_world">
+				<scale x="$scale" y="$scale" z="$scale"/>
+			</transform>
+			<boolean name="use_grid_bbox" value="true"/>
+			<string name="filename" value="$volname"/>
+		</volume>
+
+		<phase type="isotropic" />
+	</medium>
+
+    <shape type="cylinder">
+        <float name="radius" value="0.3"/>
+        <bsdf type="roughdielectric">
+            <string name="distribution" value="beckmann"/>
+            <float name="alpha" value="0.08"/>
+            <string name="int_ior" value="bk7"/>
+            <string name="ext_ior" value="air"/>
+        </bsdf>
+        <transform name="to_world">
+            <scale value="5"/>
+            <rotate x="1" angle="90"/>
+            <translate x="0" y="-2.005" z="0"/>
+        </transform>
+    </shape>
+
+    <shape type="disk">
+        <bsdf type="roughdielectric">
+            <string name="distribution" value="beckmann"/>
+            <float name="alpha" value="0.08"/>
+            <string name="int_ior" value="bk7"/>
+            <string name="ext_ior" value="air"/>
+        </bsdf>
+        <transform name="to_world">
+            <scale value="1.5"/>
+            <rotate x="1" angle="90"/>
+            <translate x="0" y="-2.005" z="0"/>
+        </transform>
+    </shape>
+
+	<shape type="obj">
+		<string name="filename" value="cube.obj"/>
+        <bsdf type="thindielectric">
+            <float name="int_ior" value="1.504"/>
+            <float name="ext_ior" value="1.0"/>
+        </bsdf>
+		<ref id="medium1" name="interior"/>
+		<transform name="to_world">
+			<scale x="$scale" y="$scale" z="$scale"/>
+		</transform>
+	</shape>
+
+</scene>

@@ -3,6 +3,7 @@
 #include <Eigen/src/Core/util/Constants.h>
 #include <Eigen/src/SparseCore/SparseMatrix.h>
 #include <Eigen/src/SparseLU/SparseLU.h>
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <omp.h>
@@ -123,6 +124,7 @@ void Fluids::update(std::uint32_t iteration)
 		Vstep(fluid);
 		Sstep(fluid);
 		updateRender(fluid);
+        writeVolumeFile(fluid, iteration);
 	}
 }
 
@@ -522,6 +524,50 @@ void Fluids::updateRender(Fluid3D& fluid)
 	_renderer->initTexture3D(texture, textureGL);
 }
 
+void Fluids::writeVolumeFile(Fluid3D& fluid, std::uint64_t iteration)
+{
+    std::string path = "result/";
+    path += std::to_string(iteration);
+    path += ".vol";
+    std::ofstream file (path, std::ios::binary | std::ofstream::trunc);
+    file << 'V';
+    file << 'O';
+    file << 'L';
+    write(file, (uint8_t)3); // Version
+    write(file, (int32_t)1); // Type
+    std::uint16_t n = fluid.N;
+    write(file, (int32_t)n);
+    write(file, (int32_t)n);
+    write(file, (int32_t)n);
+    write(file, (int32_t)3); // Nb channels
+    float xmin = -0.5f;
+    float ymin = -0.5f;
+    float zmin = -0.5f;
+    float xmax = 0.5f;
+    float ymax = 0.5f;
+    float zmax = 0.5f;
+    write(file, xmin);
+    write(file, ymin);
+    write(file, zmin);
+    write(file, xmax);
+    write(file, ymax);
+    write(file, zmax);
+
+    for (std::uint64_t n = 0; n < fluid.N3; ++n)
+    {
+        const std::uint32_t m = n % fluid.N2;
+        const std::uint16_t i = m % fluid.N + 1;
+        const std::uint16_t j = m / fluid.N + 1;
+        const std::uint16_t k = n / fluid.N2 + 1;
+        const std::uint64_t ind = i+j*(fluid.N+2)+k*fluid.N22;
+        float value = std::clamp(fluid.substanceField[ind], 0.0, 255.0)/2;
+        write(file, value);
+        write(file, value);
+        write(file, value);
+    }
+
+    file.close();
+}
 
 #ifdef DEBUG_GUI
 void Fluids::fluidSetupDebug()
