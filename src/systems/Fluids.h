@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <ctime>
 #include <numeric>
+#include <fstream>
 
 extern Coordinator gCoordinator;
 
@@ -49,7 +50,13 @@ private:
     void setBnd(const Fluid3D& fluid, std::vector<double>& X, const std::uint8_t b) const;
 
     void updateRender(Fluid3D& fluid);
+    void writeVolumeFile(Fluid3D& fluid, std::uint64_t iteration);
 
     std::shared_ptr<Renderer> _renderer = nullptr;
 };
 
+template<typename T>
+void write(std::ofstream &f, T data)
+{
+    f.write(reinterpret_cast<const char *>(&data), sizeof(data));
+}
