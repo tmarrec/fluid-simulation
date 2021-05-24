@@ -75,7 +75,7 @@ struct Fluid3D
     double viscosity = 1.500;
     double diffusion = 0.15;
     double dt = 0.00005;
-    std::uint16_t N = 128;
+    std::uint16_t N = 86;
 
     std::vector<double> velocityFieldX = {};
     std::vector<double> velocityFieldY = {};
