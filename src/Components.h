@@ -72,14 +72,10 @@ struct Laplacian
 struct Fluid3D
 {
     Entity entity;
-    double viscosity = 0.20;
-    double diffusion = 0.01;
-    double dt = 0.0001;
+    double viscosity = 1.500;
+    double diffusion = 0.15;
+    double dt = 0.00005;
     std::uint16_t N = 128;
-    std::uint32_t N2 = N*N;
-    std::uint64_t N3 = N*N*N;
-    std::uint64_t N22 = (N+2)*(N+2);
-    std::uint64_t N32 = (N+2)*(N+2)*(N+2);
 
     std::vector<double> velocityFieldX = {};
     std::vector<double> velocityFieldY = {};
@@ -92,17 +88,22 @@ struct Fluid3D
     std::vector<double> substanceField = {};
     std::vector<double> substanceFieldPrev = {};
 
+    std::vector<double> substanceField2 = {};
+    std::vector<double> substanceField2Prev = {};
+
     Laplacian laplacianProject {};
     Laplacian laplacianViscosity {};
     Laplacian laplacianDiffuse {};
 
     std::uint32_t IX(const std::uint32_t x, const std::uint32_t y, const std::uint32_t z) const
     { 
-        return x + y * (N+2) + z * N22;
+        return x + y * (N+2) + z * (N+2)*(N+2);
     };
 
     void setAMatricese(Laplacian& laplacian, std::uint32_t minus) const
     {
+        std::uint64_t N3 = N*N*N;
+        std::uint64_t N2 = N*N;
         laplacian.diag = Eigen::VectorXd::Zero(N3-minus);
         laplacian.plusi = Eigen::VectorXd::Zero(N3-minus);
         laplacian.plusj = Eigen::VectorXd::Zero(N3-minus);
@@ -137,6 +138,8 @@ struct Fluid3D
 
     void setPrecon(Laplacian& A, std::uint32_t minus) const
     {
+        std::uint64_t N3 = N*N*N;
+        std::uint64_t N2 = N*N;
         A.precon = Eigen::VectorXd::Zero(N3-minus);
         #pragma omp parallel for
         for (std::uint32_t n = 0; n < N3; ++n)
@@ -211,6 +214,8 @@ struct Fluid3D
 
     void init()
     {
+        std::uint64_t N3 = N*N*N;
+        std::uint64_t N32 = (N+2)*(N+2)*(N+2);
         velocityFieldX.reserve(N32);
         for (std::uint64_t i = 0; i < N32; ++i)
         {
@@ -223,6 +228,8 @@ struct Fluid3D
         velocityFieldPrevZ = velocityFieldX;
         substanceField = velocityFieldX;
         substanceFieldPrev = velocityFieldX;
+        substanceField2 = velocityFieldX;
+        substanceField2Prev = velocityFieldX;
 
         double visc = dt * viscosity * N;
         double diff = dt * diffusion * N;

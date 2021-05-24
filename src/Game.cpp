@@ -63,34 +63,31 @@ void Game::run(WindowInfos windowInfos)
 void Game::mainLoop()
 {
     [[maybe_unused]] float dt = 0.0f;
-#ifdef DEBUG_GUI
-    _fluidsSys->fluidSetupDebug();
-#endif
     std::uint32_t iterations = 0;
 
 	while (!_window->windowShouldClose())
 	{
+        /*
+        if (iterations == 4)
+            exit(0);
+        */
+        std::cout << "== Iteration " << iterations << " ==" << std::endl;
+            
         auto startTime = std::chrono::high_resolution_clock::now();
 
         _fluidsSys->update(iterations);
 
-#ifdef DEBUG_GUI
-        _renderer.beginImgui();
-        _fluidsSys->fluidDebugTool();
-#endif
         _renderer.prePass();
         _meshRendererSys->update();
-#ifdef DEBUG_GUI
-        _renderer.endImgui();
-#endif
         _renderer.endPass();
+
         _renderer.writeImg(iterations);
         _window->swapBuffers();
 
 		_window->pollEvents();
         auto stopTime = std::chrono::high_resolution_clock::now();
         dt = std::chrono::duration<float, std::chrono::seconds::period>(stopTime - startTime).count();
-        std::cout << 1.0f/dt << std::endl;
+        std::cout << "Done in " << dt << " sec" << std::endl << std::endl;
 
         iterations++;
 	}

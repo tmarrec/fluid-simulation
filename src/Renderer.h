@@ -6,13 +6,6 @@
 #include "utils.h"
 #include "Window.h"
 
-#ifdef DEBUG_GUI
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-#include "implot.h"
-#endif
-
 #include <cstdint>
 #include <memory>
 #include <chrono>
@@ -41,11 +34,6 @@ public:
     void initMaterial(Material& material) const;
     void initTexture3D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
     void writeImg(const std::uint32_t iteration) const;
-
-#ifdef DEBUG_GUI
-    void beginImgui() const;
-    void endImgui() const;
-#endif
 
 private:
 	std::shared_ptr<Window> _window = nullptr;

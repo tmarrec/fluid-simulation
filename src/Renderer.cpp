@@ -21,19 +21,6 @@ void Renderer::init(std::shared_ptr<Window> window)
 
     _initFrameBuffer(_screenbuffer, "shaders/screen.vert", "shaders/screen.frag");
     _initFrameBuffer(_raymarchingbuffer, "shaders/screen.vert", "shaders/raymarch.frag");
-
-#ifdef DEBUG_GUI
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImPlot::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    (void)io;
-
-    ImGui::StyleColorsDark();
-
-    _window->setupImgui();
-    ImGui_ImplOpenGL3_Init("#version 460 core");
-#endif
 }
 
 
@@ -292,19 +279,3 @@ void Renderer::freeMesh(Mesh& mesh) const
     glDeleteBuffers(1, &mesh.EBO);
     glDeleteBuffers(1, &mesh.TBO);
 }
-
-#ifdef DEBUG_GUI
-void Renderer::beginImgui() const
-{
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-}
-
-void Renderer::endImgui() const
-{
-    ImGui::Render();
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-}
-#endif

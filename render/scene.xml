@@ -4,11 +4,11 @@
 	<default name="scale" value="$cubescale"/>
 
 	<emitter type="envmap">
-		<string name="filename" value="snow.exr"/>
+		<string name="filename" value="lilienstein_4k.hdr"/>
 	</emitter>
 
     <integrator type='volpathmis'>
-        <integer name="max_depth" value="8"/>
+        <integer name="max_depth" value="4"/>
     </integrator>
 
 	<sensor type="perspective">
@@ -16,7 +16,7 @@
 		<float name="far_clip" value="1000"/>
 
 		<transform name="to_world">
-			<lookat target="0.0, 0.0, 0.0"
+			<lookat target="-1.6, 0.0, 0.0"
 					origin="$eyepos"
 					up	="0.0, 1.0, 0.0"/>
 		</transform>
@@ -50,40 +50,18 @@
 		<phase type="isotropic" />
 	</medium>
 
-    <shape type="cylinder">
-        <float name="radius" value="0.3"/>
-        <bsdf type="roughdielectric">
-            <string name="distribution" value="beckmann"/>
-            <float name="alpha" value="0.08"/>
-            <string name="int_ior" value="bk7"/>
-            <string name="ext_ior" value="air"/>
-        </bsdf>
-        <transform name="to_world">
-            <scale value="5"/>
-            <rotate x="1" angle="90"/>
-            <translate x="0" y="-2.005" z="0"/>
-        </transform>
-    </shape>
-
-    <shape type="disk">
-        <bsdf type="roughdielectric">
-            <string name="distribution" value="beckmann"/>
-            <float name="alpha" value="0.08"/>
-            <string name="int_ior" value="bk7"/>
-            <string name="ext_ior" value="air"/>
-        </bsdf>
-        <transform name="to_world">
-            <scale value="1.5"/>
-            <rotate x="1" angle="90"/>
-            <translate x="0" y="-2.005" z="0"/>
-        </transform>
-    </shape>
+	<shape type="obj">
+		<string name="filename" value="cube.obj"/>
+		<ref id="medium1" name="interior"/>
+		<transform name="to_world">
+			<scale x="$scale" y="10" z="$scale"/>
+            <translate x="0" y="-6.501" z="0"/>
+		</transform>
+	</shape>
 
 	<shape type="obj">
 		<string name="filename" value="cube.obj"/>
-        <bsdf type="thindielectric">
-            <float name="int_ior" value="1.504"/>
-            <float name="ext_ior" value="1.0"/>
+        <bsdf type="null">
         </bsdf>
 		<ref id="medium1" name="interior"/>
 		<transform name="to_world">

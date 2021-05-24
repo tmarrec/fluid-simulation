@@ -14,7 +14,6 @@
 #include <unistd.h>
 #include <ctime>
 #include <numeric>
-#include <fstream>
 
 extern Coordinator gCoordinator;
 
@@ -24,12 +23,6 @@ class Fluids : public System
 public:
     void init(std::shared_ptr<Renderer> renderer);
     void update(std::uint32_t iteration);
-    void reset(bool force = false);
-
-#ifdef DEBUG_GUI
-    void fluidDebugTool();
-    void fluidSetupDebug();
-#endif
 
 private:
     void Vstep(Fluid3D& fluid);
@@ -44,14 +37,13 @@ private:
     void GaussSeidelRelaxationLinSolve(const Fluid3D& fluid, std::vector<double>& X, std::vector<double>& Xprev, float a, float c, std::uint8_t b) const;
     void ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t bs, const Laplacian& A);
 
-    void applyPreconditioner(const Fluid3D& fluid, const Eigen::VectorXd& r, const Laplacian& A, Eigen::VectorXd& z) const;
-    //Eigen::SparseMatrix<double> ichol(const Eigen::SparseMatrix<double>& A) const;
+    void applyPreconditioner(const std::uint64_t N, const Eigen::VectorXd& r, const Laplacian& A, Eigen::VectorXd& z) const;
 
     void setBnd(const Fluid3D& fluid, std::vector<double>& X, const std::uint8_t b) const;
 
     void updateRender(Fluid3D& fluid);
-    void writeVolumeFile(Fluid3D& fluid, std::uint64_t iteration);
 
+    void writeVolumeFile(Fluid3D& fluid, std::uint64_t iteration);
     std::shared_ptr<Renderer> _renderer = nullptr;
 };
 
