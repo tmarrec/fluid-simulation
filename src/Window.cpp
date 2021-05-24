@@ -25,9 +25,6 @@ void Window::init(const WindowInfos& windowInfos)
     {
         glfwSetInputMode(_glfwWindow.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
     }
-#ifdef DISABLE_GUI
-    glfwHideWindow(_glfwWindow.get());
-#endif
 }
 
 bool Window::windowShouldClose() const
@@ -76,9 +73,3 @@ void glfwDeleter::operator()(GLFWwindow* window)
 	glfwDestroyWindow(window);
 }
 
-#ifdef DEBUG_GUI
-void Window::setupImgui() const
-{
-    ImGui_ImplGlfw_InitForOpenGL(_glfwWindow.get(), true);
-}
-#endif

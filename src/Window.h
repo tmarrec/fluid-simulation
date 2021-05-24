@@ -7,9 +7,6 @@
 #include "utils.h"
 #include "Input.h"
 
-#ifdef DEBUG_GUI
-#include "imgui_impl_glfw.h"
-#endif
 
 struct glfwDeleter
 {
@@ -25,10 +22,6 @@ public:
     void swapBuffers();
     const WindowInfos windowInfos() const;
 	~Window();
-
-#ifdef DEBUG_GUI
-    void setupImgui() const;
-#endif
 
 private:
 	void windowInit();

@@ -8,27 +8,28 @@ from mitsuba.core.xml import load_file
 from mitsuba.core import Bitmap, Struct
 
 filename = 'scene.xml'
-volnames = '../build/result/*.vol'
+volnames = 'results/result-PCG-MCCORMACK/*.vol'
 tempdir = 'temp'
 resdir = 'images'
-res = 512
-spp = 2048
-cubescale = 4
+res = 64
+spp = 1
+cubescale = 3
 
 eyestart = np.array([14.0, 2.5, 5.5])
-eyeend = np.array([-3.5, -2.75, 10])
+eyeend = np.array([-3, -2.25, 8])
 
 Thread.thread().file_resolver().append(os.path.dirname(filename))
 
 def render():
     print('Rendering')
     os.system('mkdir -p '+tempdir)
-    voldirs = glob.glob(volnames)
+    voldirs = sorted(glob.glob(volnames), key=os.path.getmtime)
     iteration = 0
     eyediff = (eyeend - eyestart)/len(voldirs)
     eyepos = eyestart
     for vol in voldirs:
         eyepos += eyediff
+        eyepos = [-3.25, 0, 1.0]
         xmlpos = str(eyepos[0])+','+str(eyepos[1])+','+str(eyepos[2])
         scene = load_file(filename, volname=vol, eyepos=xmlpos, spp=spp, res=res, cubescale=cubescale)
 
@@ -46,7 +47,7 @@ def render():
 
 def video():
     print('Video rendering..')
-    print(os.popen('ffmpeg -y -r 60 -f image2 -s 800x800 -i '+tempdir+'/%d.png -vcodec libx264 -crf 8 -pix_fmt yuv420p render.mp4').read())
+    print(os.popen('ffmpeg -y -r 60 -f image2 -s 1024x1024 -i '+tempdir+'/%d.png -vcodec libx264 -crf 8 -pix_fmt yuv420p render.mp4').read())
     os.system('cvlc --loop render.mp4')
 
 render()

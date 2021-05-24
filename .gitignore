@@ -33,3 +33,7 @@ build/
 *.exe
 *.out
 *.app
+
+*.mp4
+render/results
+render/temp

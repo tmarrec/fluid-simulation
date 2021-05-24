@@ -22,9 +22,9 @@ ENDIF()
 
 SET (CMAKE_CXX_STANDARD_REQUIRED ON)
 SET (CMAKE_CXX_STANDARD 20)
-SET (CMAKE_CXX_FLAGS "-std=c++20 -Wall -Wextra -pedantic")
-SET (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -g -fopenmp")
-SET (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -fopenmp")
+SET (CMAKE_CXX_FLAGS "-std=c++20 -Wall -Wextra -pedantic -lgomp -fopenmp")
+SET (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0 -g")
+SET (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3")
 
 # ╔════════════════════════════╗
 # ║ OpenGL compilation options ║
@@ -103,16 +103,6 @@ ADD_EXECUTABLE (${PROJECT_NAME}
 	src/Window.cpp
     src/Input.cpp
 
-    # imgui
-    extern/imgui/imgui.cpp
-    extern/imgui/imgui_draw.cpp
-    extern/imgui/imgui_tables.cpp
-    extern/imgui/imgui_widgets.cpp
-    extern/imgui/backends/imgui_impl_glfw.cpp
-    extern/imgui/backends/imgui_impl_opengl3.cpp
-    extern/implot/implot.cpp
-    extern/implot/implot_items.cpp
-
     # stb
     extern/stb/stb_image_write.h
 )
@@ -125,9 +115,6 @@ TARGET_LINK_LIBRARIES (${PROJECT_NAME} OpenGL::GL)
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} glfw)
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} glad)
 
-TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/imgui")
-TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/imgui/backends")
-TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/implot")
 TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/glm")
 TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/stb")
 
