@@ -5,16 +5,14 @@
 #include <Eigen/src/SparseLU/SparseLU.h>
 #include <cmath>
 #include <cstdint>
-#include <omp.h>
 
 void Fluids::init(std::shared_ptr<Renderer> renderer)
 {
 	_renderer = renderer;
     std::srand(std::time(nullptr));
-    omp_set_num_threads(0);
 }
 
-void Fluids::update(std::uint32_t iteration)
+void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 {
     if (mEntities.size() > 1)
     {
@@ -27,58 +25,17 @@ void Fluids::update(std::uint32_t iteration)
         /* Testings */
 		int N = fluid.N/2;
 
-        float p = 64;
+        float p = 128;
         float z = 512;
 
-        if (iteration >= 0)
+        for (std::uint32_t i = 0; i < 16; ++i)
         {
-            for (std::uint32_t i = 0; i < 16; ++i)
+            for (std::uint32_t j = 0; j < 16; ++j)
             {
-                for (std::uint32_t j = 0; j < 16; ++j)
-                {
-                    fluid.velocityFieldZ[fluid.IX(N+i-(i/2), N+j-(j/2), N)] = -z;
-                    fluid.substanceField[fluid.IX(N+i-(i/2), N+j-(j/2), N)] = p;
-                    /*
-                    fluid.velocityFieldY[fluid.IX(N+i-(i/2), fluid.N-3, N+j-(j/2))] = -z;
-                    fluid.substanceField[fluid.IX(N+i-(i/2), fluid.N-3, N+j-(j/2))] = p;
-                    */
-
-                }
+                fluid.velocityFieldZ[fluid.IX(N+i-(i/2), N+j-(j/2), N)] = -z;
+                fluid.substanceField[fluid.IX(N+i-(i/2), N+j-(j/2), N)] = p;
             }
         }
-
-        /*
-        float e = 1024*9;
-        float u = 1024*9;
-
-	    fluid.velocityFieldX[fluid.IX(N, fluid.N-2, 2)] = -e;
-	    fluid.velocityFieldZ[fluid.IX(N, fluid.N-2, 2)] = e*1.5;
-	    fluid.velocityFieldX[fluid.IX(N, fluid.N-2, fluid.N-2)] = e;
-	    fluid.velocityFieldZ[fluid.IX(N, fluid.N-2, fluid.N-2)] = -e*1.5;
-	    fluid.velocityFieldZ[fluid.IX(2, fluid.N-2, N)] = e;
-	    fluid.velocityFieldX[fluid.IX(2, fluid.N-2, N)] = e*1.5;
-	    fluid.velocityFieldZ[fluid.IX(fluid.N-2, fluid.N-2, N)] = -e;
-	    fluid.velocityFieldX[fluid.IX(fluid.N-2, fluid.N-2, N)] = -e*1.5;
-
-
-	    fluid.velocityFieldX[fluid.IX(N, 2, 2)] = -e;
-	    fluid.velocityFieldX[fluid.IX(N, 2, fluid.N-2)] = e;
-	    fluid.velocityFieldZ[fluid.IX(2, 2, N)] = e;
-	    fluid.velocityFieldZ[fluid.IX(fluid.N-2, 2, N)] = -e;
-	    fluid.velocityFieldY[fluid.IX(N, 2, 2)] = u;
-	    fluid.velocityFieldY[fluid.IX(N, 2, fluid.N-2)] = u;
-	    fluid.velocityFieldY[fluid.IX(2, 2, N)] = u;
-	    fluid.velocityFieldY[fluid.IX(fluid.N-2, 2, N)] = u;
-
-	    fluid.velocityFieldX[fluid.IX(N, N, 2)] = -e;
-	    fluid.velocityFieldX[fluid.IX(N, N, fluid.N-2)] = e;
-	    fluid.velocityFieldZ[fluid.IX(2, N, N)] = e;
-	    fluid.velocityFieldZ[fluid.IX(fluid.N-2, N, N)] = -e;
-	    fluid.velocityFieldY[fluid.IX(N, N, 2)] = u;
-	    fluid.velocityFieldY[fluid.IX(N, N, fluid.N-2)] = u;
-	    fluid.velocityFieldY[fluid.IX(2, N, N)] = u;
-	    fluid.velocityFieldY[fluid.IX(fluid.N-2, N, N)] = u;
-        */
 
         /* End Testings */
 
@@ -109,9 +66,9 @@ void Fluids::Vstep(Fluid3D& fluid)
 
 	project(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, fluid.velocityFieldX, fluid.velocityFieldY);
 
-	advect(fluid, fluid.velocityFieldX, fluid.velocityFieldPrevX, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 1);
-	advect(fluid, fluid.velocityFieldY, fluid.velocityFieldPrevY, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 2);
-	advect(fluid, fluid.velocityFieldZ, fluid.velocityFieldPrevZ, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 3);
+    advect(fluid, fluid.velocityFieldX, fluid.velocityFieldPrevX, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 1);
+    advect(fluid, fluid.velocityFieldY, fluid.velocityFieldPrevY, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 2);
+    advect(fluid, fluid.velocityFieldZ, fluid.velocityFieldPrevZ, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 3);
 
 	project(fluid, fluid.velocityFieldX, fluid.velocityFieldY, fluid.velocityFieldZ, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY);
 }
@@ -129,8 +86,9 @@ void Fluids::Sstep(Fluid3D& fluid)
 
 void Fluids::addSource(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& S) const
 {
-    #pragma omp for
-	for (std::uint32_t i = 0; i < (fluid.N+2)*(fluid.N+2)*(fluid.N+2); ++i)
+    const std::uint64_t N = fluid.N; 
+    const std::uint64_t N32 = (N+2)*(N+2)*(N+2); 
+	for (std::uint64_t i = 0; i < N32; ++i)
 	{
 		X[i] += fluid.dt * S[i];
 	}
@@ -277,56 +235,46 @@ void Fluids::applyPreconditioner(const std::uint64_t N, const Eigen::VectorXd& r
 
     // Solve Lq = r
     Eigen::VectorXd q = Eigen::VectorXd::Zero(z.size());
-    for (std::uint32_t k = 0; k < N; ++k)
+    for (std::int64_t n = 0; n < z.size(); ++n)
     {
-		for (std::uint32_t j = 0; j < N; ++j)
-        {
-			for (std::uint32_t i = 0; i < N; ++i)
-            {
-                std::uint32_t ind = i+j*N+k*N2;
-                if (ind < z.size())
-                {
-                    std::uint32_t indmi = (i-1)+j*N+k*N2;
-                    std::uint32_t indmj = i+(j-1)*N+k*N2;
-                    std::uint32_t indmk = i+j*N+(k-1)*N2;
+        const std::uint64_t m = n % N2;
+        const std::uint64_t i = m % N;
+        const std::uint64_t j = m / N;
+        const std::uint64_t k = n / N2;
 
-                    double a = i > 0 ? A.plusi.coeff(indmi) * A.precon.coeff(indmi) * q.coeff(indmi) : 0;
-                    double b = j > 0 ? A.plusj.coeff(indmj) * A.precon.coeff(indmj) * q.coeff(indmj) : 0;
-                    double c = k > 0 ? A.plusk.coeff(indmk) * A.precon.coeff(indmk) * q.coeff(indmk) : 0;
+        const std::uint64_t indmi = (i-1)+j*N+k*N2;
+        const std::uint64_t indmj = i+(j-1)*N+k*N2;
+        const std::uint64_t indmk = i+j*N+(k-1)*N2;
 
-                    double t = r.coeff(ind) - a - b - c;
-                    q.coeffRef(ind) = t * A.precon.coeff(ind);
-                }
-            }
-        }
+        const double a = i > 0 ? A.plusi.coeff(indmi) * A.precon.coeff(indmi) * q.coeff(indmi) : 0;
+        const double b = j > 0 ? A.plusj.coeff(indmj) * A.precon.coeff(indmj) * q.coeff(indmj) : 0;
+        const double c = k > 0 ? A.plusk.coeff(indmk) * A.precon.coeff(indmk) * q.coeff(indmk) : 0;
+
+        const double t = r.coeff(n) - a - b - c;
+        q.coeffRef(n) = t * A.precon.coeff(n);
     }
 
-    // Solve L.transpose()z = q
-    for (std::int32_t k = N-1; k >= 0; --k)
+    // Solve L'z = q
+    for (std::int64_t n = z.size()-1; n >= 0; --n)
     {
-		for (std::int32_t j = N-1; j >= 0; --j)
-        {
-			for (std::int32_t i = N-1; i >= 0; --i)
-            {
-                std::uint32_t ind   = i+j*N+k*N2;
-                if (ind < z.size())
-                {
-                    std::uint32_t indpi = (i+1)+j*N+k*N2;
-                    std::uint32_t indpj = i+(j+1)*N+k*N2;
-                    std::uint32_t indpk = i+j*N+(k+1)*N2;
+        const std::uint64_t m = n % N2;
+        const std::uint64_t i = m % N;
+        const std::uint64_t j = m / N;
+        const std::uint64_t k = n / N2;
 
-                    double a = indpi < N3 ? z.coeff(indpi) : 0;
-                    double b = indpj < N3 ? z.coeff(indpj) : 0;
-                    double c = indpk < N3 ? z.coeff(indpk) : 0;
+        const std::uint64_t indpi = (i+1)+j*N+k*N2;
+        const std::uint64_t indpj = i+(j+1)*N+k*N2;
+        const std::uint64_t indpk = i+j*N+(k+1)*N2;
 
-                    double prec = A.precon.coeff(ind);
-                    double t = q[ind]   - A.plusi.coeff(ind) * prec * a
-                                        - A.plusj.coeff(ind) * prec * b
-                                        - A.plusk.coeff(ind) * prec * c;
-                    z.coeffRef(ind) = t * prec;
-                }
-            }
-        }
+        const double a = indpi < N3 ? z.coeff(indpi) : 0;
+        const double b = indpj < N3 ? z.coeff(indpj) : 0;
+        const double c = indpk < N3 ? z.coeff(indpk) : 0;
+
+        const double prec = A.precon.coeff(n);
+        const double t = q.coeff(n) - A.plusi.coeff(n) * prec * a
+                                    - A.plusj.coeff(n) * prec * b
+                                    - A.plusk.coeff(n) * prec * c;
+        z.coeffRef(n) = t * prec;
     }
 }
 
@@ -358,7 +306,7 @@ void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<d
     }
     Eigen::VectorXd p = Eigen::VectorXd::Zero(diagSize);
     Eigen::VectorXd z = p;
-    applyPreconditioner(fluid.N, r, A, z);
+    applyPreconditioner(N, r, A, z);
     Eigen::VectorXd s = z;
     double sig = z.dot(r);
 
@@ -372,7 +320,7 @@ void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<d
         {
             break;
         }
-        applyPreconditioner(fluid.N, r, A, z);
+        applyPreconditioner(N, r, A, z);
         const double signew = z.dot(r);
         const double beta = signew / sig;
         s = z + beta * s;
@@ -499,7 +447,6 @@ void Fluids::updateRender(Fluid3D& fluid)
     const std::uint64_t N32 = (N+2)*(N+2)*(N+2);
 	std::vector<std::uint8_t> texture(N32, 0);
 
-    #pragma omp parallel for
 	for (std::uint64_t i = 0; i < N32; ++i)
 	{
 		texture[i] = static_cast<std::uint8_t>(std::clamp(fluid.substanceField[i], 0.0, 255.0));

@@ -22,7 +22,7 @@ class Fluids : public System
 {
 public:
     void init(std::shared_ptr<Renderer> renderer);
-    void update(std::uint32_t iteration);
+    void update([[maybe_unused]] std::uint64_t iteration);
 
 private:
     void Vstep(Fluid3D& fluid);
