@@ -45,6 +45,14 @@ private:
 
     void writeVolumeFile(Fluid3D& fluid, std::uint64_t iteration);
     std::shared_ptr<Renderer> _renderer = nullptr;
+
+    double VstepTime = 0;
+    double SstepTime = 0;
+    double VstepProjectTime = 0;
+    double VstepAdvectTime = 0;
+    double VstepDiffuseTime = 0;
+    double SstepDiffuseTime = 0;
+    double SstepAdvectTime = 0;
 };
 
 template<typename T>

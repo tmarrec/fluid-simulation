@@ -39,9 +39,19 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 
         /* End Testings */
 
-		Vstep(fluid);
-		Sstep(fluid);
-		updateRender(fluid);
+        auto start = std::chrono::high_resolution_clock::now();
+        Vstep(fluid);
+        auto end = std::chrono::high_resolution_clock::now();
+        VstepTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
+        start = std::chrono::high_resolution_clock::now();
+        Sstep(fluid);
+        end = std::chrono::high_resolution_clock::now();
+        SstepTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
+        //updateRender(fluid);
+
+        std::cout << "Vstep: " << VstepTime/(iteration+1) << ", Sstep: " << SstepTime/(iteration+1) << std::endl;
+        std::cout << "VstepDiffuse: " << VstepDiffuseTime/(iteration+1) << ", VstepProject: " << VstepProjectTime/(iteration+1) << ", VstepAdvect: " << VstepAdvectTime/(iteration+1) << std::endl;
+        std::cout << "SstepDiffuse: " << SstepDiffuseTime/(iteration+1) << ", SstepAdvect: " << SstepAdvectTime/(iteration+1) << std::endl;
 	}
 }
 
@@ -60,17 +70,29 @@ void Fluids::Vstep(Fluid3D& fluid)
     GaussSeidelRelaxationLinSolve(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, a, 1+6*a, 2);
     GaussSeidelRelaxationLinSolve(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, a, 1+6*a, 3);
     */
-	diffuse(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, 1, fluid.laplacianViscosity);
-	diffuse(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, 2, fluid.laplacianViscosity);
-	diffuse(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, 3, fluid.laplacianViscosity);
+    auto start = std::chrono::high_resolution_clock::now();
+    diffuse(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, 1, fluid.laplacianViscosity);
+    diffuse(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, 2, fluid.laplacianViscosity);
+    diffuse(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, 3, fluid.laplacianViscosity);
+    auto end = std::chrono::high_resolution_clock::now();
+    VstepDiffuseTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
 
-	project(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, fluid.velocityFieldX, fluid.velocityFieldY);
+    start = std::chrono::high_resolution_clock::now();
+    project(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, fluid.velocityFieldX, fluid.velocityFieldY);
+    end = std::chrono::high_resolution_clock::now();
+    VstepProjectTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
 
+    start = std::chrono::high_resolution_clock::now();
     advect(fluid, fluid.velocityFieldX, fluid.velocityFieldPrevX, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 1);
     advect(fluid, fluid.velocityFieldY, fluid.velocityFieldPrevY, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 2);
     advect(fluid, fluid.velocityFieldZ, fluid.velocityFieldPrevZ, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 3);
+    end = std::chrono::high_resolution_clock::now();
+    VstepAdvectTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
 
-	project(fluid, fluid.velocityFieldX, fluid.velocityFieldY, fluid.velocityFieldZ, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY);
+    start = std::chrono::high_resolution_clock::now();
+    project(fluid, fluid.velocityFieldX, fluid.velocityFieldY, fluid.velocityFieldZ, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY);
+    end = std::chrono::high_resolution_clock::now();
+    VstepProjectTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
 }
 
 void Fluids::Sstep(Fluid3D& fluid)
@@ -80,8 +102,15 @@ void Fluids::Sstep(Fluid3D& fluid)
     float a = fluid.dt * fluid.diffusion * fluid.N;
     GaussSeidelRelaxationLinSolve(fluid, fluid.substanceFieldPrev, fluid.substanceField, a, 1+6*a, 0);
     */
-	diffuse(fluid, fluid.substanceFieldPrev, fluid.substanceField, 0, fluid.laplacianDiffuse);
-	advect(fluid, fluid.substanceField, fluid.substanceFieldPrev, fluid.velocityFieldX, fluid.velocityFieldY, fluid.velocityFieldZ, 0);
+    auto start = std::chrono::high_resolution_clock::now();
+    diffuse(fluid, fluid.substanceFieldPrev, fluid.substanceField, 0, fluid.laplacianDiffuse);
+    auto end = std::chrono::high_resolution_clock::now();
+    SstepDiffuseTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
+
+    start = std::chrono::high_resolution_clock::now();
+    advect(fluid, fluid.substanceField, fluid.substanceFieldPrev, fluid.velocityFieldX, fluid.velocityFieldY, fluid.velocityFieldZ, 0);
+    end = std::chrono::high_resolution_clock::now();
+    SstepAdvectTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
 }
 
 void Fluids::addSource(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& S) const
@@ -107,7 +136,7 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
     const std::uint64_t N3 = N*N*N; 
 	const double dt = fluid.dt * N;
 
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static)
     for (std::uint64_t n = 0; n < N3; ++n)
     {
         const std::uint64_t m = n % N2;
@@ -145,7 +174,7 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
     }
 
     // Reverse advection to calculate errors made, than correct the first advection to reduce the errors
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static)
     for (std::uint64_t n = 0; n < N3; ++n)
     {
         const std::uint64_t m = n % N2;
@@ -287,7 +316,7 @@ void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<d
     Eigen::VectorXd b(diagSize);
 
     // Filling matrices
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static)
     for (std::uint64_t n = 0; n < diagSize; ++n)
     {
         const std::uint64_t m = n % N2;
@@ -328,7 +357,7 @@ void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<d
     }
 
     // Write the results
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static)
     for (std::uint64_t n = 0; n < diagSize; ++n)
     {
         const std::uint64_t m = n % N2;
@@ -349,7 +378,7 @@ void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<d
     const std::uint64_t N22 = (N+2)*(N+2);
     const std::uint64_t N3 = N*N*N;
 
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static)
     for (std::uint64_t n = 0; n < N3; ++n)
     {
         const std::uint64_t m = n % N2;
@@ -371,7 +400,7 @@ void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<d
     ConjugateGradientMethodLinSolve(fluid, p, div, 0, fluid.laplacianProject);
     //GaussSeidelRelaxationLinSolve(fluid, p, div, 1, 6, 0);
 
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(static)
     for (std::uint64_t n = 0; n < N3; ++n)
     {
         const std::uint32_t m = n % N2;
