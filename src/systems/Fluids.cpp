@@ -28,9 +28,9 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
         float p = 128;
         float z = 512;
 
-        for (std::uint32_t i = 0; i < 16; ++i)
+        for (std::uint32_t i = 0; i < 64; ++i)
         {
-            for (std::uint32_t j = 0; j < 16; ++j)
+            for (std::uint32_t j = 0; j < 64; ++j)
             {
                 fluid.velocityFieldZ[fluid.IX(N+i-(i/2), N+j-(j/2), N)] = -z;
                 fluid.substanceField[fluid.IX(N+i-(i/2), N+j-(j/2), N)] = p;
@@ -47,7 +47,7 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
         Sstep(fluid);
         end = std::chrono::high_resolution_clock::now();
         SstepTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
-        //updateRender(fluid);
+        updateRender(fluid);
 
         std::cout << "Vstep: " << VstepTime/(iteration+1) << ", Sstep: " << SstepTime/(iteration+1) << std::endl;
         std::cout << "VstepDiffuse: " << VstepDiffuseTime/(iteration+1) << ", VstepProject: " << VstepProjectTime/(iteration+1) << ", VstepAdvect: " << VstepAdvectTime/(iteration+1) << std::endl;
@@ -64,12 +64,6 @@ void Fluids::Vstep(Fluid3D& fluid)
 	addSource(fluid, fluid.velocityFieldZ, fluid.velocityFieldPrevZ);
     */
 
-    /*
-    float a = fluid.dt * fluid.viscosity * fluid.N;
-    GaussSeidelRelaxationLinSolve(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, a, 1+6*a, 1);
-    GaussSeidelRelaxationLinSolve(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, a, 1+6*a, 2);
-    GaussSeidelRelaxationLinSolve(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, a, 1+6*a, 3);
-    */
     auto start = std::chrono::high_resolution_clock::now();
     diffuse(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, 1, fluid.laplacianViscosity);
     diffuse(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, 2, fluid.laplacianViscosity);
@@ -98,10 +92,6 @@ void Fluids::Vstep(Fluid3D& fluid)
 void Fluids::Sstep(Fluid3D& fluid)
 {
 	//addSource(fluid, fluid.substanceField, fluid.substanceFieldPrev);
-    /*
-    float a = fluid.dt * fluid.diffusion * fluid.N;
-    GaussSeidelRelaxationLinSolve(fluid, fluid.substanceFieldPrev, fluid.substanceField, a, 1+6*a, 0);
-    */
     auto start = std::chrono::high_resolution_clock::now();
     diffuse(fluid, fluid.substanceFieldPrev, fluid.substanceField, 0, fluid.laplacianDiffuse);
     auto end = std::chrono::high_resolution_clock::now();
@@ -125,7 +115,15 @@ void Fluids::addSource(const Fluid3D& fluid, std::vector<double>& X, const std::
 
 void Fluids::diffuse(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t b, const Laplacian& A)
 {
-    ConjugateGradientMethodLinSolve(fluid, X, Xprev, b, A);
+    if (fluid.solver == GAUSS_SEIDEL)
+    {
+        const double a = fluid.dt * fluid.diffusion * fluid.N;
+        GaussSeidelRelaxationLinSolve(fluid, X, Xprev, a, 1+6*a, b);
+    }
+    else
+    {
+        ConjugateGradientMethodLinSolve(fluid, X, Xprev, b, A);
+    }
 }
 
 void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<double>& Dprev, const std::vector<double>& X, const std::vector<double>& Y, const std::vector<double>& Z, const std::uint8_t b) const
@@ -172,93 +170,100 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
                 +(t1*(u0*Dprev[fluid.IX(i1,j1,k0)]
                     +u1*Dprev[fluid.IX(i1,j1,k1)])));
     }
-
-    // Reverse advection to calculate errors made, than correct the first advection to reduce the errors
-    #pragma omp parallel for schedule(static)
-    for (std::uint64_t n = 0; n < N3; ++n)
+    
+    if (fluid.advection == MACCORMACK)
     {
-        const std::uint64_t m = n % N2;
-        const std::uint64_t i = m % N + 1;
-        const std::uint64_t j = m / N + 1;
-        const std::uint64_t k = n / N2 + 1;
-        const std::uint64_t ind = i+j*(N+2)+k*N22;
+        // Reverse advection to calculate errors made, than correct the first advection to reduce the errors
+        #pragma omp parallel for schedule(static)
+        for (std::uint64_t n = 0; n < N3; ++n)
+        {
+            const std::uint64_t m = n % N2;
+            const std::uint64_t i = m % N + 1;
+            const std::uint64_t j = m / N + 1;
+            const std::uint64_t k = n / N2 + 1;
+            const std::uint64_t ind = i+j*(N+2)+k*N22;
 
-        // Backward to get neighbours for clamping
-        double x = std::clamp(i-dt*X[ind], 0.5, N + 0.5);
-        double y = std::clamp(j-dt*Y[ind], 0.5, N + 0.5);
-        double z = std::clamp(k-dt*Z[ind], 0.5, N + 0.5);
-        std::uint16_t i0 = static_cast<std::uint16_t>(x);
-        std::uint16_t i1 = i0 + 1;
-        std::uint16_t j0 = static_cast<std::uint16_t>(y);
-        std::uint16_t j1 = j0 + 1;
-        std::uint16_t k0 = static_cast<std::uint16_t>(z);
-        std::uint16_t k1 = k0 + 1;
+            // Backward to get neighbours for clamping
+            double x = std::clamp(i-dt*X[ind], 0.5, N + 0.5);
+            double y = std::clamp(j-dt*Y[ind], 0.5, N + 0.5);
+            double z = std::clamp(k-dt*Z[ind], 0.5, N + 0.5);
+            std::uint16_t i0 = static_cast<std::uint16_t>(x);
+            std::uint16_t i1 = i0 + 1;
+            std::uint16_t j0 = static_cast<std::uint16_t>(y);
+            std::uint16_t j1 = j0 + 1;
+            std::uint16_t k0 = static_cast<std::uint16_t>(z);
+            std::uint16_t k1 = k0 + 1;
 
-        const double top = std::max({D[fluid.IX(i0,j0,k0)],D[fluid.IX(i0,j0,k1)],D[fluid.IX(i0,j1,k0)],D[fluid.IX(i0,j1,k1)],D[fluid.IX(i1,j0,k0)],D[fluid.IX(i1,j0,k1)],D[fluid.IX(i1,j1,k0)],D[fluid.IX(i1,j1,k1)]});
-        const double bot = std::min({D[fluid.IX(i0,j0,k0)],D[fluid.IX(i0,j0,k1)],D[fluid.IX(i0,j1,k0)],D[fluid.IX(i0,j1,k1)],D[fluid.IX(i1,j0,k0)],D[fluid.IX(i1,j0,k1)],D[fluid.IX(i1,j1,k0)],D[fluid.IX(i1,j1,k1)]});
+            const double top = std::max({D[fluid.IX(i0,j0,k0)],D[fluid.IX(i0,j0,k1)],D[fluid.IX(i0,j1,k0)],D[fluid.IX(i0,j1,k1)],D[fluid.IX(i1,j0,k0)],D[fluid.IX(i1,j0,k1)],D[fluid.IX(i1,j1,k0)],D[fluid.IX(i1,j1,k1)]});
+            const double bot = std::min({D[fluid.IX(i0,j0,k0)],D[fluid.IX(i0,j0,k1)],D[fluid.IX(i0,j1,k0)],D[fluid.IX(i0,j1,k1)],D[fluid.IX(i1,j0,k0)],D[fluid.IX(i1,j0,k1)],D[fluid.IX(i1,j1,k0)],D[fluid.IX(i1,j1,k1)]});
 
-        // Forward after backward to get error
-        x = std::clamp(i+dt*X[ind], 0.5, N + 0.5);
-        y = std::clamp(j+dt*Y[ind], 0.5, N + 0.5);
-        z = std::clamp(k+dt*Z[ind], 0.5, N + 0.5);
-        i0 = static_cast<std::uint16_t>(x);
-        i1 = i0 + 1;
-        j0 = static_cast<std::uint16_t>(y);
-        j1 = j0 + 1;
-        k0 = static_cast<std::uint16_t>(z);
-        k1 = k0 + 1;
+            // Forward after backward to get error
+            x = std::clamp(i+dt*X[ind], 0.5, N + 0.5);
+            y = std::clamp(j+dt*Y[ind], 0.5, N + 0.5);
+            z = std::clamp(k+dt*Z[ind], 0.5, N + 0.5);
+            i0 = static_cast<std::uint16_t>(x);
+            i1 = i0 + 1;
+            j0 = static_cast<std::uint16_t>(y);
+            j1 = j0 + 1;
+            k0 = static_cast<std::uint16_t>(z);
+            k1 = k0 + 1;
 
-        const double s1 = x	- i0;
-        const double s0 = 1.0 - s1;
-        const double t1 = y	- j0;
-        const double t0 = 1.0 - t1;
-        const double u1 = z	- k0;
-        const double u0 = 1.0 - u1;
+            const double s1 = x	- i0;
+            const double s0 = 1.0 - s1;
+            const double t1 = y	- j0;
+            const double t0 = 1.0 - t1;
+            const double u1 = z	- k0;
+            const double u0 = 1.0 - u1;
 
-        const double back = 
-            s0*(t0*(u0*D[fluid.IX(i0,j0,k0)]
-                    +u1*D[fluid.IX(i0,j0,k1)])
-                +(t1*(u0*D[fluid.IX(i0,j1,k0)]
-                    +u1*D[fluid.IX(i0,j1,k1)])))
-            +s1*(t0*(u0*D[fluid.IX(i1,j0,k0)]
-                    +u1*D[fluid.IX(i1,j0,k1)])
-                +(t1*(u0*D[fluid.IX(i1,j1,k0)]
-                    +u1*D[fluid.IX(i1,j1,k1)])));
-        D[ind] = std::clamp(D[ind] + 0.5 * (Dprev[ind] - back), bot, top);
-	}
+            const double back = 
+                s0*(t0*(u0*D[fluid.IX(i0,j0,k0)]
+                        +u1*D[fluid.IX(i0,j0,k1)])
+                    +(t1*(u0*D[fluid.IX(i0,j1,k0)]
+                        +u1*D[fluid.IX(i0,j1,k1)])))
+                +s1*(t0*(u0*D[fluid.IX(i1,j0,k0)]
+                        +u1*D[fluid.IX(i1,j0,k1)])
+                    +(t1*(u0*D[fluid.IX(i1,j1,k0)]
+                        +u1*D[fluid.IX(i1,j1,k1)])));
+            D[ind] = std::clamp(D[ind] + 0.5 * (Dprev[ind] - back), bot, top);
+        }
+    }
 	setBnd(fluid, D, b);
 }
 
-void Fluids::GaussSeidelRelaxationLinSolve(const Fluid3D& fluid, std::vector<double>& X, std::vector<double>& Xprev, float a, float c, std::uint8_t b) const
+void Fluids::GaussSeidelRelaxationLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const double a, const double c, std::uint8_t b) const
 {
-    exit(0);
-	float cinv = 1.0f/c;
-	for (std::uint32_t l = 0; l < 8; ++l)
+    const std::uint64_t N = fluid.N;
+    const std::uint64_t N2 = N*N; 
+    const std::uint64_t N3 = N*N*N; 
+	const double cinv = 1.0/c;
+	for (std::uint8_t l = 0; l < 8; ++l)
 	{
-		for (std::uint32_t k = 1; k <= fluid.N; ++k)
+        #pragma omp parallel for schedule(static)
+        for (std::uint64_t n = 0; n < N3; ++n)
         {
-			for (std::uint32_t j = 1; j <= fluid.N; ++j)
-            {
-				for (std::uint32_t i = 1; i <= fluid.N; ++i)
-                {
-					X[fluid.IX(i,j,k)] =
-                        (Xprev[fluid.IX(i,j,k)]
-							+a*(X[fluid.IX(i+1,j,k)]+
-								X[fluid.IX(i-1,j,k)]+
-								X[fluid.IX(i,j+1,k)]+
-								X[fluid.IX(i,j-1,k)]+
-								X[fluid.IX(i,j,k+1)]+
-								X[fluid.IX(i,j,k-1)]
-						   ))*cinv;
-				}
-			}
-		}
+            const std::uint64_t m = n % N2;
+            const std::uint64_t i = m % N + 1;
+            const std::uint64_t j = m / N + 1;
+            const std::uint64_t k = n / N2 + 1;
+
+            X[fluid.IX(i,j,k)] =
+                (Xprev[fluid.IX(i,j,k)]
+                    +a*(X[fluid.IX(i+1,j,k)]+X[fluid.IX(i-1,j,k)]+
+                        X[fluid.IX(i,j+1,k)]+X[fluid.IX(i,j-1,k)]+
+                        X[fluid.IX(i,j,k+1)]+X[fluid.IX(i,j,k-1)]
+                   ))*cinv;
+        }
 		setBnd(fluid, X, b);
 	}
 }
 
-void Fluids::applyPreconditioner(const std::uint64_t N, const Eigen::VectorXd& r, const Laplacian& A, Eigen::VectorXd& z) const
+void Fluids::applyPreconditioner(const std::uint64_t N, const Eigen::VectorXd& r, const Laplacian& A, Eigen::VectorXd& z, const Solver solver) const
 {
+    if (solver == CG)
+    {
+        z = r;
+        return;
+    }
     const std::uint64_t N2 = N*N; 
     const std::uint64_t N3 = N*N*N; 
 
@@ -335,7 +340,7 @@ void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<d
     }
     Eigen::VectorXd p = Eigen::VectorXd::Zero(diagSize);
     Eigen::VectorXd z = p;
-    applyPreconditioner(N, r, A, z);
+    applyPreconditioner(N, r, A, z, fluid.solver);
     Eigen::VectorXd s = z;
     double sig = z.dot(r);
 
@@ -349,7 +354,7 @@ void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<d
         {
             break;
         }
-        applyPreconditioner(N, r, A, z);
+        applyPreconditioner(N, r, A, z, fluid.solver);
         const double signew = z.dot(r);
         const double beta = signew / sig;
         s = z + beta * s;
@@ -391,14 +396,24 @@ void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<d
                     ((X[fluid.IX(i+1,j,k)]-X[fluid.IX(i-1,j,k)])*h+
                     (Y[fluid.IX(i,j+1,k)]-Y[fluid.IX(i,j-1,k)])*h+
                     (Z[fluid.IX(i,j,k+1)]-Z[fluid.IX(i,j,k-1)])*h);
+        if (fluid.solver == GAUSS_SEIDEL)
+        {
+            p[ind] = 0;
+        }
     }
     p.clear();
 
 	setBnd(fluid, div, 0);
 	setBnd(fluid, p, 0);
 
-    ConjugateGradientMethodLinSolve(fluid, p, div, 0, fluid.laplacianProject);
-    //GaussSeidelRelaxationLinSolve(fluid, p, div, 1, 6, 0);
+    if (fluid.solver == GAUSS_SEIDEL)
+    {
+        GaussSeidelRelaxationLinSolve(fluid, p, div, 1, 6, 0);
+    }
+    else
+    {
+        ConjugateGradientMethodLinSolve(fluid, p, div, 0, fluid.laplacianProject);
+    }
 
     #pragma omp parallel for schedule(static)
     for (std::uint64_t n = 0; n < N3; ++n)
