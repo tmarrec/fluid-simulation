@@ -11,6 +11,19 @@
 #include "types.h"
 #include "Shader.h"
 
+enum Solver
+{
+    GAUSS_SEIDEL,
+    CG,
+    PCG
+};
+
+enum Advection
+{
+    SEMI_LAGRANGIAN,
+    MACCORMACK
+};
+
 struct Transform
 {
     glm::vec3 position;
@@ -76,6 +89,8 @@ struct Fluid3D
     double diffusion = 0.15;
     double dt = 0.00005;
     std::uint16_t N = 128;
+    Solver solver = PCG;
+    Advection advection = MACCORMACK;
 
     std::vector<double> velocityFieldX = {};
     std::vector<double> velocityFieldY = {};
