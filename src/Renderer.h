@@ -33,6 +33,7 @@ public:
     void applyMaterial(Material& material, Camera& camera, Transform& transform) const;
     void initMaterial(Material& material) const;
     void initTexture3D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
+    void initTexture2D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
     void writeImg(const std::uint32_t iteration) const;
 
 private:

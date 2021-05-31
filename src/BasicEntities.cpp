@@ -320,3 +320,61 @@ void BasicEntities::addFluid3D(glm::vec3 position, glm::vec3 rotation, glm::vec3
 
     gCoordinator.AddComponent(entity, fluid);
 }
+
+void BasicEntities::addFluid2D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+{
+    auto entity = gCoordinator.CreateEntity();
+    addTransform(entity, position, rotation, scale);
+
+    Mesh mesh
+    {
+        .is2D = true,
+        .vertices =
+        {
+            -0.5f, 0.1f, -0.5f,
+            0.5f, 0.1f, -0.5f,
+            0.5f, 0.1f, 0.5f,
+            -0.5f, 0.1f, 0.5f,
+        },
+        .normals =
+        {
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f, 1.0f,
+        },
+        .indices =
+        {
+            0,  1,  2,  0,  2,  3,
+        },
+    };
+    gCoordinator.AddComponent(entity, mesh);
+
+    Shader shaderProgram {};
+    shaderProgram.setVert("shaders/vert2D.vert");
+    shaderProgram.setFrag("shaders/fluid2D.frag");
+
+    Material material = 
+    {
+        .shader = shaderProgram,
+        .is2D = true,
+        .texCoords =
+        {
+            1.0f, 1.0f,
+            1.0f, 0.0f,
+            0.0f, 0.0f, 
+            0.0f, 1.0f
+        },
+    };
+
+    BasicEntities::_renderer->initMaterial(material);
+    gCoordinator.AddComponent(entity, material);
+
+    Fluid3D fluid =
+    {
+        .entity = entity,
+    };
+    fluid.init();
+
+    gCoordinator.AddComponent(entity, fluid);
+}

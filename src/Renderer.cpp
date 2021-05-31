@@ -156,14 +156,21 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
     }
     if (material.hasTexture)
     {
-        glBindTexture(GL_TEXTURE_3D, material.texture);
-        _raymarchingbuffer.shader->use();
-	    _raymarchingbuffer.shader->set2f("u_resolution", {_windowInfos.x, _windowInfos.y});
-	    _raymarchingbuffer.shader->set3f("u_eyePos", camera.transform.position);
-	    _raymarchingbuffer.shader->set3f("u_eyeFront", camera.front);
-	    _raymarchingbuffer.shader->set1f("u_eyeFOV", camera.FOV);
-	    _raymarchingbuffer.shader->set1f("u_absorption", material.absorption);
-	    _raymarchingbuffer.shader->set3f("u_lightIntensity", material.lightIntensity);
+        if (!material.is2D)
+        {
+            glBindTexture(GL_TEXTURE_3D, material.texture);
+            _raymarchingbuffer.shader->use();
+            _raymarchingbuffer.shader->set2f("u_resolution", {_windowInfos.x, _windowInfos.y});
+            _raymarchingbuffer.shader->set3f("u_eyePos", camera.transform.position);
+            _raymarchingbuffer.shader->set3f("u_eyeFront", camera.front);
+            _raymarchingbuffer.shader->set1f("u_eyeFOV", camera.FOV);
+            _raymarchingbuffer.shader->set1f("u_absorption", material.absorption);
+            _raymarchingbuffer.shader->set3f("u_lightIntensity", material.lightIntensity);
+        }
+        else
+        {
+            glBindTexture(GL_TEXTURE_2D, material.texture);
+        }
     }
     if (material.noShader)
     {
@@ -226,26 +233,48 @@ void Renderer::initMesh(Mesh& mesh) const
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLuint), (GLvoid*)nullptr);
 		glEnableVertexAttribArray(2);
 
-        std::vector<float> texCoords =
+        if (!mesh.is2D)
         {
-            0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f,
-            1.0f, 0.0f, 1.0f,
-            1.00f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f,
-            0.0f, 1.0f, 1.0f,
-            1.0f, 1.0f, 1.0f,
-            1.00f, 1.0f, 0.0f,
-        };
-		glBindBuffer(GL_ARRAY_BUFFER, mesh.TBO);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			texCoords.size()*sizeof(GLfloat),
-			texCoords.data(),
-			GL_STATIC_DRAW
-		);
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
-		glEnableVertexAttribArray(3);
+            std::vector<float> texCoords =
+            {
+                0.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 1.0f,
+                1.0f, 0.0f, 1.0f,
+                1.00f, 0.0f, 0.0f,
+                0.0f, 1.0f, 0.0f,
+                0.0f, 1.0f, 1.0f,
+                1.0f, 1.0f, 1.0f,
+                1.00f, 1.0f, 0.0f,
+            };
+            glBindBuffer(GL_ARRAY_BUFFER, mesh.TBO);
+            glBufferData(
+                GL_ARRAY_BUFFER,
+                texCoords.size()*sizeof(GLfloat),
+                texCoords.data(),
+                GL_STATIC_DRAW
+            );
+            glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
+            glEnableVertexAttribArray(3);
+        }
+        else
+        {
+            std::vector<float> texCoords =
+            {
+                0.0f, 0.0f, 
+                0.0f, 1.0f,
+                1.0f, 1.0f,
+                1.0f, 0.0f,
+            };
+            glBindBuffer(GL_ARRAY_BUFFER, mesh.TBO);
+            glBufferData(
+                GL_ARRAY_BUFFER,
+                texCoords.size()*sizeof(GLfloat),
+                texCoords.data(),
+                GL_STATIC_DRAW
+            );
+            glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 2*sizeof(GLfloat), (GLvoid*)nullptr);
+            glEnableVertexAttribArray(3);
+        }
 
     glBindVertexArray(0);
     mesh.initialized = true;
@@ -269,6 +298,19 @@ void Renderer::initTexture3D(const std::vector<std::uint8_t>& texture, const std
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, size, size, size, 0, GL_RED, GL_UNSIGNED_BYTE, texture.data());
     glGenerateMipmap(GL_TEXTURE_3D);
+}
+
+void Renderer::initTexture2D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const
+{
+    std::uint32_t size = (std::uint32_t)sqrt(texture.size()/3);
+    glBindTexture(GL_TEXTURE_2D, textureGL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, texture.data());
+    glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 void Renderer::freeMesh(Mesh& mesh) const

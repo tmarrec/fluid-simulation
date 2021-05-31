@@ -18,13 +18,16 @@ void Game::initECS()
     _meshRendererSys = gCoordinator.RegisterSystem<MeshRenderer>();
     Camera camera
     {
-        .yaw = 225,
-        .pitch = -29,
+        //.yaw = 225,
+        //.pitch = -29,
+        .yaw = 0,
+        .pitch = -90,
         .speed = 0.1f,
         .FOV = 90,
         .transform = Transform
             {
-                .position = {9.0, 6.26, 9.0},
+                //.position = {9.0, 6.26, 9.0},
+                .position = {0.0, 6.5, 0.0},
                 .rotation = {0, 0, 0},
                 .scale = {1, 1, 1}
             }
@@ -53,9 +56,10 @@ void Game::run(WindowInfos windowInfos)
 
     BasicEntities::initBasicEntities(std::make_shared<Renderer>(_renderer));
 
-    BasicEntities::addFluid3D(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
+    BasicEntities::addFluid2D(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
 
     //BasicEntities::addCube(glm::vec3{5,0,0}, glm::vec3{0,0,0}, glm::vec3{5,5,5});
+    
 
 	mainLoop();
 }
@@ -67,9 +71,11 @@ void Game::mainLoop()
 
 	while (!_window->windowShouldClose())
 	{
+        /*
         if (iterations == 4)
             exit(0);
-        std::cout << "== Iteration " << iterations << " ==" << std::endl;
+        */
+        //std::cout << "== Iteration " << iterations << " ==" << std::endl;
             
         auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -85,7 +91,7 @@ void Game::mainLoop()
 		_window->pollEvents();
         auto stopTime = std::chrono::high_resolution_clock::now();
         dt = std::chrono::duration<float, std::chrono::seconds::period>(stopTime - startTime).count();
-        std::cout << "Done in " << dt << " sec" << std::endl << std::endl;
+        //std::cout << "Done in " << dt << " sec" << std::endl << std::endl;
 
         iterations++;
 	}

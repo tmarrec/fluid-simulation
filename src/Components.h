@@ -34,6 +34,7 @@ struct Transform
 struct Mesh
 {
     bool initialized = false;
+    bool is2D = false;
 
     std::vector<float> vertices; 
     std::vector<float> normals; 
@@ -64,6 +65,7 @@ struct Material
 {
     Shader shader = {};
     bool hasTexture = false;
+    bool is2D = false;
     bool noShader = false;
     float absorption = 100.0f;
     glm::vec3 lightIntensity = glm::vec3(1.0, 1.0, 1.0);
@@ -89,8 +91,9 @@ struct Fluid3D
     double diffusion = 0.15;
     double dt = 0.00005;
     std::uint16_t N = 128;
-    Solver solver = PCG;
-    Advection advection = MACCORMACK;
+    Solver solver = GAUSS_SEIDEL;
+    Advection advection = SEMI_LAGRANGIAN;
+    bool is2D = true;
 
     std::vector<double> velocityFieldX = {};
     std::vector<double> velocityFieldY = {};
@@ -112,7 +115,7 @@ struct Fluid3D
 
     std::uint32_t IX(const std::uint32_t x, const std::uint32_t y, const std::uint32_t z) const
     { 
-        return x + y * (N+2) + z * (N+2)*(N+2);
+        return is2D ? x + y * (N+2) : x + y * (N+2) + z * (N+2)*(N+2);
     };
 
     void setAMatricese(Laplacian& laplacian, std::uint32_t minus) const
@@ -137,12 +140,10 @@ struct Fluid3D
                 {
                     laplacian.plusi[n] = laplacian.A.coeff(n, (i+1)+j*N+k*N2);
                 }
-                
                 if (n+N < N3-minus)
                 {
                     laplacian.plusj[n] = laplacian.A.coeff(n, i+(j+1)*N+k*N2);
                 }
-
                 if (n+N2 < N3-minus)
                 {
                     laplacian.plusk[n] = laplacian.A.coeff(n, i+j*N+(k+1)*N2);
