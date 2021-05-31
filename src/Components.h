@@ -91,6 +91,8 @@ struct Fluid3D
     double diffusion = 0.15;
     double dt = 0.00005;
     std::uint16_t N = 128;
+    std::uint8_t subgridRatio = 1;
+    std::uint16_t NI = N*subgridRatio;
     Solver solver = GAUSS_SEIDEL;
     Advection advection = SEMI_LAGRANGIAN;
     bool is2D = true;
@@ -108,6 +110,9 @@ struct Fluid3D
 
     std::vector<double> substanceField2 = {};
     std::vector<double> substanceField2Prev = {};
+
+    std::vector<double> implicitFunctionField = {};
+    std::vector<double> implicitFunctionFieldPrev = {};
 
     Laplacian laplacianProject {};
     Laplacian laplacianViscosity {};
@@ -231,7 +236,7 @@ struct Fluid3D
     void init()
     {
         std::uint64_t N3 = N*N*N;
-        std::uint64_t N32 = (N+2)*(N+2)*(N+2);
+        std::uint64_t N32 = (N+3)*(N+2)*(N+2);
         velocityFieldX.reserve(N32);
         for (std::uint64_t i = 0; i < N32; ++i)
         {
@@ -246,6 +251,9 @@ struct Fluid3D
         substanceFieldPrev = velocityFieldX;
         substanceField2 = velocityFieldX;
         substanceField2Prev = velocityFieldX;
+
+        implicitFunctionField = velocityFieldX;
+        implicitFunctionFieldPrev = implicitFunctionField;
 
         double visc = dt * viscosity * N;
         double diff = dt * diffusion * N;
