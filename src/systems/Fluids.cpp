@@ -5,6 +5,7 @@
 #include <Eigen/src/SparseLU/SparseLU.h>
 #include <cmath>
 #include <cstdint>
+#include <iomanip>
 
 void Fluids::init(std::shared_ptr<Renderer> renderer)
 {
@@ -26,17 +27,10 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 		int N = fluid.N/2;
 
         float p = 256;
-        float z = 1024;
+        float z = 10240;
 
-        for (std::uint32_t j = 0; j < 8; ++j)
-        {
-            //fluid.velocityFieldX[fluid.IX(N+i-(i/2), N+j-(j/2), N)] = -z;
-            fluid.velocityFieldX[fluid.IX(3, N+j-(j/2), 0)] = z;
-            fluid.substanceField[fluid.IX(4, N+j-(j/2), 0)] = p;
-
-            fluid.velocityFieldX[fluid.IX(fluid.N-3, N+j-(j/2), 0)] = -z;
-            fluid.substanceField[fluid.IX(fluid.N-4, N+j-(j/2), 0)] = p;
-        }
+        fluid.velocityFieldX[fluid.IX(64, 64, 0)] = z;
+        fluid.substanceField[fluid.IX(4, 4, 0)] = p;
 
         /* End Testings */
 
@@ -50,6 +44,44 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
         SstepTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
         updateRender(fluid);
 
+
+        glm::vec2 p1 = {64,64};
+        glm::vec2 p2 = {64,64};
+        double r = 16;
+        if (fluid.NI != fluid.N)
+        {
+            exit(0);
+        }
+        if (iteration == 0)
+        {
+            for (std::uint64_t j = 0; j < fluid.N; ++j)
+            {
+                for (std::uint64_t i = 0; i < fluid.N; ++i)
+                {
+                    double x = i / (double)fluid.subgridRatio; 
+                    double y = j / (double)fluid.subgridRatio; 
+                    double dist = std::min(std::sqrt(std::pow(x-p1.x, 2)+std::pow(y-p1.y, 2))-r, std::sqrt(std::pow(x-p2.x, 2)+std::pow(y-p2.y, 2))-r);
+                    fluid.implicitFunctionFieldPrev[fluid.IX(i,j,0)] = dist;
+                }
+            }
+        }
+
+        /*
+        std::cout << std::fixed << std::setprecision(2) << std::endl;
+        for (std::uint64_t j = 0; j < fluid.NI; ++j)
+        {
+            for (std::uint64_t i = 0; i < fluid.NI; ++i)
+            {
+                if (fluid.implicitFunctionField[fluid.IX(i,j,0)] >= 0)
+                    std::cout << " ";
+                std::cout << fluid.implicitFunctionFieldPrev[fluid.IX(i,j,0)] << " ";
+            }
+            std::cout << std::endl;
+        }
+        */
+
+        advect(fluid, fluid.implicitFunctionField, fluid.implicitFunctionFieldPrev, fluid.velocityFieldX, fluid.velocityFieldY, fluid.velocityFieldZ, 0);
+        fluid.implicitFunctionFieldPrev = fluid.implicitFunctionField;
 
         /*
         std::cout << "Vstep: " << VstepTime/(iteration+1) << ", Sstep: " << SstepTime/(iteration+1) << std::endl;
@@ -144,7 +176,7 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
     const std::uint64_t N3 = fluid.is2D ? N*N : N*N*N; 
 	const double dt = fluid.dt * N;
 
-    #pragma omp parallel for schedule(static)
+    ////#pragma omp parallel for schedule(static)
     for (std::uint64_t n = 0; n < N3; ++n)
     {
         const std::uint64_t m = n % N2;
@@ -152,6 +184,62 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
         const std::uint64_t j = m / N + 1;
         const std::uint64_t k = n / N2 + 1;
         const std::uint64_t ind = i+j*(N+2)+(fluid.is2D ? 0 : k*N22);
+
+        /*
+        float x;
+        float y;
+        // X velocity
+        {
+            int vx0 = std::floor(i-dt*X[ind]); //back face velocity x
+            int vx1 = vx0 + 1; //front face velocity x
+            float ix = i - vx0; // the interpolant in x - back to front
+
+            float cy = j - 0.5; // move by the voxel center
+            int vy0 = std::floor(cy); //lower voxel y
+            int vy1 = vy0 + 1; //upper voxel y
+            float iy = cy - vy0; // the interpolant in y - lower to upper 
+
+            float v000 = Dprev[fluid.IX(vx0, vy0, 0)]; // back lower
+            float v100 = Dprev[fluid.IX(vx1, vy0, 0)]; // front lower
+
+            float v010 = Dprev[fluid.IX(vx0, vy1, 0)]; // back upper
+            float v110 = Dprev[fluid.IX(vx1, vy1, 0)]; // front upper
+
+            float lr = (1-ix) * v000 + ix * v100;
+            float ur = (1-ix) * v010 + ix * v110;
+
+            float r = (1-iy) * lr + iy * ur;
+
+            x = r;
+        }
+        // Y velocity
+        {
+            int vy0 = std::floor(j-dt*Y[ind]); //back face velocity y
+            int vy1 = vy0 + 1; //front face velocity y
+            float jx = j - vy0; // the interpolant in y - back to front
+
+            float cx = i - 0.5; // move by the voxel center
+            int vx0 = std::floor(cx); //lower voxel x
+            int vx1 = vx0 + 1; //upper voxel x
+            float jy = cx - vx0; // the interpolant in x - lower to upper 
+
+            float v000 = Dprev[fluid.IX(vx0, vy0, 0)]; // back lower
+            float v100 = Dprev[fluid.IX(vx1, vy0, 0)]; // front lower
+
+            float v010 = Dprev[fluid.IX(vx0, vy1, 0)]; // back upper
+            float v110 = Dprev[fluid.IX(vx1, vy1, 0)]; // front upper
+
+            float lr = (1-jx) * v000 + jx * v100;
+            float ur = (1-jx) * v010 + jx * v110;
+
+            float r = (1-jy) * lr + jy * ur;
+
+            y = r;
+        }
+
+        //D[ind] = -x-y;
+        */
+
 
         const double x = std::clamp(i-dt*X[ind], 0.5, N + 0.5);
         const double y = std::clamp(j-dt*Y[ind], 0.5, N + 0.5);
@@ -184,14 +272,14 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
         }
         else
         {
-            D[fluid.IX(i,j, 0)] = s0*(t0*Dprev[fluid.IX(i0,j0, 0)]+t1*Dprev[fluid.IX(i0,j1, 0)])+s1*(t0*Dprev[fluid.IX(i1,j0, 0)]+t1*Dprev[fluid.IX(i1,j1, 0)]);
+            D[ind] = s0*(t0*Dprev[fluid.IX(i0,j0, 0)]+t1*Dprev[fluid.IX(i0,j1, 0)])+s1*(t0*Dprev[fluid.IX(i1,j0, 0)]+t1*Dprev[fluid.IX(i1,j1, 0)]);
         }
     }
     
     if (fluid.advection == MACCORMACK)
     {
         // Reverse advection to calculate errors made, than correct the first advection to reduce the errors
-        #pragma omp parallel for schedule(static)
+        //#pragma omp parallel for schedule(static)
         for (std::uint64_t n = 0; n < N3; ++n)
         {
             const std::uint64_t m = n % N2;
@@ -263,7 +351,7 @@ void Fluids::GaussSeidelRelaxationLinSolve(const Fluid3D& fluid, std::vector<dou
 	const double cinv = 1.0/c;
 	for (std::uint8_t l = 0; l < 8; ++l)
 	{
-        #pragma omp parallel for schedule(static)
+        //#pragma omp parallel for schedule(static)
         for (std::uint64_t n = 0; n < N3; ++n)
         {
             const std::uint64_t m = n % N2;
@@ -346,7 +434,7 @@ void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<d
     Eigen::VectorXd b(diagSize);
 
     // Filling matrices
-    #pragma omp parallel for schedule(static)
+    //#pragma omp parallel for schedule(static)
     for (std::uint64_t n = 0; n < diagSize; ++n)
     {
         const std::uint64_t m = n % N2;
@@ -387,7 +475,7 @@ void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<d
     }
 
     // Write the results
-    #pragma omp parallel for schedule(static)
+    //#pragma omp parallel for schedule(static)
     for (std::uint64_t n = 0; n < diagSize; ++n)
     {
         const std::uint64_t m = n % N2;
@@ -408,7 +496,7 @@ void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<d
     const std::uint64_t N22 = (N+2)*(N+2);
     const std::uint64_t N3 = fluid.is2D ? N2 : N*N*N;
 
-    #pragma omp parallel for schedule(static)
+    //#pragma omp parallel for schedule(static)
     for (std::uint64_t n = 0; n < N3; ++n)
     {
         const std::uint64_t m = n % N2;
@@ -440,7 +528,7 @@ void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<d
         ConjugateGradientMethodLinSolve(fluid, p, div, 0, fluid.laplacianProject);
     }
 
-    #pragma omp parallel for schedule(static)
+    //#pragma omp parallel for schedule(static)
     for (std::uint64_t n = 0; n < N3; ++n)
     {
         const std::uint32_t m = n % N2;
@@ -548,10 +636,18 @@ void Fluids::updateRender(Fluid3D& fluid)
         }
         else
         {
-            std::uint8_t density = std::clamp(static_cast<int>(fluid.substanceField[i]), 0, 255);
-            texture[i*3] = density;
-            texture[i*3+1] = density;
-            texture[i*3+2] = density;
+            double implicit = fluid.implicitFunctionField[i];
+            texture[i*3] = 0;
+            texture[i*3+1] = 0;
+            texture[i*3+2] = 0;
+            if (implicit < 0)
+            {
+                texture[i*3+2] = 255;
+            }
+            else
+            {
+                texture[i*3] = 255;
+            }
         }
 	}
 
