@@ -27,10 +27,20 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 		int N = fluid.N/2;
 
         float p = 256;
-        float z = 10240;
+        float z = 128;
 
-        fluid.velocityFieldX[fluid.IX(64, 64, 0)] = z;
-        fluid.substanceField[fluid.IX(4, 4, 0)] = p;
+        for (std::uint64_t j = 0; j < fluid.N+2; ++j)
+        {
+            for (std::uint64_t i = 0; i < fluid.N+2; ++i)
+            {
+                std::uint64_t shift = (fluid.N+2)/2;
+                double x = (double)i;
+                double y = (double)j;
+                fluid.velocityFieldX[fluid.IX(i, j, 0)] = (y-shift);
+                fluid.velocityFieldY[fluid.IX(i, j, 0)] = -(x-shift);
+            }
+        }
+        //fluid.substanceField[fluid.IX(4, 4, 0)] = p;
 
         /* End Testings */
 
@@ -45,32 +55,54 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
         updateRender(fluid);
 
 
-        glm::vec2 p1 = {64,64};
-        glm::vec2 p2 = {64,64};
-        double r = 16;
-        if (fluid.NI != fluid.N)
-        {
-            exit(0);
-        }
+        double r = 2;
         if (iteration == 0)
         {
-            for (std::uint64_t j = 0; j < fluid.N; ++j)
+            /*
+            for (int i = 0; i < 2048; ++i)
             {
-                for (std::uint64_t i = 0; i < fluid.N; ++i)
+                glm::vec2 p;
+                p.x = rand()%(fluid.N + 1);
+                p.y = rand()%(fluid.N + 1);
+                particles.emplace_back(p);
+            }
+            */
+            glm::vec2 p;
+            p.x = 8;
+            p.y = 8-4;
+            particles.emplace_back(p);
+        }
+        
+        if (iteration == 0)
+        {
+            //particles[0].x = sin(iteration/8.0)*42+64+24;
+            //particles[1].x = -sin(iteration/8.0)*42+64-24;
+            for (std::uint64_t j = 0; j < fluid.N+2; ++j)
+            {
+                for (std::uint64_t i = 0; i < fluid.N+2; ++i)
                 {
-                    double x = i / (double)fluid.subgridRatio; 
-                    double y = j / (double)fluid.subgridRatio; 
-                    double dist = std::min(std::sqrt(std::pow(x-p1.x, 2)+std::pow(y-p1.y, 2))-r, std::sqrt(std::pow(x-p2.x, 2)+std::pow(y-p2.y, 2))-r);
+                    double dist = std::sqrt(std::pow(i-particles.front().x,2)+std::pow(j-particles.front().y,2))-r;
+                    for (const auto& p : particles)
+                    {
+                        dist = std::min(dist, std::sqrt(std::pow(i-p.x,2)+std::pow(j-p.y,2))-r);
+                    }
+                    //dist /= r;
                     fluid.implicitFunctionFieldPrev[fluid.IX(i,j,0)] = dist;
                 }
             }
+
+
         }
 
-        /*
+        auto lol = fluid.implicitFunctionFieldPrev;
+        advect(fluid, fluid.implicitFunctionField, fluid.implicitFunctionFieldPrev, fluid.velocityFieldX, fluid.velocityFieldY, fluid.velocityFieldZ, 0);
+        fluid.implicitFunctionFieldPrev = fluid.implicitFunctionField;
+
         std::cout << std::fixed << std::setprecision(2) << std::endl;
-        for (std::uint64_t j = 0; j < fluid.NI; ++j)
+        std::cout << " === BEFORE === " << std::endl;
+        for (std::uint64_t j = 0; j < fluid.N; ++j)
         {
-            for (std::uint64_t i = 0; i < fluid.NI; ++i)
+            for (std::uint64_t i = 0; i < fluid.N; ++i)
             {
                 if (fluid.implicitFunctionField[fluid.IX(i,j,0)] >= 0)
                     std::cout << " ";
@@ -78,10 +110,62 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
             }
             std::cout << std::endl;
         }
-        */
 
-        advect(fluid, fluid.implicitFunctionField, fluid.implicitFunctionFieldPrev, fluid.velocityFieldX, fluid.velocityFieldY, fluid.velocityFieldZ, 0);
-        fluid.implicitFunctionFieldPrev = fluid.implicitFunctionField;
+        std::cout << std::endl << " === DIV LENGHT === " << std::endl;
+        for (std::uint64_t j = 0; j < fluid.N; ++j)
+        {
+            for (std::uint64_t i = 0; i < fluid.N; ++i)
+            {
+                double gO = gradLength(fluid, fluid.implicitFunctionFieldPrev, i, j);
+                std::cout << gO << " ";
+            }
+            std::cout << std::endl;
+        }
+
+
+        auto test = fluid.implicitFunctionFieldPrev;
+        for (std::uint8_t relaxit = 0; relaxit < 1; ++relaxit)
+        {
+            for (std::uint64_t j = 0; j < fluid.N+2; ++j)
+            {
+                for (std::uint64_t i = 0; i < fluid.N+2; ++i)
+                {
+                    double O = fluid.implicitFunctionFieldPrev[fluid.IX(i,j,0)];
+                    double Ssf = O / std::sqrt(std::pow(O, 2) + std::pow(1.0, 2));
+
+                    double gO = gradLength(fluid, fluid.implicitFunctionFieldPrev, i, j);
+                    O = - Ssf * (gO - 1.0);
+                    test[fluid.IX(i,j,0)] = O;
+                }
+            }
+            fluid.implicitFunctionFieldPrev = test;
+        }
+
+        std::cout << std::fixed << std::setprecision(2) << std::endl;
+        std::cout << " === AFTER === " << std::endl;
+        for (std::uint64_t j = 0; j < fluid.N; ++j)
+        {
+            for (std::uint64_t i = 0; i < fluid.N; ++i)
+            {
+                if (fluid.implicitFunctionField[fluid.IX(i,j,0)] >= 0)
+                    std::cout << " ";
+                std::cout << fluid.implicitFunctionFieldPrev[fluid.IX(i,j,0)] << " ";
+            }
+            std::cout << std::endl;
+        }
+
+        std::cout << std::endl << " === DIV LENGHT === " << std::endl;
+        for (std::uint64_t j = 0; j < fluid.N; ++j)
+        {
+            for (std::uint64_t i = 0; i < fluid.N; ++i)
+            {
+                double gO = gradLength(fluid, fluid.implicitFunctionFieldPrev, i, j);
+                std::cout << gO << " ";
+            }
+            std::cout << std::endl;
+        }
+        exit(0);
+
 
         /*
         std::cout << "Vstep: " << VstepTime/(iteration+1) << ", Sstep: " << SstepTime/(iteration+1) << std::endl;
@@ -91,6 +175,39 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 	}
 }
 
+
+double Fluids::gradLength(const Fluid3D& fluid, const std::vector<double>& X, const std::uint64_t i, const std::uint64_t j) const
+{
+    double gradI = 0;
+    double gradJ = 0;
+    const double h = 1.0;
+    if (i == 0)
+    {
+        gradI = h*(X[fluid.IX(1,j,0)] - X[fluid.IX(0,j,0)]);
+    }
+    else if (i == fluid.N+1)
+    {
+        gradI = h*(X[fluid.IX(fluid.N+1,j,0)] - X[fluid.IX(fluid.N,j,0)]);
+    }
+    else
+    {
+        gradI = 0.5*h*(X[fluid.IX(i+1,j,0)] - X[fluid.IX(i-1,j,0)]);
+    }
+    if (j == 0)
+    {
+        gradJ = h*(X[fluid.IX(i,1,0)] - X[fluid.IX(i,0,0)]);
+    }
+    else if (j == fluid.N+1)
+    {
+        gradJ = h*(X[fluid.IX(i,fluid.N+1,0)] - X[fluid.IX(i,fluid.N,0)]);
+    }
+    else
+    {
+        gradJ = 0.5*h*(X[fluid.IX(i,j+1,0)] - X[fluid.IX(i,j-1,0)]);
+    }
+    //std::cout << gradI << "," << gradJ << " ";
+    return std::sqrt(std::pow(gradI, 2)+std::pow(gradJ, 2));
+}
 
 void Fluids::Vstep(Fluid3D& fluid)
 {
@@ -185,62 +302,6 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
         const std::uint64_t k = n / N2 + 1;
         const std::uint64_t ind = i+j*(N+2)+(fluid.is2D ? 0 : k*N22);
 
-        /*
-        float x;
-        float y;
-        // X velocity
-        {
-            int vx0 = std::floor(i-dt*X[ind]); //back face velocity x
-            int vx1 = vx0 + 1; //front face velocity x
-            float ix = i - vx0; // the interpolant in x - back to front
-
-            float cy = j - 0.5; // move by the voxel center
-            int vy0 = std::floor(cy); //lower voxel y
-            int vy1 = vy0 + 1; //upper voxel y
-            float iy = cy - vy0; // the interpolant in y - lower to upper 
-
-            float v000 = Dprev[fluid.IX(vx0, vy0, 0)]; // back lower
-            float v100 = Dprev[fluid.IX(vx1, vy0, 0)]; // front lower
-
-            float v010 = Dprev[fluid.IX(vx0, vy1, 0)]; // back upper
-            float v110 = Dprev[fluid.IX(vx1, vy1, 0)]; // front upper
-
-            float lr = (1-ix) * v000 + ix * v100;
-            float ur = (1-ix) * v010 + ix * v110;
-
-            float r = (1-iy) * lr + iy * ur;
-
-            x = r;
-        }
-        // Y velocity
-        {
-            int vy0 = std::floor(j-dt*Y[ind]); //back face velocity y
-            int vy1 = vy0 + 1; //front face velocity y
-            float jx = j - vy0; // the interpolant in y - back to front
-
-            float cx = i - 0.5; // move by the voxel center
-            int vx0 = std::floor(cx); //lower voxel x
-            int vx1 = vx0 + 1; //upper voxel x
-            float jy = cx - vx0; // the interpolant in x - lower to upper 
-
-            float v000 = Dprev[fluid.IX(vx0, vy0, 0)]; // back lower
-            float v100 = Dprev[fluid.IX(vx1, vy0, 0)]; // front lower
-
-            float v010 = Dprev[fluid.IX(vx0, vy1, 0)]; // back upper
-            float v110 = Dprev[fluid.IX(vx1, vy1, 0)]; // front upper
-
-            float lr = (1-jx) * v000 + jx * v100;
-            float ur = (1-jx) * v010 + jx * v110;
-
-            float r = (1-jy) * lr + jy * ur;
-
-            y = r;
-        }
-
-        //D[ind] = -x-y;
-        */
-
-
         const double x = std::clamp(i-dt*X[ind], 0.5, N + 0.5);
         const double y = std::clamp(j-dt*Y[ind], 0.5, N + 0.5);
         const double z = std::clamp(k-dt*Z[ind], 0.5, N + 0.5);
@@ -258,87 +319,7 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
         const double u1 = z	- k0;
         const double u0 = 1.0 - u1;
 
-        if (!fluid.is2D)
-        {
-            D[ind] =
-                s0*(t0*(u0*Dprev[fluid.IX(i0,j0,k0)]
-                        +u1*Dprev[fluid.IX(i0,j0,k1)])
-                    +(t1*(u0*Dprev[fluid.IX(i0,j1,k0)]
-                        +u1*Dprev[fluid.IX(i0,j1,k1)])))
-                +s1*(t0*(u0*Dprev[fluid.IX(i1,j0,k0)]
-                        +u1*Dprev[fluid.IX(i1,j0,k1)])
-                    +(t1*(u0*Dprev[fluid.IX(i1,j1,k0)]
-                        +u1*Dprev[fluid.IX(i1,j1,k1)])));
-        }
-        else
-        {
-            D[ind] = s0*(t0*Dprev[fluid.IX(i0,j0, 0)]+t1*Dprev[fluid.IX(i0,j1, 0)])+s1*(t0*Dprev[fluid.IX(i1,j0, 0)]+t1*Dprev[fluid.IX(i1,j1, 0)]);
-        }
-    }
-    
-    if (fluid.advection == MACCORMACK)
-    {
-        // Reverse advection to calculate errors made, than correct the first advection to reduce the errors
-        //#pragma omp parallel for schedule(static)
-        for (std::uint64_t n = 0; n < N3; ++n)
-        {
-            const std::uint64_t m = n % N2;
-            const std::uint64_t i = m % N + 1;
-            const std::uint64_t j = m / N + 1;
-            const std::uint64_t k = n / N2 + 1;
-            const std::uint64_t ind = i+j*(N+2)+(fluid.is2D ? 0 : k*N22);
-
-            // Backward to get neighbours for clamping
-            double x = std::clamp(i-dt*X[ind], 0.5, N + 0.5);
-            double y = std::clamp(j-dt*Y[ind], 0.5, N + 0.5);
-            double z = std::clamp(k-dt*Z[ind], 0.5, N + 0.5);
-            std::uint16_t i0 = static_cast<std::uint16_t>(x);
-            std::uint16_t i1 = i0 + 1;
-            std::uint16_t j0 = static_cast<std::uint16_t>(y);
-            std::uint16_t j1 = j0 + 1;
-            std::uint16_t k0 = static_cast<std::uint16_t>(z);
-            std::uint16_t k1 = k0 + 1;
-
-            const double top = std::max({D[fluid.IX(i0,j0,k0)],D[fluid.IX(i0,j0,k1)],D[fluid.IX(i0,j1,k0)],D[fluid.IX(i0,j1,k1)],D[fluid.IX(i1,j0,k0)],D[fluid.IX(i1,j0,k1)],D[fluid.IX(i1,j1,k0)],D[fluid.IX(i1,j1,k1)]});
-            const double bot = std::min({D[fluid.IX(i0,j0,k0)],D[fluid.IX(i0,j0,k1)],D[fluid.IX(i0,j1,k0)],D[fluid.IX(i0,j1,k1)],D[fluid.IX(i1,j0,k0)],D[fluid.IX(i1,j0,k1)],D[fluid.IX(i1,j1,k0)],D[fluid.IX(i1,j1,k1)]});
-
-            // Forward after backward to get error
-            x = std::clamp(i+dt*X[ind], 0.5, N + 0.5);
-            y = std::clamp(j+dt*Y[ind], 0.5, N + 0.5);
-            z = std::clamp(k+dt*Z[ind], 0.5, N + 0.5);
-            i0 = static_cast<std::uint16_t>(x);
-            i1 = i0 + 1;
-            j0 = static_cast<std::uint16_t>(y);
-            j1 = j0 + 1;
-            k0 = static_cast<std::uint16_t>(z);
-            k1 = k0 + 1;
-
-            const double s1 = x	- i0;
-            const double s0 = 1.0 - s1;
-            const double t1 = y	- j0;
-            const double t0 = 1.0 - t1;
-            const double u1 = z	- k0;
-            const double u0 = 1.0 - u1;
-
-            double back = 0;
-            if (!fluid.is2D)
-            {
-                back = 
-                s0*(t0*(u0*D[fluid.IX(i0,j0,k0)]
-                        +u1*D[fluid.IX(i0,j0,k1)])
-                    +(t1*(u0*D[fluid.IX(i0,j1,k0)]
-                        +u1*D[fluid.IX(i0,j1,k1)])))
-                +s1*(t0*(u0*D[fluid.IX(i1,j0,k0)]
-                        +u1*D[fluid.IX(i1,j0,k1)])
-                    +(t1*(u0*D[fluid.IX(i1,j1,k0)]
-                        +u1*D[fluid.IX(i1,j1,k1)])));
-            }
-            else
-            {
-                back = s0*(t0*Dprev[fluid.IX(i0,j0, 0)]+t1*Dprev[fluid.IX(i0,j1, 0)])+s1*(t0*Dprev[fluid.IX(i1,j0, 0)]+t1*Dprev[fluid.IX(i1,j1, 0)]);
-            }
-            D[ind] = std::clamp(D[ind] + 0.5 * (Dprev[ind] - back), bot, top);
-        }
+        D[ind] = s0*(t0*Dprev[fluid.IX(i0,j0, 0)]+t1*Dprev[fluid.IX(i0,j1, 0)])+s1*(t0*Dprev[fluid.IX(i1,j0, 0)]+t1*Dprev[fluid.IX(i1,j1, 0)]);
     }
 	setBnd(fluid, D, b);
 }
@@ -351,20 +332,20 @@ void Fluids::GaussSeidelRelaxationLinSolve(const Fluid3D& fluid, std::vector<dou
 	const double cinv = 1.0/c;
 	for (std::uint8_t l = 0; l < 8; ++l)
 	{
-        //#pragma omp parallel for schedule(static)
-        for (std::uint64_t n = 0; n < N3; ++n)
+        //for (std::uint64_t n = 0; n < N3; ++n)
+        //for (std::uint32_t j = 1; j <= ((b == 2) ? fluid.N+2 : fluid.N+1); ++j)
+        for (std::uint32_t j = 1; j <= fluid.N+1; ++j)
         {
-            const std::uint64_t m = n % N2;
-            const std::uint64_t i = m % N + 1;
-            const std::uint64_t j = m / N + 1;
-            const std::uint64_t k = n / N2 + 1;
-
-            X[fluid.IX(i,j,k)] =
-                (Xprev[fluid.IX(i,j,k)]
-                    +a*(X[fluid.IX(i+1,j,k)]+X[fluid.IX(i-1,j,k)]+
-                        X[fluid.IX(i,j+1,k)]+X[fluid.IX(i,j-1,k)]+
-                        (fluid.is2D ? 0 : X[fluid.IX(i,j,k+1)]+X[fluid.IX(i,j,k-1)])
-                   ))*cinv;
+            //for (std::uint32_t i = 1; i <= ((b == 1) ? fluid.N+2 : fluid.N+1); ++i)
+            for (std::uint32_t i = 1; i <= fluid.N+1; ++i)
+            {
+                auto k = 0;
+                X[fluid.IX(i,j,k)] =
+                    (Xprev[fluid.IX(i,j,k)]
+                        +a*(X[fluid.IX(i+1,j,k)]+X[fluid.IX(i-1,j,k)]+
+                            X[fluid.IX(i,j+1,k)]+X[fluid.IX(i,j-1,k)]
+                       ))*cinv;
+            }
         }
 		setBnd(fluid, X, b);
 	}
@@ -372,146 +353,33 @@ void Fluids::GaussSeidelRelaxationLinSolve(const Fluid3D& fluid, std::vector<dou
 
 void Fluids::applyPreconditioner(const std::uint64_t N, const Eigen::VectorXd& r, const Laplacian& A, Eigen::VectorXd& z, const Solver solver) const
 {
-    if (solver == CG)
-    {
-        z = r;
-        return;
-    }
-    const std::uint64_t N2 = N*N; 
-    const std::uint64_t N3 = N*N*N;
-
-    // Solve Lq = r
-    Eigen::VectorXd q = Eigen::VectorXd::Zero(z.size());
-    for (std::int64_t n = 0; n < z.size(); ++n)
-    {
-        const std::uint64_t m = n % N2;
-        const std::uint64_t i = m % N;
-        const std::uint64_t j = m / N;
-        const std::uint64_t k = n / N2;
-
-        const std::uint64_t indmi = (i-1)+j*N+k*N2;
-        const std::uint64_t indmj = i+(j-1)*N+k*N2;
-        const std::uint64_t indmk = i+j*N+(k-1)*N2;
-
-        const double a = i > 0 ? A.plusi.coeff(indmi) * A.precon.coeff(indmi) * q.coeff(indmi) : 0;
-        const double b = j > 0 ? A.plusj.coeff(indmj) * A.precon.coeff(indmj) * q.coeff(indmj) : 0;
-        const double c = k > 0 ? A.plusk.coeff(indmk) * A.precon.coeff(indmk) * q.coeff(indmk) : 0;
-
-        const double t = r.coeff(n) - a - b - c;
-        q.coeffRef(n) = t * A.precon.coeff(n);
-    }
-
-    // Solve L'z = q
-    for (std::int64_t n = z.size()-1; n >= 0; --n)
-    {
-        const std::uint64_t m = n % N2;
-        const std::uint64_t i = m % N;
-        const std::uint64_t j = m / N;
-        const std::uint64_t k = n / N2;
-
-        const std::uint64_t indpi = (i+1)+j*N+k*N2;
-        const std::uint64_t indpj = i+(j+1)*N+k*N2;
-        const std::uint64_t indpk = i+j*N+(k+1)*N2;
-
-        const double a = indpi < N3 ? z.coeff(indpi) : 0;
-        const double b = indpj < N3 ? z.coeff(indpj) : 0;
-        const double c = indpk < N3 ? z.coeff(indpk) : 0;
-
-        const double prec = A.precon.coeff(n);
-        const double t = q.coeff(n) - A.plusi.coeff(n) * prec * a
-                                    - A.plusj.coeff(n) * prec * b
-                                    - A.plusk.coeff(n) * prec * c;
-        z.coeffRef(n) = t * prec;
-    }
 }
 
 void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const std::uint8_t bs, const Laplacian& A)
 {
-    const std::uint64_t N = fluid.N;
-    const std::uint64_t N2 = N*N;
-    const std::uint32_t diagSize = A.diag.size();
-    Eigen::VectorXd x(diagSize);
-    Eigen::VectorXd b(diagSize);
-
-    // Filling matrices
-    //#pragma omp parallel for schedule(static)
-    for (std::uint64_t n = 0; n < diagSize; ++n)
-    {
-        const std::uint64_t m = n % N2;
-        const std::uint64_t i = m % N;
-        const std::uint64_t j = m / N;
-        const std::uint64_t k = n / N2;
-        b.coeffRef(n) = Xprev[fluid.IX(i+1,j+1,k+1)];
-    }
-
-    // Solving Ap = b
-    Eigen::VectorXd r = b;
-    if (r.isZero(0))
-    {
-        X = Xprev;
-        return;
-    }
-    Eigen::VectorXd p = Eigen::VectorXd::Zero(diagSize);
-    Eigen::VectorXd z = p;
-    applyPreconditioner(N, r, A, z, fluid.solver);
-    Eigen::VectorXd s = z;
-    double sig = z.dot(r);
-
-    for (std::uint32_t i = 0; i < b.size(); ++i)
-    {
-        z = A.A * s;
-        const double alpha = sig / s.dot(z);
-        p = p + alpha * s;
-        r = r - alpha * z;
-        if (r.lpNorm<Eigen::Infinity>() < 10e-5)
-        {
-            break;
-        }
-        applyPreconditioner(N, r, A, z, fluid.solver);
-        const double signew = z.dot(r);
-        const double beta = signew / sig;
-        s = z + beta * s;
-        sig = signew;
-    }
-
-    // Write the results
-    //#pragma omp parallel for schedule(static)
-    for (std::uint64_t n = 0; n < diagSize; ++n)
-    {
-        const std::uint64_t m = n % N2;
-        const std::uint64_t i = m % N;
-        const std::uint64_t j = m / N;
-        const std::uint64_t k = n / N2;
-        X[fluid.IX(i+1,j+1,k+1)] = p.coeff(n);
-    }
-
-    setBnd(fluid, X, bs);
 }
 
 void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<double>& Y, std::vector<double>& Z, std::vector<double>& p, std::vector<double>& div)
 {
     const double h = 1.0/fluid.N;
-    const std::uint64_t N = fluid.N;
-    const std::uint64_t N2 = N*N;
-    const std::uint64_t N22 = (N+2)*(N+2);
-    const std::uint64_t N3 = fluid.is2D ? N2 : N*N*N;
 
-    //#pragma omp parallel for schedule(static)
-    for (std::uint64_t n = 0; n < N3; ++n)
+    for (std::uint32_t j = 1; j <= fluid.N+1; ++j)
     {
-        const std::uint64_t m = n % N2;
-        const std::uint64_t i = m % N + 1;
-        const std::uint64_t j = m / N + 1;
-        const std::uint64_t k = n / N2 + 1;
-        const std::uint64_t ind = i+j*(N+2)+(fluid.is2D ? 0 : k*N22);
-
-        div[ind] = -(fluid.is2D ? 0.5 : 1.0/3.0)*
-                    ((X[fluid.IX(i+1,j,k)]-X[fluid.IX(i-1,j,k)])*h+
-                    (Y[fluid.IX(i,j+1,k)]-Y[fluid.IX(i,j-1,k)])*h+
-                    (fluid.is2D ? 0 : (Z[fluid.IX(i,j,k+1)]-Z[fluid.IX(i,j,k-1)])*h));
-        if (fluid.solver == GAUSS_SEIDEL)
+        for (std::uint32_t i = 1; i <= fluid.N+1; ++i)
         {
-            p[ind] = 0;
+            auto k = 0;
+            /*
+            div[fluid.IX(i,j,k)] = -1.0* // TODO not sure about 1.0 or 0.5 here
+                        ((X[fluid.IX(i+1,j,k)]-X[fluid.IX(i,j,k)])*h+
+                        (Y[fluid.IX(i,j+1,k)]-Y[fluid.IX(i,j,k)])*h);
+                        */
+            div[fluid.IX(i,j,k)] = -0.5*
+                        ((X[fluid.IX(i+1,j,k)]-X[fluid.IX(i-1,j,k)])*h+
+                        (Y[fluid.IX(i,j+1,k)]-Y[fluid.IX(i,j-1,k)])*h);
+            if (fluid.solver == GAUSS_SEIDEL)
+            {
+                p[fluid.IX(i,j,k)] = 0;
+            }
         }
     }
     //p.clear();
@@ -528,98 +396,33 @@ void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<d
         ConjugateGradientMethodLinSolve(fluid, p, div, 0, fluid.laplacianProject);
     }
 
-    //#pragma omp parallel for schedule(static)
-    for (std::uint64_t n = 0; n < N3; ++n)
+    for (std::uint32_t j = 1; j <= fluid.N+1; ++j)
     {
-        const std::uint32_t m = n % N2;
-        const std::uint16_t i = m % N + 1;
-        const std::uint16_t j = m / N + 1;
-        const std::uint16_t k = n / N2 + 1;
-        const std::uint64_t ind = i+j*(N+2)+(fluid.is2D ? 0 : k*N22);
-
-        X[ind] -= 0.5*N*(p[fluid.IX(i+1,j,k)]-p[fluid.IX(i-1,j,k)]);
-        Y[ind] -= 0.5*N*(p[fluid.IX(i,j+1,k)]-p[fluid.IX(i,j-1,k)]);
-        if (!fluid.is2D)
+        for (std::uint32_t i = 1; i <= fluid.N+1; ++i)
         {
-            Z[ind] -= 0.5*N*(p[fluid.IX(i,j,k+1)]-p[fluid.IX(i,j,k-1)]);
+            auto k = 0;
+            X[fluid.IX(i,j,k)] -= 0.5*fluid.N*(p[fluid.IX(i+1,j,k)]-p[fluid.IX(i-1,j,k)]);
+            Y[fluid.IX(i,j,k)] -= 0.5*fluid.N*(p[fluid.IX(i,j+1,k)]-p[fluid.IX(i,j-1,k)]);
         }
     }
 
 	setBnd(fluid, X, 1);
 	setBnd(fluid, Y, 2);
-    if (!fluid.is2D)
-    {
-	    setBnd(fluid, Z, 3);
-    }
 }
 
 void Fluids::setBnd(const Fluid3D& fluid, std::vector<double>& X, const std::uint8_t b) const
 {
-    if (!fluid.is2D)
+    for (std::uint32_t i = 1; i <= fluid.N; ++i)
     {
-
-        const std::uint64_t N = fluid.N;
-        const std::uint64_t N2 = N*N;
-        for (std::uint32_t n = 0; n < N2; ++n)
-        {
-            const std::uint32_t m = n % N2;
-            const std::uint16_t i = m % N + 1;
-            const std::uint16_t j = m / N + 1;
-
-            X[fluid.IX(i,j,0)]	= b == 3 ? -X[fluid.IX(i,j,1)]		: X[fluid.IX(i,j,1)];
-            X[fluid.IX(i,j,N)]  = b == 3 ? -X[fluid.IX(i,j,N-1)]	: X[fluid.IX(i,j,N-1)];
-
-            X[fluid.IX(i,0,j)]	= b == 2 ? -X[fluid.IX(i,1,j)]		: X[fluid.IX(i,1,j)];
-            X[fluid.IX(i,N,j)]  = b == 2 ? -X[fluid.IX(i,N-1,j)]	: X[fluid.IX(i,N-1,j)];
-
-            X[fluid.IX(0,i,j)]	= b == 1 ? -X[fluid.IX(1,i,j)]	    : X[fluid.IX(1,i,j)];
-            X[fluid.IX(N,i,j)]  = b == 1 ? -X[fluid.IX(N-1,i,j)]	: X[fluid.IX(N-1,i,j)];
-        }
-
-        // Edges
-        for (std::uint32_t i = 1; i <= N; ++i)
-        {
-            X[fluid.IX(i,0,0)]  = 0.5*(X[fluid.IX(i,1,0)]   +X[fluid.IX(i,0,1)]);
-            X[fluid.IX(i,N,0)]  = 0.5*(X[fluid.IX(i,N-1,0)] +X[fluid.IX(i,N,1)]);
-            X[fluid.IX(i,0,N)]  = 0.5*(X[fluid.IX(i,0,N-1)] +X[fluid.IX(i,1,N)]);
-            X[fluid.IX(i,N,N)]  = 0.5*(X[fluid.IX(i,N-1,N)] +X[fluid.IX(i,N,N-1)]);
-
-            X[fluid.IX(0,i,0)]  = 0.5*(X[fluid.IX(1,i,0)]   +X[fluid.IX(0,i,1)]);
-            X[fluid.IX(N,i,0)]  = 0.5*(X[fluid.IX(N-1,i,0)] +X[fluid.IX(N,i,1)]);
-            X[fluid.IX(0,i,N)]  = 0.5*(X[fluid.IX(0,i,N-1)] +X[fluid.IX(1,i,N)]);
-            X[fluid.IX(N,i,N)]  = 0.5*(X[fluid.IX(N-1,i,N)] +X[fluid.IX(N,i,0)]);
-
-            X[fluid.IX(0,0,i)]  = 0.5*(X[fluid.IX(0,1,i)]   +X[fluid.IX(1,0,i)]);
-            X[fluid.IX(0,N,i)]  = 0.5*(X[fluid.IX(0,N-1,i)] +X[fluid.IX(1,N,i)]);
-            X[fluid.IX(N,0,i)]  = 0.5*(X[fluid.IX(N-1,0,i)] +X[fluid.IX(N,1,i)]);
-            X[fluid.IX(N,N,i)]  = 0.5*(X[fluid.IX(N,N-1,i)] +X[fluid.IX(N-1,N,i)]);
-        }
-
-        // Corners
-        X[fluid.IX(0,0,0)]	= (1.0/3.0)*(X[fluid.IX(1,0,0)] +X[fluid.IX(0,1,0)]     +X[fluid.IX(0,0,1)]);
-        X[fluid.IX(0,N,0)]	= (1.0/3.0)*(X[fluid.IX(1,N,0)] +X[fluid.IX(0,N-1,0)]   +X[fluid.IX(0,N,1)]);
-        X[fluid.IX(0,0,N)]  = (1.0/3.0)*(X[fluid.IX(1,0,N)] +X[fluid.IX(0,1,N)]     +X[fluid.IX(0,0,N+1)]);
-        X[fluid.IX(0,N,N)]  = (1.0/3.0)*(X[fluid.IX(1,N,N)] +X[fluid.IX(0,N-1,N)]   +X[fluid.IX(0,N,N-1)]);
-
-        X[fluid.IX(N,0,0)]	= (1.0/3.0)*(X[fluid.IX(N-1,0,0)]   +X[fluid.IX(N,1,0)]     +X[fluid.IX(N,0,1)]);
-        X[fluid.IX(N,N,0)]	= (1.0/3.0)*(X[fluid.IX(N-1,N,0)]   +X[fluid.IX(N,N-1,0)]   +X[fluid.IX(N,N,1)]);
-        X[fluid.IX(N,0,N)]	= (1.0/3.0)*(X[fluid.IX(N-1,0,N)]   +X[fluid.IX(N,1,N)]     +X[fluid.IX(N,0,N-1)]);
-	    X[fluid.IX(N,N,N)]  = (1.0/3.0)*(X[fluid.IX(N-1,N,N)]   +X[fluid.IX(N,N-1,N)]   +X[fluid.IX(N,N,N-1)]);
+        X[fluid.IX(0,i,0)]         = b == 1 ? -X[fluid.IX(1,i,0)]       : X[fluid.IX(1,i,0)];
+        X[fluid.IX(fluid.N+1,i,0)] = b == 1 ? -X[fluid.IX(fluid.N,i,0)] : X[fluid.IX(fluid.N,i,0)];
+        X[fluid.IX(i,0,0)]         = b == 2 ? -X[fluid.IX(i,1,0)]       : X[fluid.IX(i,1,0)];
+        X[fluid.IX(i,fluid.N+1,0)] = b == 2 ? -X[fluid.IX(i,fluid.N,0)] : X[fluid.IX(i,fluid.N,0)];
     }
-    else
-    {
-        for (std::uint32_t i = 1; i <= fluid.N; ++i)
-        {
-            X[fluid.IX(0,i,0)]         = b == 1 ? -X[fluid.IX(1,i,0)]       : X[fluid.IX(1,i,0)];
-            X[fluid.IX(fluid.N+1,i,0)] = b == 1 ? -X[fluid.IX(fluid.N,i,0)] : X[fluid.IX(fluid.N,i,0)];
-            X[fluid.IX(i,0,0)]         = b == 2 ? -X[fluid.IX(i,1,0)]       : X[fluid.IX(i,1,0)];
-            X[fluid.IX(i,fluid.N+1,0)] = b == 2 ? -X[fluid.IX(i,fluid.N,0)] : X[fluid.IX(i,fluid.N,0)];
-        }
-        X[fluid.IX(0,0,0)]                    = 0.5f*(X[fluid.IX(1,0,0)]+X[fluid.IX(0,1,0)]);
-        X[fluid.IX(0,fluid.N+1,0)]            = 0.5f*(X[fluid.IX(1,fluid.N+1,0)]+X[fluid.IX(0,fluid.N,0)]);
-        X[fluid.IX(fluid.N+1,0,0)]            = 0.5f*(X[fluid.IX(fluid.N,0,0)]+X[fluid.IX(fluid.N+1,1,0)]);
-        X[fluid.IX(fluid.N+1,fluid.N+1,0)]    = 0.5f*(X[fluid.IX(fluid.N,fluid.N+1,0)]+X[fluid.IX(fluid.N+1,fluid.N,0)]);
-    }
+    X[fluid.IX(0,0,0)]                    = 0.5f*(X[fluid.IX(1,0,0)]+X[fluid.IX(0,1,0)]);
+    X[fluid.IX(0,fluid.N+1,0)]            = 0.5f*(X[fluid.IX(1,fluid.N+1,0)]+X[fluid.IX(0,fluid.N,0)]);
+    X[fluid.IX(fluid.N+1,0,0)]            = 0.5f*(X[fluid.IX(fluid.N,0,0)]+X[fluid.IX(fluid.N+1,1,0)]);
+    X[fluid.IX(fluid.N+1,fluid.N+1,0)]    = 0.5f*(X[fluid.IX(fluid.N,fluid.N+1,0)]+X[fluid.IX(fluid.N+1,fluid.N,0)]);
 }
 
 void Fluids::updateRender(Fluid3D& fluid)
