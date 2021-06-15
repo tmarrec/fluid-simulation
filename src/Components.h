@@ -90,7 +90,7 @@ struct Fluid3D
     double viscosity = 1.500;
     double diffusion = 0.15;
     double dt = 0.00005;
-    std::uint16_t N = 14;
+    std::uint16_t N = 32;
     Solver solver = GAUSS_SEIDEL;
     Advection advection = SEMI_LAGRANGIAN;
     bool is2D = true;
