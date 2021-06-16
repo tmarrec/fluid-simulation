@@ -32,6 +32,7 @@ public:
     void freeMesh(Mesh& mesh) const;
     void applyMaterial(Material& material, Camera& camera, Transform& transform) const;
     void initMaterial(Material& material) const;
+    void updateDynamicLine(const std::vector<double> X);
     void initTexture3D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
     void initTexture2D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
     void writeImg(const std::uint32_t iteration) const;
@@ -44,5 +45,8 @@ private:
     std::uint32_t _iterations = 0;
 
     void _initFrameBuffer(FrameBuffer& framebuffer, std::string vert, std::string frag);
+
+    //temp
+    std::vector<double> _dynamicLine;
 };
 

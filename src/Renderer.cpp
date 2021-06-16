@@ -77,13 +77,33 @@ void Renderer::writeImg(const std::uint32_t iteration) const
 
 }
 
+void Renderer::updateDynamicLine(const std::vector<double> X)
+{
+    _dynamicLine = X;
+}
+
 void Renderer::drawMesh(Mesh& mesh) const
 {
     GLenum renderMode = GL_TRIANGLES;
+    float N = 128*3;
     switch (mesh.renderMode)
     {
         case LINES:
             renderMode = GL_LINES;
+            mesh.vertices.clear();
+            mesh.indices.clear();
+            for (float i = 0; i < N; i += 3)
+            {
+                mesh.vertices.emplace_back((float)_dynamicLine[i/3]/128);
+                mesh.vertices.emplace_back(0.101);
+                mesh.vertices.emplace_back((i/N)-0.5);
+            }
+            for (float i = 0; i < (N/3)-1; i += 1)
+            {
+                mesh.indices.emplace_back(i);
+                mesh.indices.emplace_back(i+1);
+            }
+            initMesh(mesh);
             break;
         case TRIANGLES:
             renderMode = GL_TRIANGLES;
