@@ -23,7 +23,7 @@ private:
     void initECS();
 
 	std::shared_ptr<Window> _window = std::make_shared<Window>();
-	Renderer _renderer {};
+    std::shared_ptr<Renderer> _renderer = std::make_shared<Renderer>();
     std::vector<Entity> _entities {};
 
     std::shared_ptr<MeshRenderer> _meshRendererSys = nullptr;

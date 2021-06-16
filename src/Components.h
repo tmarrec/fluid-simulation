@@ -67,6 +67,7 @@ struct Material
     bool hasTexture = false;
     bool is2D = false;
     bool noShader = false;
+    bool dynamicLine = false;
     float absorption = 100.0f;
     glm::vec3 lightIntensity = glm::vec3(1.0, 1.0, 1.0);
     std::uint32_t texture = 0;
@@ -90,7 +91,7 @@ struct Fluid3D
     double viscosity = 1.500;
     double diffusion = 0.15;
     double dt = 0.00005;
-    std::uint16_t N = 32;
+    std::uint16_t N = 128;
     Solver solver = GAUSS_SEIDEL;
     Advection advection = SEMI_LAGRANGIAN;
     bool is2D = true;

@@ -44,7 +44,7 @@ private:
     void updateRender(Fluid3D& fluid);
 
     double gradLength(const Fluid3D& fluid, const std::vector<double>& X, const std::uint64_t i, const std::uint64_t j) const;
-    void reinitLevelSet(Fluid3D& fluid) const;
+    void reinitLevelSet(Fluid3D& fluid, std::uint64_t iteration) const;
 
     void writeVolumeFile(Fluid3D& fluid, std::uint64_t iteration);
     std::shared_ptr<Renderer> _renderer = nullptr;

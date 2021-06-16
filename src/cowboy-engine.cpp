@@ -6,7 +6,7 @@
 
 int main()
 {
-	PRINT_TITLE();
+	//PRINT_TITLE();
 
     WindowInfos windowInfos;
     windowInfos.title = "cowboy-engine";

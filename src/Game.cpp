@@ -32,9 +32,9 @@ void Game::initECS()
                 .scale = {1, 1, 1}
             }
     };
-    _meshRendererSys->init(std::make_shared<Renderer>(_renderer), camera);
+    _meshRendererSys->init(_renderer, camera);
     _fluidsSys = gCoordinator.RegisterSystem<Fluids>();
-    _fluidsSys->init(std::make_shared<Renderer>(_renderer));
+    _fluidsSys->init(_renderer);
 
     Signature signatureMeshRenderer;
     signatureMeshRenderer.set(gCoordinator.GetComponentType<Transform>());
@@ -51,12 +51,13 @@ void Game::initECS()
 void Game::run(WindowInfos windowInfos)
 {
 	_window->init(windowInfos);
-	_renderer.init(_window);
+	_renderer->init(_window);
     initECS();
 
-    BasicEntities::initBasicEntities(std::make_shared<Renderer>(_renderer));
+    BasicEntities::initBasicEntities(_renderer);
 
     BasicEntities::addFluid2D(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
+    BasicEntities::addDynamicLine(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
 
     //BasicEntities::addCube(glm::vec3{5,0,0}, glm::vec3{0,0,0}, glm::vec3{5,5,5});
     
@@ -81,11 +82,11 @@ void Game::mainLoop()
 
         _fluidsSys->update(iterations);
 
-        _renderer.prePass();
+        _renderer->prePass();
         _meshRendererSys->update();
-        _renderer.endPass();
+        _renderer->endPass();
 
-        _renderer.writeImg(iterations);
+        _renderer->writeImg(iterations);
         _window->swapBuffers();
 
 		_window->pollEvents();
