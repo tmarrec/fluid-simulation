@@ -172,53 +172,6 @@ void BasicEntities::addCube(glm::vec3 position, glm::vec3 rotation, glm::vec3 sc
     });
 }
 
-void BasicEntities::addDynamicLine(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
-{
-    auto entity = gCoordinator.CreateEntity();
-    addTransform(entity, position, rotation, scale);
-
-    gCoordinator.AddComponent(entity, Mesh
-    {
-        .vertices =
-        {
-            -0.5f, -0.5f, 0.5f,
-            0.5f, -0.5f, 0.5f,
-            0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f, 0.5f,
-
-            -0.5f, -0.5f, -0.5f,
-            0.5f, -0.5f, -0.5f,
-            0.5f, 0.5f, -0.5f,
-            -0.5f, 0.5f, -0.5f,
-        },
-        .normals =
-        {
-        },
-        .indices =
-        {
-            0, 1,
-            1, 2,
-            2, 3,
-            3, 4,
-            4, 5,
-            5, 6,
-            6, 7,
-        },
-        .renderMode = LINES,
-    });
-
-    Shader shaderProgram {};
-    shaderProgram.setVert("shaders/vert.vert");
-    shaderProgram.setFrag("shaders/frag.frag");
-
-    gCoordinator.AddComponent(entity, Material
-    {
-        .shader = shaderProgram,
-        .dynamicLine = true
-    });
-
-}
-
 void BasicEntities::addLineCube(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
     auto entity = gCoordinator.CreateEntity();
