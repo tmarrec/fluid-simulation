@@ -90,7 +90,7 @@ struct Fluid3D
     double viscosity = 1.500;
     double diffusion = 0.15;
     double dt = 0.00005;
-    std::uint16_t N = 128;
+    std::uint16_t N = 12;
     Solver solver = GAUSS_SEIDEL;
     Advection advection = SEMI_LAGRANGIAN;
     bool is2D = true;
@@ -118,6 +118,13 @@ struct Fluid3D
 
     std::uint32_t IX(const std::uint32_t x, const std::uint32_t y, const std::uint32_t z) const
     { 
+        return x + y * (N+2);
+    };
+
+    std::uint32_t IX(const std::uint32_t x, const std::uint32_t y, const std::uint32_t z, std::uint8_t b) const
+    { 
+        if (b == 1)
+            return x + y * (N+3);
         return x + y * (N+2);
     };
 
