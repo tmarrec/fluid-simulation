@@ -27,27 +27,30 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 		int N = fluid.N/2;
 
         float p = 256;
-        float z = 128;
+        float z = 512;
 
-        for (std::uint64_t j = 0; j < fluid.N+2; ++j)
+        for (std::uint64_t j = 0; j <= fluid.N+2; ++j)
         {
-            for (std::uint64_t i = 0; i < fluid.N+2; ++i)
+            for (std::uint64_t i = 0; i <= fluid.N+2; ++i)
             {
                 std::uint64_t shift = (fluid.N+2)/2;
                 double x = (double)i;
                 double y = (double)j;
+                //fluid.velocityFieldX[fluid.IX(i, j, 0, 1)] = -50;
+                //fluid.velocityFieldY[fluid.IX(i, j, 0, 2)] = 50;
                 /*
                 fluid.velocityFieldX[fluid.IX(i, j, 0)] = (y-shift)*5;
                 fluid.velocityFieldY[fluid.IX(i, j, 0)] = -(x-shift)*5;
                 */
             }
         }
-        fluid.substanceField[fluid.IX(6, 4, 0)] = p;
-        fluid.velocityFieldY[fluid.IX(6, 4, 0)] = 64;
-        /*
-        fluid.substanceField[fluid.IX(4, 6, 0)] = p;
-        fluid.velocityFieldY[fluid.IX(4, 6, 0)] = -256;
-        */
+        fluid.substanceField[fluid.IX(64-32, 64, 0, 0)] = p;
+        fluid.velocityFieldX[fluid.IX(64-32, 64, 0, 1)] = z;
+        fluid.substanceField[fluid.IX(64+32, 64, 0, 0)] = p;
+        fluid.velocityFieldX[fluid.IX(64+32, 64, 0, 1)] = -z;
+        //fluid.velocityFieldY[fluid.IX(63, 64-12, 0)] = 256;
+        //fluid.substanceField[fluid.IX(64, 64+12, 0)] = p;
+        //fluid.velocityFieldY[fluid.IX(64, 64+12, 0)] = -256;
 
         /* End Testings */
 
@@ -61,6 +64,8 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
         SstepTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
         updateRender(fluid);
 
+
+        /*
         std::cout << std::fixed << std::setprecision(2) << std::endl;
         std::cout << std::endl << "=== X ===" << std::endl;
         for (std::uint64_t j = 0; j < fluid.N+2; ++j)
@@ -84,9 +89,7 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
             }
             std::cout << std::endl;
         }
-
-        exit(0);
-
+        */
 
         // LEVEL-SET
         /*
@@ -132,6 +135,7 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 
 void Fluids::reinitLevelSet(Fluid3D& fluid, const std::uint64_t nbIte) const
 {
+    /*
     std::vector<double> Ssf = fluid.implicitFunctionFieldPrev;
     std::vector<double> n = fluid.implicitFunctionFieldPrev;
     double dx = 1.0/fluid.N;
@@ -159,10 +163,12 @@ void Fluids::reinitLevelSet(Fluid3D& fluid, const std::uint64_t nbIte) const
         }
         fluid.implicitFunctionFieldPrev = n;
     }
+    */
 }
 
 double Fluids::gradLength(const Fluid3D& fluid, const std::vector<double>& X, const std::uint64_t i, const std::uint64_t j) const
 {
+    /*
     double gradI = 0;
     double gradJ = 0;
     if (i == 0)
@@ -204,6 +210,7 @@ double Fluids::gradLength(const Fluid3D& fluid, const std::vector<double>& X, co
         }
     }
     return std::sqrt(std::pow(gradI, 2)+std::pow(gradJ, 2));
+    */
 }
 
 void Fluids::Vstep(Fluid3D& fluid)
@@ -217,10 +224,6 @@ void Fluids::Vstep(Fluid3D& fluid)
     auto start = std::chrono::high_resolution_clock::now();
     diffuse(fluid, fluid.velocityFieldPrevX, fluid.velocityFieldX, 1, fluid.laplacianViscosity);
     diffuse(fluid, fluid.velocityFieldPrevY, fluid.velocityFieldY, 2, fluid.laplacianViscosity);
-    if (!fluid.is2D)
-    {
-        diffuse(fluid, fluid.velocityFieldPrevZ, fluid.velocityFieldZ, 3, fluid.laplacianViscosity);
-    }
     auto end = std::chrono::high_resolution_clock::now();
     VstepDiffuseTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
 
@@ -232,10 +235,6 @@ void Fluids::Vstep(Fluid3D& fluid)
     start = std::chrono::high_resolution_clock::now();
     advect(fluid, fluid.velocityFieldX, fluid.velocityFieldPrevX, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 1);
     advect(fluid, fluid.velocityFieldY, fluid.velocityFieldPrevY, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 2);
-    if (!fluid.is2D)
-    {
-        advect(fluid, fluid.velocityFieldZ, fluid.velocityFieldPrevZ, fluid.velocityFieldPrevX, fluid.velocityFieldPrevY, fluid.velocityFieldPrevZ, 3);
-    }
     end = std::chrono::high_resolution_clock::now();
     VstepAdvectTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
 
@@ -287,13 +286,17 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
     const std::uint64_t N = fluid.N; 
 	const double dt = fluid.dt * N;
 
-    for (std::uint64_t j = 1; j < fluid.N+1; ++j)
+    std::uint64_t maxX = b == 1 ? fluid.N+2 : fluid.N+1;
+    std::uint64_t maxY = b == 2 ? fluid.N+2 : fluid.N+1;
+
+    for (std::uint64_t j = 1; j < maxY; ++j)
     {
-        for (std::uint64_t i = 1; i < fluid.N+1; ++i)
+        for (std::uint64_t i = 1; i < maxX; ++i)
         {
-            std::uint64_t ind = fluid.IX(i,j,0);
-            const double x = std::clamp(i-dt*X[ind], 0.5, N + 0.5);
-            const double y = std::clamp(j-dt*Y[ind], 0.5, N + 0.5);
+            const double xvel = 0.5*(X[fluid.IX(i,j,0,1)]+X[fluid.IX(i+1,j,0,1)]);
+            const double yvel = 0.5*(Y[fluid.IX(i,j,0,2)]+Y[fluid.IX(i,j+1,0,2)]);
+            const double x = std::clamp(i-dt*xvel, 0.5, N + 0.5);
+            const double y = std::clamp(j-dt*yvel, 0.5, N + 0.5);
 
             const std::uint16_t i0 = static_cast<std::uint16_t>(x);
             const std::uint16_t i1 = i0 + 1;
@@ -305,7 +308,7 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
             const double t1 = y	- j0;
             const double t0 = 1.0 - t1;
 
-            D[ind] = s0*(t0*Dprev[fluid.IX(i0,j0, 0)]+t1*Dprev[fluid.IX(i0,j1, 0)])+s1*(t0*Dprev[fluid.IX(i1,j0, 0)]+t1*Dprev[fluid.IX(i1,j1, 0)]);
+            D[fluid.IX(i,j,0,b)] = s0*(t0*Dprev[fluid.IX(i0,j0,0,b)]+t1*Dprev[fluid.IX(i0,j1,0,b)])+s1*(t0*Dprev[fluid.IX(i1,j0,0,b)]+t1*Dprev[fluid.IX(i1,j1,0,b)]);
         }
     }
 	setBnd(fluid, D, b);
@@ -313,21 +316,21 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
 
 void Fluids::GaussSeidelRelaxationLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const double a, const double c, std::uint8_t b) const
 {
-    const std::uint64_t N = fluid.N;
-    const std::uint64_t N2 = N*N; 
-    const std::uint64_t N3 = fluid.is2D ? N2 : N*N*N; 
+    std::uint64_t maxX = b == 1 ? fluid.N+2 : fluid.N+1;
+    std::uint64_t maxY = b == 2 ? fluid.N+2 : fluid.N+1;
+
 	const double cinv = 1.0/c;
-	for (std::uint8_t l = 0; l < 8; ++l)
+	for (std::uint8_t l = 0; l < 12; ++l)
 	{
-        for (std::uint32_t j = 1; j <= fluid.N+1; ++j)
+        for (std::uint32_t j = 1; j < maxY; ++j)
         {
-            for (std::uint32_t i = 1; i <= fluid.N+1; ++i)
+            for (std::uint32_t i = 1; i < maxX; ++i)
             {
                 auto k = 0;
-                X[fluid.IX(i,j,k)] =
-                    (Xprev[fluid.IX(i,j,k)]
-                        +a*(X[fluid.IX(i+1,j,k)]+X[fluid.IX(i-1,j,k)]+
-                            X[fluid.IX(i,j+1,k)]+X[fluid.IX(i,j-1,k)]
+                X[fluid.IX(i,j,k,b)] =
+                    (Xprev[fluid.IX(i,j,k,b)]
+                        +a*(X[fluid.IX(i+1,j,k,b)]+X[fluid.IX(i-1,j,k,b)]+
+                            X[fluid.IX(i,j+1,k,b)]+X[fluid.IX(i,j-1,k,b)]
                        ))*cinv;
             }
         }
@@ -347,24 +350,57 @@ void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<d
 {
     const double h = 1.0/fluid.N;
 
-    for (std::uint32_t j = 1; j <= fluid.N+1; ++j)
+    for (std::uint32_t j = 1; j < fluid.N+1; ++j)
     {
-        for (std::uint32_t i = 1; i <= fluid.N+1; ++i)
+        for (std::uint32_t i = 1; i < fluid.N+1; ++i)
         {
             auto k = 0;
-            div[fluid.IX(i,j,k)] = -0.5*
-                        ((X[fluid.IX(i+1,j,k)]-X[fluid.IX(i,j,k)])*h+
-                        (Y[fluid.IX(i,j+1,k)]-Y[fluid.IX(i,j,k)])*h);
+            div[fluid.IX(i,j,k,0)] = - 0.5 * (
+                        X[fluid.IX(i+1,j,k,1)]-X[fluid.IX(i,j,k,1)]+
+                        Y[fluid.IX(i,j+1,k,2)]-Y[fluid.IX(i,j,k,2)]
+                        )*h;
             if (fluid.solver == GAUSS_SEIDEL)
             {
-                p[fluid.IX(i,j,k)] = 0;
+                p[fluid.IX(i,j,k,0)] = 0;
             }
         }
     }
     //p.clear();
 
+    /*
+    std::cout << std::fixed << std::setprecision(2) << std::endl;
+    std::cout << std::endl << "=== X ===" << std::endl;
+    for (std::uint64_t j = 0; j < fluid.N+2; ++j)
+    {
+        for (std::uint64_t i = 0; i < fluid.N+2+1; ++i)
+        {
+            if (X[fluid.IX(i,j,0,1)] >= 0)
+                std::cout << " ";
+            std::cout << X[fluid.IX(i,j,0,1)] << " ";
+        }
+        std::cout << std::endl;
+    }
+    */
+
 	setBnd(fluid, div, 0);
 	setBnd(fluid, p, 0);
+
+    /*
+    std::cout << std::fixed << std::setprecision(2) << std::endl;
+    std::cout << std::endl << "=== XDIV ===" << std::endl;
+    for (std::uint64_t j = 0; j < fluid.N+2; ++j)
+    {
+        for (std::uint64_t i = 0; i < fluid.N+2; ++i)
+        {
+            if (div[fluid.IX(i,j,0,0)] >= 0)
+                std::cout << " ";
+            std::cout << div[fluid.IX(i,j,0,0)] << " ";
+        }
+        std::cout << std::endl;
+    }
+    */
+
+
 
     if (fluid.solver == GAUSS_SEIDEL)
     {
@@ -375,13 +411,34 @@ void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<d
         ConjugateGradientMethodLinSolve(fluid, p, div, 0, fluid.laplacianProject);
     }
 
+    /*
+    std::cout << std::fixed << std::setprecision(2) << std::endl;
+    std::cout << std::endl << "=== p ===" << std::endl;
+    for (std::uint64_t j = 0; j < fluid.N+2; ++j)
+    {
+        for (std::uint64_t i = 0; i < fluid.N+2; ++i)
+        {
+            if (p[fluid.IX(i,j,0,0)] >= 0)
+                std::cout << " ";
+            std::cout << p[fluid.IX(i,j,0,0)] << " ";
+        }
+        std::cout << std::endl;
+    }
+    */
+
     for (std::uint32_t j = 1; j <= fluid.N+1; ++j)
     {
         for (std::uint32_t i = 1; i <= fluid.N+1; ++i)
         {
             auto k = 0;
-            X[fluid.IX(i,j,k)] -= 0.5*fluid.N*(p[fluid.IX(i+1,j,k)]-p[fluid.IX(i-1,j,k)]);
-            Y[fluid.IX(i,j,k)] -= 0.5*fluid.N*(p[fluid.IX(i,j+1,k)]-p[fluid.IX(i,j-1,k)]);
+            if (j < fluid.N+1)
+            {
+                X[fluid.IX(i,j,k,1)] -= 0.5*fluid.N*(p[fluid.IX(i,j,k,0)]-p[fluid.IX(i-1,j,k,0)]);
+            }
+            if (i < fluid.N+1)
+            {
+                Y[fluid.IX(i,j,k,2)] -= 0.5*fluid.N*(p[fluid.IX(i,j,k,0)]-p[fluid.IX(i,j-1,k,0)]);
+            }
         }
     }
 
@@ -396,12 +453,12 @@ void Fluids::setBnd(const Fluid3D& fluid, std::vector<double>& X, const std::uin
 
     for (std::uint32_t i = 1; i <= fluid.N+1; ++i)
     {
-        if (b == 2 || (b == 1 && i <= fluid.N))
+        if (b != 1 || (b == 1 && i <= fluid.N))
         {
             X[fluid.IX(0,i,0,b)] = b == 1 ? -X[fluid.IX(1,i,0,b)] : X[fluid.IX(1,i,0,b)];
             X[fluid.IX(maxX,i,0,b)] = b == 1 ? -X[fluid.IX(maxX-1,i,0,b)] : X[fluid.IX(maxX-1,i,0,b)];
         }
-        if (b == 1 || (b == 2 && i <= fluid.N))
+        if (b != 2 || (b == 2 && i <= fluid.N))
         {
             X[fluid.IX(i,0,0,b)] = b == 2 ? -X[fluid.IX(i,1,0,b)] : X[fluid.IX(i,1,0,b)];
             X[fluid.IX(i,maxY,0,b)] = b == 2 ? -X[fluid.IX(i,maxY-1,0,b)] : X[fluid.IX(i,maxY-1,0,b)];
