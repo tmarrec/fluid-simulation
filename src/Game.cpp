@@ -58,7 +58,8 @@ void Game::run(WindowInfos windowInfos)
 
     BasicEntities::addFluid2D(glm::vec3{0,0,0}, glm::vec3{0,0,0}, glm::vec3{10,10,10});
 
-    //BasicEntities::addCube(glm::vec3{5,0,0}, glm::vec3{0,0,0}, glm::vec3{5,5,5});
+    BasicEntities::addLineCube(glm::vec3{5,0,0}, glm::vec3{0,0,0}, glm::vec3{5,5,5});
+
     
 
 	mainLoop();

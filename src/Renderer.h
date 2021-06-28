@@ -35,6 +35,7 @@ public:
     void initTexture3D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
     void initTexture2D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
     void writeImg(const std::uint32_t iteration) const;
+    void updateDynamicLine(const std::vector<double> X, const std::vector<double> Y);
 
 private:
 	std::shared_ptr<Window> _window = nullptr;
@@ -44,5 +45,8 @@ private:
     std::uint32_t _iterations = 0;
 
     void _initFrameBuffer(FrameBuffer& framebuffer, std::string vert, std::string frag);
+    //temp
+    std::vector<double> _X;
+    std::vector<double> _Y;
 };
 
