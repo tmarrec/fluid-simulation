@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include <GL/gl.h>
+#include <glm/geometric.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -77,13 +78,49 @@ void Renderer::writeImg(const std::uint32_t iteration) const
 
 }
 
+void Renderer::updateDynamicLine(const std::vector<double> X, const std::vector<double> Y)
+{
+    _X = X;
+    _Y = Y;
+}
+
 void Renderer::drawMesh(Mesh& mesh) const
 {
     GLenum renderMode = GL_TRIANGLES;
+    float N = 64;
+    float Ndiv = N/2;
+    std::uint64_t it = 0;
     switch (mesh.renderMode)
     {
         case LINES:
             renderMode = GL_LINES;
+            mesh.vertices.clear();
+            mesh.indices.clear();
+            for (float i = 0; i < N; ++i)
+            {
+                for (float j = 0; j < N; ++j)
+                {
+                    mesh.vertices.emplace_back(((i+0.5)/Ndiv)-2.0);
+                    mesh.vertices.emplace_back(0.201);
+                    mesh.vertices.emplace_back(((j+0.5)/Ndiv)-1.0);
+
+                    float u = 0.5*(_X[i+j*(N+3)]+_X[(i+1)+j*(N+3)]);
+                    float v = 0.5*(_Y[i+j*(N+2)]+_Y[(i+1)+j*(N+2)]);
+                    glm::vec2 uv = {u,v};
+                    uv = glm::normalize(uv);
+                    u = uv.x;
+                    v = uv.y;
+
+                    mesh.vertices.emplace_back(((i+0.5+u)/Ndiv)-2.0);
+                    mesh.vertices.emplace_back(0.201);
+                    mesh.vertices.emplace_back(((j+0.5+v)/Ndiv)-1.0);
+
+                    mesh.indices.emplace_back(it);
+                    mesh.indices.emplace_back(it+1);
+                    it += 2;
+                }
+            }
+            initMesh(mesh);
             break;
         case TRIANGLES:
             renderMode = GL_TRIANGLES;

@@ -87,10 +87,10 @@ struct Laplacian
 struct Fluid3D
 {
     Entity entity;
-    double viscosity = 1.500;
-    double diffusion = 0.15;
+    double viscosity = 0.500;
+    double diffusion = 0.015;
     double dt = 0.00005;
-    std::uint16_t N = 128;
+    std::uint16_t N = 64;
     Solver solver = GAUSS_SEIDEL;
     Advection advection = SEMI_LAGRANGIAN;
     bool is2D = true;
@@ -125,8 +125,8 @@ struct Fluid3D
 
     void setAMatricese(Laplacian& laplacian, std::uint32_t minus) const
     {
-        std::uint64_t N3 = N*N*N;
-        std::uint64_t N2 = N*N;
+        std::uint64_t N3 = (N+1)*(N+1);
+        std::uint64_t N2 = (N+1)*(N+1);
         laplacian.diag = Eigen::VectorXd::Zero(N3-minus);
         laplacian.plusi = Eigen::VectorXd::Zero(N3-minus);
         laplacian.plusj = Eigen::VectorXd::Zero(N3-minus);
@@ -159,8 +159,8 @@ struct Fluid3D
 
     void setPrecon(Laplacian& A, std::uint32_t minus) const
     {
-        std::uint64_t N3 = N*N*N;
-        std::uint64_t N2 = N*N;
+        std::uint64_t N3 = (N+1)*(N+1);
+        std::uint64_t N2 = (N+1)*(N+1);
         A.precon = Eigen::VectorXd::Zero(N3-minus);
         #pragma omp parallel for
         for (std::uint32_t n = 0; n < N3; ++n)
@@ -235,8 +235,8 @@ struct Fluid3D
 
     void init()
     {
-        std::uint64_t N3 = N*N*N;
-        std::uint64_t N32 = (N+3)*(N+2)*(N+2);
+        std::uint64_t N3 = (N+1)*(N+1);
+        std::uint64_t N32 = (N+3)*(N+2);
         velocityFieldX.reserve(N32);
         for (std::uint64_t i = 0; i < N32; ++i)
         {
