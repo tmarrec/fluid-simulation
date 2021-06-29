@@ -61,14 +61,6 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
         fluid.velocityFieldX[fluid.IX(N-(N/2), N+(N/2), 0, 1)] = z;
         fluid.velocityFieldY[fluid.IX(N-(N/2), N+(N/2), 0, 2)] = -z;
 
-        /*
-        fluid.substanceField[fluid.IX(N-(N/2), N, 0, 0)] = p;
-        fluid.velocityFieldY[fluid.IX(N-(N/2), N, 0, 2)] = z;
-
-        fluid.substanceField[fluid.IX(N+(N/2), N, 0, 0)] = p;
-        fluid.velocityFieldY[fluid.IX(N+(N/2), N, 0, 2)] = -z;
-        */
-
 
         /* End Testings */
 
@@ -306,8 +298,8 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
     const std::uint64_t N = fluid.N; 
 	const double dt = fluid.dt * N;
 
-    std::uint64_t maxX = b == 1 ? fluid.N+2 : fluid.N+1;
-    std::uint64_t maxY = b == 2 ? fluid.N+2 : fluid.N+1;
+    std::uint64_t maxX = b == 1 ? fluid.N+1 : fluid.N+1;
+    std::uint64_t maxY = b == 2 ? fluid.N+1 : fluid.N+1;
 
     /*
     std::cout << std::fixed << std::setprecision(2) << std::endl;
@@ -345,9 +337,8 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
         {
             const double xvel = b == 0 ? 0.5*(X[fluid.IX(i,j,0,1)]+X[fluid.IX(i+1,j,0,1)]) : X[fluid.IX(i,j,0,1)];
             const double yvel = b == 0 ? 0.5*(Y[fluid.IX(i,j,0,2)]+Y[fluid.IX(i,j+1,0,2)]) : Y[fluid.IX(i,j,0,2)];
-            double x = std::clamp((i-dt*xvel) - (b == 2 ? 0.0 : 0.0), 0.5, N + 0.5);
-            double y = std::clamp((j-dt*yvel) - (b == 1 ? 0.0 : 0.0), 0.5, N + 0.5);
-
+            double x = std::clamp((i-dt*xvel) - (b == 2 ? 0 : 0.0), 0.5, N + 0.5);
+            double y = std::clamp((j-dt*yvel) - (b == 1 ? 0 : 0.0), 0.5, N + 0.5);
 
             const std::uint16_t i0 = static_cast<std::uint16_t>(x);
             const std::uint16_t i1 = i0 + 1;
@@ -359,8 +350,7 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
             const double t1 = y	- j0;
             const double t0 = 1.0 - t1;
 
-            /*
-            if (b == 0 && x < 4 && y < 4)
+            if (b == 0 && x > 2 && x < 4 && y > 2 && y < 4)
             {
                 std::cout << b+0 << std::endl;
                 std::cout << x << " " << y << std::endl;
@@ -370,7 +360,6 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
                 std::cout << i1 << " " << j1 << " " << fluid.IX(i1,j1,0,b) << std::endl;
                 std::cout << std::endl;
             }
-            */
 
             double vA = Dprev[fluid.IX(i0,j0,0,b)];
             double vB = Dprev[fluid.IX(i0,j1,0,b)];
@@ -604,20 +593,18 @@ void Fluids::setBnd(const Fluid3D& fluid, std::vector<double>& X, const std::uin
 void Fluids::updateRender(Fluid3D& fluid)
 {
     const std::uint64_t N = fluid.N;
-    const std::uint64_t N32 = fluid.is2D ? (N+2)*(N+2) : (N+2)*(N+2)*(N+2);
+    const std::uint64_t N32 = fluid.is2D ? (N)*(N) : (N+2)*(N+2)*(N+2);
 	std::vector<std::uint8_t> texture(fluid.is2D ? N32*3 : N32, 0);
 
-	for (std::uint64_t i = 0; i < N32; ++i)
-	{
-        if (!fluid.is2D)
+    std::uint64_t it = 0;
+    for (std::uint16_t j = 1; j < fluid.N+1; ++j)
+    {
+        for (std::uint16_t i = 1; i < fluid.N+1; ++i)
         {
-		    texture[i] = static_cast<std::uint8_t>(std::clamp(fluid.substanceField[i], 0.0, 255.0));
-        }
-        else
-        {
-		    texture[i*3] = static_cast<std::uint8_t>(std::clamp(fluid.substanceField[i], 0.0, 255.0));
-		    texture[i*3+1] = static_cast<std::uint8_t>(std::clamp(fluid.substanceField[i], 0.0, 255.0));
-		    texture[i*3+2] = static_cast<std::uint8_t>(std::clamp(fluid.substanceField[i], 0.0, 255.0));
+		    texture[it*3] = static_cast<std::uint8_t>(std::clamp(fluid.substanceField[fluid.IX(i,j,0,0)], 0.0, 255.0));
+		    texture[it*3+1] = static_cast<std::uint8_t>(std::clamp(fluid.substanceField[fluid.IX(i,j,0,0)], 0.0, 255.0));
+		    texture[it*3+2] = static_cast<std::uint8_t>(std::clamp(fluid.substanceField[fluid.IX(i,j,0,0)], 0.0, 255.0));
+            it++;
             /*
             double implicit = fluid.implicitFunctionField[i];
             texture[i*3] = 0;
