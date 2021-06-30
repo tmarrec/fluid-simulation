@@ -91,7 +91,7 @@ struct Fluid3D
     double diffusion = 0.015;
     double dt = 0.00005;
     std::uint16_t N = 64;
-    Solver solver = GAUSS_SEIDEL;
+    Solver solver = CG;
     Advection advection = SEMI_LAGRANGIAN;
     bool is2D = true;
 
@@ -119,14 +119,14 @@ struct Fluid3D
     std::uint32_t IX(const std::uint32_t x, const std::uint32_t y, const std::uint32_t z, std::uint8_t b) const
     { 
         if (b == 1)
-            return x + y * (N+3);
-        return x + y * (N+2);
+            return x + y * (N+1);
+        return x + y * N;
     };
 
     void setAMatricese(Laplacian& laplacian, std::uint32_t minus) const
     {
-        std::uint64_t N3 = (N+1)*(N+1);
-        std::uint64_t N2 = (N+1)*(N+1);
+        std::uint64_t N3 = (N+1)*N;
+        std::uint64_t N2 = (N+1)*N;
         laplacian.diag = Eigen::VectorXd::Zero(N3-minus);
         laplacian.plusi = Eigen::VectorXd::Zero(N3-minus);
         laplacian.plusj = Eigen::VectorXd::Zero(N3-minus);
@@ -159,8 +159,8 @@ struct Fluid3D
 
     void setPrecon(Laplacian& A, std::uint32_t minus) const
     {
-        std::uint64_t N3 = (N+1)*(N+1);
-        std::uint64_t N2 = (N+1)*(N+1);
+        std::uint64_t N3 = (N+1)*N;
+        std::uint64_t N2 = (N+1)*N;
         A.precon = Eigen::VectorXd::Zero(N3-minus);
         #pragma omp parallel for
         for (std::uint32_t n = 0; n < N3; ++n)
@@ -235,10 +235,9 @@ struct Fluid3D
 
     void init()
     {
-        std::uint64_t N3 = (N+1)*(N+1);
-        std::uint64_t N32 = (N+3)*(N+2);
-        velocityFieldX.reserve(N32);
-        for (std::uint64_t i = 0; i < N32; ++i)
+        std::uint64_t N3 = (N+1)*N;
+        velocityFieldX.reserve(N3);
+        for (std::uint64_t i = 0; i < N3; ++i)
         {
             velocityFieldX.emplace_back(0);
         }
@@ -258,7 +257,7 @@ struct Fluid3D
         double visc = dt * viscosity * N;
         double diff = dt * diffusion * N;
 
-        const std::uint32_t minus = 1;
+        const std::uint32_t minus = 0;
 
         Eigen::SparseMatrix<double> AProject    = Eigen::SparseMatrix<double>(N3-minus, N3-minus);
         Eigen::SparseMatrix<double> AViscosity  = Eigen::SparseMatrix<double>(N3, N3);
@@ -288,6 +287,8 @@ struct Fluid3D
             {
                 tripletListProject.emplace_back(Eigen::Triplet<double>(i, i+N, -1));
             }
+            // TODO UNCOMMENT WHEN 3D
+            /*
             if (i+N*N < N3)
             {
                 tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i+N*N, -visc));
@@ -297,12 +298,14 @@ struct Fluid3D
             {
                 tripletListProject.emplace_back(Eigen::Triplet<double>(i, i+N*N, -1));
             }
+            */
+            // TODO CHANGE 4 TO 6 WHEN 3D
             if (i < N3-minus)
             {
-                tripletListProject.emplace_back(Eigen::Triplet<double>(i, i, 6));
+                tripletListProject.emplace_back(Eigen::Triplet<double>(i, i, 4));
             }
-            tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i, 1+6*visc));
-            tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i, 1+6*diff));
+            tripletListViscosity.emplace_back(Eigen::Triplet<double>(i, i, 1+4*visc));
+            tripletListDiffuse.emplace_back(Eigen::Triplet<double>(i, i, 1+4*diff));
         }
         AProject.setFromTriplets(tripletListProject.begin(), tripletListProject.end());
         AViscosity.setFromTriplets(tripletListViscosity.begin(), tripletListViscosity.end());
@@ -331,5 +334,6 @@ struct Fluid3D
         laplacianDiffuse.A = ADiffuse;
         setAMatricese(laplacianDiffuse, 0);
         setPrecon(laplacianDiffuse, 0);
+
     };
 };
