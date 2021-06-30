@@ -20,7 +20,7 @@ void Game::initECS()
     {
         //.yaw = 225,
         //.pitch = -29,
-        .yaw = 0,
+        .yaw = -90,
         .pitch = -90,
         .speed = 0.1f,
         .FOV = 90,

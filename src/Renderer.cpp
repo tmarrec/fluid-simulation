@@ -78,8 +78,9 @@ void Renderer::writeImg(const std::uint32_t iteration) const
 
 }
 
-void Renderer::updateDynamicLine(const std::vector<double> X, const std::vector<double> Y)
+void Renderer::updateDynamicLine(const std::uint16_t N, const std::vector<double> X, const std::vector<double> Y)
 {
+    _N = N;
     _X = X;
     _Y = Y;
 }
@@ -87,7 +88,7 @@ void Renderer::updateDynamicLine(const std::vector<double> X, const std::vector<
 void Renderer::drawMesh(Mesh& mesh) const
 {
     GLenum renderMode = GL_TRIANGLES;
-    float N = 64;
+    float N = _N;
     float Ndiv = N/2;
     std::uint64_t it = 0;
     switch (mesh.renderMode)
@@ -104,8 +105,8 @@ void Renderer::drawMesh(Mesh& mesh) const
                     mesh.vertices.emplace_back(0.201);
                     mesh.vertices.emplace_back(((j+0.5)/Ndiv)-1.0);
 
-                    float u = 0.5*(_X[i+j*(N+3)]+_X[(i+1)+j*(N+3)]);
-                    float v = 0.5*(_Y[i+j*(N+2)]+_Y[(i+1)+j*(N+2)]);
+                    float u = 0.5*(_X[i+j*(N+1)]+_X[(i+1)+j*(N+1)]);
+                    float v = 0.5*(_Y[i+j*(N)]+_Y[(i+1)+j*(N)]);
                     glm::vec2 uv = {u,v};
                     uv = glm::normalize(uv);
                     u = uv.x;
