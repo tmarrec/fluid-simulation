@@ -26,13 +26,21 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
         /* Testings */
 		int N = fluid.N/2;
 
-        float p = 320;
-        float z = 32;
+        float p = 256;
+        float z = 16;
+
+        //z *= -1;
 
         /*
-        fluid.substanceField[fluid.IX(N, N, 0, 0)]=    p;
-        fluid.velocityFieldX[fluid.IX(N-16, N, 0, 1)] =    z;
-        fluid.velocityFieldX[fluid.IX(N+16+1, N, 0, 1)] =    -z;
+        fluid.substanceField[fluid.IX(N-42, N, 0, 0)]=      p;
+        fluid.velocityFieldX[fluid.IX(N-42+1, N, 0, 1)] =   z;
+        fluid.substanceField[fluid.IX(N+42, N, 0, 0)]=      p;
+        fluid.velocityFieldX[fluid.IX(N+42, N, 0, 1)] =     -z;
+
+        fluid.substanceField[fluid.IX(N, N-42, 0, 0)]=      p;
+        fluid.velocityFieldY[fluid.IX(N, N-42+1, 0, 2)] =   z;
+        fluid.substanceField[fluid.IX(N, N+42, 0, 0)]=      p;
+        fluid.velocityFieldY[fluid.IX(N, N+42, 0, 2)] =     -z;
         */
 
         fluid.substanceField[fluid.IX(N-(N/2), N-(N/2), 0, 0)] = p;
@@ -177,9 +185,9 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
     const std::uint16_t N = fluid.N; 
 	const double dt = fluid.dt * N;
 
-    for (std::uint64_t j = 0; j < fluid.N; ++j)
+    for (std::uint16_t j = 0; j < fluid.N; ++j)
     {
-        for (std::uint64_t i = 0; i < fluid.N; ++i)
+        for (std::uint16_t i = 0; i < fluid.N; ++i)
         {
             double xvel = 0;
             double yvel = 0;
@@ -221,8 +229,8 @@ void Fluids::advect(Fluid3D& fluid, std::vector<double>& D, const std::vector<do
 
             double posx = static_cast<double>(i);
             double posy = static_cast<double>(j);
-            double x = std::clamp((posx-dt*xvel), 0.0, static_cast<double>(N-0.));
-            double y = std::clamp((posy-dt*yvel), 0.0, static_cast<double>(N-0.));
+            double x = std::clamp((posx-dt*xvel), 0.0, static_cast<double>(N-1+(b==1?1:0))-0.0);
+            double y = std::clamp((posy-dt*yvel), 0.0, static_cast<double>(N-1+(b==2?1:0))-0.0);
 
             std::uint16_t i0 = static_cast<std::uint16_t>(x);
             std::uint16_t i1 = i0 + 1;
@@ -350,7 +358,7 @@ void Fluids::ConjugateGradientMethodLinSolve(const Fluid3D& fluid, std::vector<d
         s = z + beta * s;
         sig = signew;
     }
-    
+
     // Write the results
     it = 0;
     for (std::uint64_t j = 0; j < maxY; ++j)
@@ -412,32 +420,30 @@ void Fluids::project(const Fluid3D& fluid, std::vector<double>& X, std::vector<d
 
 void Fluids::setBnd(const Fluid3D& fluid, std::vector<double>& X, const std::uint8_t b) const
 {
-    /*
-    for (std::uint16_t i = 0; i < fluid.N; ++i)
+    if (b == 1)
     {
-        if (b == 1)
+        for (std::uint16_t i = 0; i < fluid.N+1; ++i)
         {
-            X[fluid.IX(0, i, 0, 1)] = - X[fluid.IX(1, i, 0, 1)] ;
-            X[fluid.IX(fluid.N, i, 0, 1)] =  - X[fluid.IX(fluid.N-1, i, 0, 1)];
-        }
-        else if (b == 2)
-        {
-            X[fluid.IX(i, 0, 0, 2)] =  - X[fluid.IX(i, 1, 0, 2)];
-            X[fluid.IX(i, fluid.N, 0, 2)] = - X[fluid.IX(i, fluid.N-1, 0, 2)];
+            if (i < fluid.N)
+            {
+                X[fluid.IX(0,i,0,b)] = -X[fluid.IX(1,i,0,b)];
+                X[fluid.IX(fluid.N,i,0,b)] = -X[fluid.IX(fluid.N-1,i,0,b)];
+            }
+            X[fluid.IX(i,0,0,b)] = X[fluid.IX(i,1,0,b)];
+            X[fluid.IX(i,fluid.N-1,0,b)] = X[fluid.IX(i,fluid.N-2,0,b)];
         }
     }
-    */
-    for (std::uint16_t i = 0; i < fluid.N; ++i)
+    else if (b == 2)
     {
-        if (b == 1)
+        for (std::uint16_t i = 0; i < fluid.N+1; ++i)
         {
-            X[fluid.IX(0, i, 0, 1)] = 0;
-            X[fluid.IX(fluid.N, i, 0, 1)] = 0;
-        }
-        else if (b == 2)
-        {
-            X[fluid.IX(i, 0, 0, 2)] = 0;
-            X[fluid.IX(i, fluid.N, 0, 2)] = 0;
+            X[fluid.IX(0,i,0,b)] = X[fluid.IX(1,i,0,b)];
+            X[fluid.IX(fluid.N-1,i,0,b)] = X[fluid.IX(fluid.N-2,i,0,b)];
+            if (i < fluid.N)
+            {
+                X[fluid.IX(i,0,0,b)] = -X[fluid.IX(i,1,0,b)];
+                X[fluid.IX(i,fluid.N,0,b)] = -X[fluid.IX(i,fluid.N-1,0,b)];
+            }
         }
     }
 }
