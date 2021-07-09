@@ -316,7 +316,6 @@ void BasicEntities::addFluid3D(glm::vec3 position, glm::vec3 rotation, glm::vec3
     {
         .entity = entity,
     };
-    fluid.init();
 
     gCoordinator.AddComponent(entity, fluid);
 }
@@ -374,7 +373,6 @@ void BasicEntities::addFluid2D(glm::vec3 position, glm::vec3 rotation, glm::vec3
     {
         .entity = entity,
     };
-    fluid.init();
 
     gCoordinator.AddComponent(entity, fluid);
 }

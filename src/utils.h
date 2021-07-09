@@ -12,10 +12,8 @@
 #include <omp.h>
 
 #define INFO(m) \
-	std::cerr << std::endl; \
 	std::cerr << "\033[44m\033[1m[INFO]\033[49m\033[0m "; \
 	std::cerr << m << std::endl; \
-	std::cerr << std::endl; \
 
 #define WARNING(m) \
 	std::cerr << std::endl; \
