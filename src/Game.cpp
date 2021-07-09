@@ -70,10 +70,8 @@ void Game::mainLoop()
 
 	while (!_window->windowShouldClose())
 	{
-        /*
-        if (iterations == 4)
+        if (iterations == 64)
             exit(0);
-        */
         //std::cout << "== Iteration " << iterations << " ==" << std::endl;
             
         auto startTime = std::chrono::high_resolution_clock::now();
