@@ -86,8 +86,9 @@ public:
     void update([[maybe_unused]] std::uint64_t iteration);
 
 private:
-    void Vstep();
-    void Sstep();
+    void vStep();
+    void sStep();
+    void levelSetStep();
 
     void addSource(std::vector<double>& X, const std::vector<double>& S) const;
     void diffuse(Field<double,std::uint16_t>& F, const Field<double,std::uint16_t>& Fprev, const std::uint8_t b, const Laplacian& A);
@@ -95,7 +96,6 @@ private:
     void advect(Field<double,std::uint16_t>& F, const Field<double,std::uint16_t>& Fprev, const Field<double,std::uint16_t>& X, const Field<double,std::uint16_t>& Y, const std::uint8_t b) const;
     void project(Field<double,std::uint16_t>& X, Field<double,std::uint16_t>& Y, Field<double,std::uint16_t>& p, Field<double,std::uint16_t>& div);
 
-    //void GaussSeidelRelaxationLinSolve(const Fluid3D& fluid, std::vector<double>& X, const std::vector<double>& Xprev, const double a, const double c, std::uint8_t b) const;
     void ConjugateGradientMethodLinSolve(Field<double,std::uint16_t>& F, const Field<double,std::uint16_t>& Fprev, const std::uint8_t bs, const Laplacian& A);
 
     void applyPreconditioner(const Eigen::VectorXd& r, const Laplacian& A, Eigen::VectorXd& z, const Solver solver) const;
@@ -104,12 +104,12 @@ private:
 
     void updateRender(Fluid3D& fluid);
 
-    /*
-    double gradLength(const Fluid3D& fluid, const std::vector<double>& X, const std::uint64_t i, const std::uint64_t j) const;
-    void reinitLevelSet(Fluid3D& fluid, const std::uint64_t nbIte) const;
-    */
+    void reinitLevelSet(const std::uint64_t nbIte);
+    double gradLength(const Field<double,std::uint16_t>& F, const std::uint16_t i, const std::uint16_t j) const;
 
     void writeVolumeFile(std::uint64_t iteration);
+
+    void extrapolate(Field<double,std::uint16_t>& F);
 
 
     void setAMatrices(Laplacian& laplacian) const;
@@ -130,7 +130,7 @@ private:
     double SstepAdvectTime = 0;
     std::vector<glm::vec2> particles;
 
-    constexpr static const std::uint16_t _N = 513;
+    constexpr static const std::uint16_t _N = 17;
     constexpr static const double _viscosity = 1.15;
     constexpr static const double _diffusion = 0.000;
     constexpr static const double _dt = 0.0005;
@@ -143,6 +143,8 @@ private:
     Field<double, std::uint16_t> _fieldY {_N, _N+1};
     Field<double, std::uint16_t> _prevFieldX {_N+1, _N};
     Field<double, std::uint16_t> _prevFieldY {_N, _N+1};
+    Field<double, std::uint16_t> _implicit {_N, _N};
+    Field<double, std::uint16_t> _prevImplicit {_N, _N};
 
     Laplacian _laplacianProject {};
     Laplacian _laplacianViscosityX {};

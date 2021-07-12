@@ -77,8 +77,4 @@ struct Material
 struct Fluid3D
 {
     Entity entity;
-    /*
-    std::vector<double> implicitFunctionField = {};
-    std::vector<double> implicitFunctionFieldPrev = {};
-    */
 };
