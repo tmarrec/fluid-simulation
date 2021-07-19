@@ -23,11 +23,10 @@ void Game::initECS()
         .yaw = -90,
         .pitch = -90,
         .speed = 0.1f,
-        .FOV = 90,
+        .FOV = 60,
         .transform = Transform
             {
-                //.position = {9.0, 6.26, 9.0},
-                .position = {0.0, 6.5, 0.0},
+                .position = {0.0, 10, 0.0},
                 .rotation = {0, 0, 0},
                 .scale = {1, 1, 1}
             }
@@ -84,7 +83,7 @@ void Game::mainLoop()
         _meshRendererSys->update();
         _renderer->endPass();
 
-        _renderer->writeImg(iterations);
+        //_renderer->writeImg(iterations);
         _window->swapBuffers();
 
 		_window->pollEvents();

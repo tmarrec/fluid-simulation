@@ -10,8 +10,8 @@ int main()
 
     WindowInfos windowInfos;
     windowInfos.title = "cowboy-engine";
-    windowInfos.x = 800;
-    windowInfos.y = 800;
+    windowInfos.x = 1000;
+    windowInfos.y = 1000;
 
 	Game game;
 	game.run(windowInfos);
