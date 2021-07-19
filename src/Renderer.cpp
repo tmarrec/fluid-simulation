@@ -78,7 +78,7 @@ void Renderer::writeImg(const std::uint32_t iteration) const
 
 }
 
-void Renderer::updateDynamicLine(const std::uint16_t N, const std::vector<double> X, const std::vector<double> Y)
+void Renderer::updateDynamicLine(const std::uint16_t N, const std::vector<double>& X, const std::vector<double>& Y)
 {
     _N = N;
     _X = X;
@@ -109,8 +109,8 @@ void Renderer::drawMesh(Mesh& mesh) const
                     float v = 0.5*(_Y[i+j*(N)]+_Y[(i+1)+j*(N)]);
                     glm::vec2 uv = {u,v};
                     uv = glm::normalize(uv);
-                    u = uv.x;
-                    v = uv.y;
+                    u = uv.x*0.75;
+                    v = uv.y*0.75;
 
                     mesh.vertices.emplace_back(((i+0.5+u)/Ndiv)-2.0);
                     mesh.vertices.emplace_back(0.201);
