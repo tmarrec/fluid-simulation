@@ -1,12 +1,12 @@
 #pragma once
-#include <GLFW/glfw3.h>
-#include <memory>
-#include <iostream>
 
 #include "types.h"
 #include "utils.h"
 #include "Input.h"
 
+#include <GLFW/glfw3.h>
+#include <memory>
+#include <iostream>
 
 struct glfwDeleter
 {

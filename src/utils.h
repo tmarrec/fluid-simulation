@@ -1,16 +1,5 @@
 #pragma once
 
-#ifdef DEBUG_GUI
-    #define TIME_ECHANT_NB 32
-#endif  
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/gtx/string_cast.hpp>
-#include <omp.h>
-
 #define INFO(m) \
 	std::cerr << "\033[44m\033[1m[INFO]\033[49m\033[0m "; \
 	std::cerr << m << std::endl; \

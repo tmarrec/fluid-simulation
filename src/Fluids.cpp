@@ -1,161 +1,160 @@
 #include "Fluids.h"
-#include <Eigen/src/Core/Matrix.h>
-#include <Eigen/src/Core/util/Constants.h>
-#include <Eigen/src/SparseCore/SparseMatrix.h>
-#include <Eigen/src/SparseLU/SparseLU.h>
-#include <cmath>
-#include <cstdint>
 
-
-void Fluids::init(std::shared_ptr<Renderer> renderer)
+Fluids::Fluids()
 {
-	_renderer = renderer;
+    initCG();
 }
 
 void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 {
-    if (mEntities.size() > 1)
+    
+    /* Testings */
+    std::uint16_t N = _N/2;
+
+    /*
+    float p = 256;
+    float z = 32;
+    */
+
+    /*
+    _substance(N-(N/2), N+(N/2)) = p;
+    _fieldX(N-(N/2), N+(N/2)) = z;
+    _fieldY(N-(N/2), N+(N/2)) = -z;
+    _fieldX(N-(N/2)+1, N+(N/2)) = z;
+    _fieldY(N-(N/2), N+(N/2)+1) = -z;
+
+    _substance(N-(N/2), N-(N/2)) = p;
+    _fieldX(N-(N/2), N-(N/2)) = z;
+    _fieldY(N-(N/2), N-(N/2)) = z;
+    _fieldX(N-(N/2)+1, N-(N/2)) = z;
+    _fieldY(N-(N/2), N-(N/2)+1) = z;
+
+    _substance(N+(N/2), N+(N/2)) = p;
+    _fieldX(N+(N/2), N+(N/2)) = -z;
+    _fieldY(N+(N/2), N+(N/2)) = -z;
+    _fieldX(N+(N/2)+1, N+(N/2)) = -z;
+    _fieldY(N+(N/2), N+(N/2)+1) = -z;
+
+    _substance(N+(N/2), N-(N/2)) = p;
+    _fieldX(N+(N/2), N-(N/2)) = -z;
+    _fieldY(N+(N/2), N-(N/2)) = z;
+    _fieldX(N+(N/2)+1, N-(N/2)) = -z;
+    _fieldY(N+(N/2), N-(N/2)+1) = z;
+    */
+
+
+
+    /* End Testings */
+
+    /*
+    if (iteration > 75)
     {
-        ERROR("Multiple fluids not supported.");
+        std::cout << _fieldX << std::endl;
+        std::cout << _fieldY << std::endl;
+        exit(0);
     }
-	for (auto const& entity : mEntities)
-	{
-		auto& fluid = gCoordinator.GetComponent<Fluid3D>(entity);
-        
-        /* Testings */
-        std::uint16_t N = _N/2;
+    */
 
-        /*
-        float p = 256;
-        float z = 32;
-        */
+    //std::cin.get();
 
-        /*
-        _substance(N-(N/2), N+(N/2)) = p;
-        _fieldX(N-(N/2), N+(N/2)) = z;
-        _fieldY(N-(N/2), N+(N/2)) = -z;
-        _fieldX(N-(N/2)+1, N+(N/2)) = z;
-        _fieldY(N-(N/2), N+(N/2)+1) = -z;
+    // LEVEL-SET
+    double r = 9.9;
+    if (iteration == 0)
+    {
+        glm::vec2 pt;
+        pt.x = N-(N/2);
+        pt.y = N;
+        particles.emplace_back(pt);
+        pt.x = N+(N/2);
+        pt.y = N;
+        particles.emplace_back(pt);
 
-        _substance(N-(N/2), N-(N/2)) = p;
-        _fieldX(N-(N/2), N-(N/2)) = z;
-        _fieldY(N-(N/2), N-(N/2)) = z;
-        _fieldX(N-(N/2)+1, N-(N/2)) = z;
-        _fieldY(N-(N/2), N-(N/2)+1) = z;
-
-        _substance(N+(N/2), N+(N/2)) = p;
-        _fieldX(N+(N/2), N+(N/2)) = -z;
-        _fieldY(N+(N/2), N+(N/2)) = -z;
-        _fieldX(N+(N/2)+1, N+(N/2)) = -z;
-        _fieldY(N+(N/2), N+(N/2)+1) = -z;
-
-        _substance(N+(N/2), N-(N/2)) = p;
-        _fieldX(N+(N/2), N-(N/2)) = -z;
-        _fieldY(N+(N/2), N-(N/2)) = z;
-        _fieldX(N+(N/2)+1, N-(N/2)) = -z;
-        _fieldY(N+(N/2), N-(N/2)+1) = z;
-        */
-
-
-
-        /* End Testings */
-
-
-        // LEVEL-SET
-        double r = 1.9;
-        r = 6.5;
-        if (iteration == 0)
+        for (std::uint16_t j = 0; j < _N; ++j)
         {
-            glm::vec2 pt;
-            pt.x = N-(N/2);
-            pt.y = N;
-            particles.emplace_back(pt);
-            pt.x = N+(N/2);
-            pt.y = N;
-            particles.emplace_back(pt);
-
-            for (std::uint16_t j = 0; j < _N; ++j)
+            for (std::uint16_t i = 0; i < _N; ++i)
             {
-                for (std::uint16_t i = 0; i < _N; ++i)
+                double dist = std::sqrt(std::pow(i-particles.front().x,2)+std::pow(j-particles.front().y,2))-r;
+                for (const auto& p : particles)
                 {
-                    double dist = std::sqrt(std::pow(i-particles.front().x,2)+std::pow(j-particles.front().y,2))-r;
-                    for (const auto& p : particles)
-                    {
-                        dist = std::min(dist, std::sqrt(std::pow(i-p.x,2)+std::pow(j-p.y,2))-r);
-                        //dist = std::cos(static_cast<double>(i)/4.0)+std::cos(static_cast<double>(j)/4);
-                    }
-                    _prevImplicit(i,j) = dist;
+                    dist = std::min(dist, std::sqrt(std::pow(i-p.x,2)+std::pow(j-p.y,2))-r);
+                    //dist = std::cos(static_cast<double>(i)/4.0)+std::cos(static_cast<double>(j)/4);
                 }
+                _prevImplicit(i,j) = dist;
             }
         }
+    }
 
-        levelSetStep();
+    levelSetStep();
 
-        for (std::uint16_t j = 0; j < _implicit.y(); ++j)
+
+    for (std::uint16_t j = 0; j < _implicit.y(); ++j)
+    {
+        for (std::uint16_t i = 0; i < _implicit.x(); ++i)
         {
-            for (std::uint16_t i = 0; i < _implicit.x(); ++i)
+            if (_implicit(i,j) < 0)
             {
-                if (_implicit(i,j) < 0)
+                if (i < N)
                 {
-                    if (i <= N)
-                    {
-                        _fieldX(i,j) = 5;
-                    }
-                    else
-                    {
-                        _fieldX(i,j) = -5;
-                    }
+                    _fieldX(i,j) = 4;
+                    _fieldX(i+1,j) = 4;
                     _fieldX.set(i,j, true);
-                    _fieldY.set(i,j, true);
+                    _fieldX.set(i+1,j, true);
+                }
+                else if (i > N)
+                {
+                    _fieldX(i+1,j) = -4;
+                    _fieldX(i,j) = -4;
+                    _fieldX.set(i+1,j, true);
+                    _fieldX.set(i,j, true);
                 }
                 else
                 {
-                    _fieldX(i,j) = 0;
-                    _fieldX.set(i,j, false);
-                    _fieldY.set(i,j, false);
+                   _fieldX.set(i,j, true); 
                 }
+                //_fieldY.set(i,j, true);
             }
         }
+    }
 
-        /*
-        std::cout << _implicit << std::endl;
-        std::cout << _fieldY << std::endl;
-        */
+    extrapolate(_fieldX);
+    extrapolate(_fieldY);
 
-        extrapolate(_fieldX);
-        extrapolate(_fieldY);
-        
-        //usleep(300000);
+    _fieldX.resetBool();
+    _fieldY.resetBool();
+    
 
-        //std::cout << _fieldX << std::endl;
+    //std::cout << _fieldX << std::endl;
 
-        //setBnd(_fieldY, 2);
-        
-        /*
-        std::cout << _implicit << std::endl;
-        std::cout << _fieldY << std::endl;
-        */
+    //setBnd(_fieldY, 2);
+    
+    /*
+    std::cout << _implicit << std::endl;
+    std::cout << _fieldY << std::endl;
+    */
 
-        auto start = std::chrono::high_resolution_clock::now();
-        vStep();
-        auto end = std::chrono::high_resolution_clock::now();
-        VstepTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
-        start = std::chrono::high_resolution_clock::now();
-        //sStep();
-        end = std::chrono::high_resolution_clock::now();
-        SstepTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
+    auto start = std::chrono::high_resolution_clock::now();
+    vStep();
+    auto end = std::chrono::high_resolution_clock::now();
+    VstepTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
+    start = std::chrono::high_resolution_clock::now();
+    //sStep();
+    end = std::chrono::high_resolution_clock::now();
+    SstepTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
 
-        // Rendering
-        updateRender(fluid);
-        _renderer->updateDynamicLine(_N, _fieldX.data(), _fieldY.data());
-	}
+    updateTexture();
+
+    /*
+    std::cout << _implicit << std::endl;
+    std::cout << _fieldX << std::endl;
+    std::cout << _fieldY << std::endl;
+    */
 }
 
 void Fluids::levelSetStep()
 {
     advect(_implicit, _prevImplicit, _fieldX, _fieldY, 0);
     _prevImplicit = _implicit;
-    reinitLevelSet(64);
+    //reinitLevelSet(32);
 }
 
 void Fluids::extrapolate(Field<double,std::uint16_t>& F)
@@ -291,10 +290,15 @@ double Fluids::gradLength(const Field<double,std::uint16_t>& F, const std::uint1
 void Fluids::vStep()
 {
     auto start = std::chrono::high_resolution_clock::now();
+    /*
     diffuse(_prevFieldX, _fieldX, 1, _laplacianViscosityX);
     diffuse(_prevFieldY, _fieldY, 2, _laplacianViscosityY);
+    */
     auto end = std::chrono::high_resolution_clock::now();
     VstepDiffuseTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
+
+    _prevFieldX = _fieldX;
+    _prevFieldY = _fieldY;
 
     start = std::chrono::high_resolution_clock::now();
     project(_prevFieldX, _prevFieldY);
@@ -311,7 +315,6 @@ void Fluids::vStep()
     project(_fieldX, _fieldY);
     end = std::chrono::high_resolution_clock::now();
     VstepProjectTime += std::chrono::duration<float, std::chrono::seconds::period>(end - start).count();
-
 }
 
 void Fluids::sStep()
@@ -503,7 +506,6 @@ void Fluids::ConjugateGradient(const Laplacian& A, Eigen::VectorXd& x, const Eig
         s = z + beta * s;
         sig = signew;
     }
-    //std::cout << x << std::endl;
 }
 
 inline double Fluids::getPressure(const std::uint16_t i, const std::uint16_t j, const std::uint16_t i2, const std::uint16_t j2)
@@ -549,21 +551,19 @@ void Fluids::project(Field<double,std::uint16_t>& X, Field<double,std::uint16_t>
     {
         for (std::uint16_t i = 0; i < _N; ++i)
         {
-            _div(i,j) = - 0.5 * (
-                        (X(i+1,j)-X(i,j))+
-                        (Y(i,j+1)-Y(i,j))
-                        )*h;
-
             if (_implicit(i,j) <= 0)
             {
                 liquidIdx.emplace_back(_implicit.idx(i,j));
-                liquidDiv.emplace_back(_div(i,j));
+                liquidDiv.emplace_back(
+                    - 0.5 * (
+                        (X(i+1,j)-X(i,j))+
+                        (Y(i,j+1)-Y(i,j))
+                    )*h);
                 _implicit.label(i,j) = label;
                 label++;
             }
         }
     }
-
 
     if (liquidIdx.size() > 0)
     {
@@ -574,32 +574,25 @@ void Fluids::project(Field<double,std::uint16_t>& X, Field<double,std::uint16_t>
             const std::uint64_t j = m / _N;
            
             std::uint64_t label = _implicit.label(i,j);
-            std::uint8_t nbNeighbors = 0;
             if (i+1 < _N && _implicit.label(i+1,j) > 0)
             {
                 tripletListA.emplace_back(Eigen::Triplet<double>(label-1,_implicit.label(i+1,j)-1,-1));
-                nbNeighbors++;
             }
-            if (i-1 >= 0 && _implicit.label(i-1,j) > 0)
+            if (i != 0 && _implicit.label(i-1,j) > 0)
             {
                 tripletListA.emplace_back(Eigen::Triplet<double>(label-1,_implicit.label(i-1,j)-1,-1));
-                nbNeighbors++;
             }
             if (j+1 < _N && _implicit(i,j+1) <= 0)
             {
                 tripletListA.emplace_back(Eigen::Triplet<double>(label-1,_implicit.label(i,j+1)-1,-1));
-                nbNeighbors++;
             }
-            if (j-1 < _N && _implicit(i,j-1) <= 0)
+            if (j != 0 && _implicit(i,j-1) <= 0)
             {
                 tripletListA.emplace_back(Eigen::Triplet<double>(label-1,_implicit.label(i,j-1)-1,-1));
-                nbNeighbors++;
             }
-            //tripletListA.emplace_back(Eigen::Triplet<double>(label-1,label-1,nbNeighbors));
             tripletListA.emplace_back(Eigen::Triplet<double>(label-1, label-1, 4));
         }
 
-        // Create A matrice
         Eigen::SparseMatrix<double> A = Eigen::SparseMatrix<double>(liquidIdx.size(), liquidIdx.size());
 
         A.setFromTriplets(tripletListA.begin(), tripletListA.end());
@@ -639,20 +632,22 @@ void Fluids::project(Field<double,std::uint16_t>& X, Field<double,std::uint16_t>
                 }
             }
         }
-        /*
-        std::cout << x << std::endl;
-        std::cout << _p << std::endl;
-
-        std::cout << X << std::endl;
-        */
 
         setBnd(_p, 0);
-        for (std::uint16_t j = 1; j < _N-1; ++j)
+        for (std::uint16_t j = 1; j < _N; ++j)
         {
-            for (std::uint16_t i = 1; i < _N-1; ++i)
+            for (std::uint16_t i = 1; i < _N; ++i)
             {
-                X(i,j) -= 0.5*_N*(_p(i+1,j)-_p(i-1,j)); // probably not i-1 and start from i = 0 not i = 1 ...
-                Y(i,j) -= 0.5*_N*(_p(i,j+1)-_p(i,j-1)); // idem
+                if (_implicit(i,j) <= 0 || _implicit(i-1,j) <= 0)
+                {
+                    X(i,j) -= 0.5*_N*(_p(i,j)-_p(i-1,j)); // probably not i-1 and start from i = 0 not i = 1 ...
+                    X.set(i,j,true);
+                }
+                if (_implicit(i,j) <= 0 || _implicit(i,j-1) <= 0)
+                {
+                    Y(i,j) -= 0.5*_N*(_p(i,j)-_p(i,j-1)); // idem
+                    Y.set(i,j,true);
+                }
             }
         }
         //std::cout << X << std::endl;
@@ -696,10 +691,8 @@ void Fluids::setBnd(Field<double,std::uint16_t>& F, const std::uint8_t b) const
     }
 }
 
-void Fluids::updateRender(Fluid3D& fluid)
+void Fluids::updateTexture()
 {
-	std::vector<std::uint8_t> texture(_N*_N*3, 0);
-
     std::uint64_t it = 0;
     //double sum = 0;
     for (std::uint16_t i = 0; i < _N; ++i)
@@ -714,19 +707,19 @@ void Fluids::updateRender(Fluid3D& fluid)
             sum += value;
             */
             const double implicit = _implicit(i,j);
-            texture[it*3] = 0;
-            texture[it*3+1] = 0;
-            texture[it*3+2] = 0;
+            _texture[it*3] = 0;
+            _texture[it*3+1] = 0;
+            _texture[it*3+2] = 0;
             const std::uint64_t p = 50;
             if (implicit < 0)
             {
-                texture[it*3+2] = std::clamp(-implicit*p, 0.0, 255.0);
+                _texture[it*3+2] = std::clamp(-implicit*p, 0.0, 255.0);
             }
             else
             {
-                texture[it*3+2] = std::clamp(implicit*p, 0.0, 255.0);
-                texture[it*3+1] = std::clamp(implicit*p, 0.0, 255.0);
-                texture[it*3+0] = std::clamp(implicit*p, 0.0, 255.0);
+                _texture[it*3+2] = std::clamp(implicit*p, 0.0, 255.0);
+                _texture[it*3+1] = std::clamp(implicit*p, 0.0, 255.0);
+                _texture[it*3+0] = std::clamp(implicit*p, 0.0, 255.0);
             }
             /*
             const std::uint64_t m = i % N32;
@@ -738,11 +731,13 @@ void Fluids::updateRender(Fluid3D& fluid)
             texture[i*3+2] = 0;
             */
             it++;
-        }
+       }
 	}
+}
 
-	const auto& textureGL = gCoordinator.GetComponent<Material>(fluid.entity).texture;
-	_renderer->initTexture2D(texture, textureGL);
+const std::vector<std::uint8_t>& Fluids::texture() const
+{
+    return _texture;
 }
 
 void Fluids::writeVolumeFile([[maybe_unused]] const std::uint64_t iteration)
@@ -794,10 +789,6 @@ void Fluids::writeVolumeFile([[maybe_unused]] const std::uint64_t iteration)
     */
 }
 
-Fluids::Fluids()
-{
-    initCG();
-}
 void Fluids::initCG()
 {
     INFO("Start to initialize Conjugate Gradient matrices.");
@@ -1022,4 +1013,19 @@ void Fluids::setAMatrices(Laplacian& laplacian) const
             laplacian.plusk[n] = laplacian.A.coeff(n, i+j*_N+(k+1)*N2);
         }
     }
+}
+
+const std::vector<double>& Fluids::X() const
+{
+    return _fieldX.data();
+}
+
+const std::vector<double>& Fluids::Y() const
+{
+    return _fieldY.data();
+}
+
+const std::uint16_t& Fluids::N() const
+{
+    return _N;
 }

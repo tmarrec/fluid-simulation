@@ -1,23 +1,10 @@
 #pragma once
 
-#include "../ecs/Coordinator.h"
-#include "../Components.h"
-#include "../BasicEntities.h"
+#include "types.h"
 
 #include <Eigen/Sparse>
-#include <Eigen/src/Core/Matrix.h>
-#include <Eigen/src/Core/util/Constants.h>
-#include <Eigen/src/IterativeLinearSolvers/BasicPreconditioners.h>
-#include <Eigen/src/SparseCore/SparseMatrix.h>
-#include <array>
-#include <cstdint>
-#include <vector>
-#include <unistd.h>
-#include <ctime>
-#include <numeric>
 #include <iomanip>
-
-extern Coordinator gCoordinator;
+#include <chrono>
 
 struct Laplacian
 {
@@ -57,7 +44,22 @@ public:
     const   std::vector<T>& data()                              const   { return _grid; }
             bool isSet(const U i, const U j)                    const   { return _gridSet[idx(i,j)]; }
             void set(const U i, const U j, const bool value)            { _gridSet[idx(i,j)] = value; }
-            void reset()                                                { std::fill(_grid.begin(), _grid.end(), 0.0); }
+            void set(const U idx, const bool value)                     { _gridSet[idx] = value; }
+            void reset()
+            {
+                std::fill(_grid.begin(), _grid.end(), 0.0);
+                for (std::uint64_t it = 0; it < _maxIt; ++it)
+                {
+                    set(it, false);
+                }
+            };
+            void resetBool()
+            {
+                for (std::uint64_t it = 0; it < _maxIt; ++it)
+                {
+                    set(it, false);
+                }
+            };
             std::uint64_t& label(const U i, const U j)                  { return _labels[idx(i,j)]; }
     const   std::uint64_t& label(const U i, const U j)          const   { return _labels[idx(i,j)]; }
             void resetLabels()                                          { std::fill(_labels.begin(), _labels.end(), 0); }
@@ -110,12 +112,15 @@ private:
     std::uint64_t _maxIt;
 };
 
-class Fluids : public System
+class Fluids
 {
 public:
     Fluids();
-    void init(std::shared_ptr<Renderer> renderer);
     void update([[maybe_unused]] std::uint64_t iteration);
+    const std::vector<std::uint8_t>& texture() const;
+    const std::vector<double>& X() const;
+    const std::vector<double>& Y() const;
+    const std::uint16_t& N() const;
 
 private:
     void vStep();
@@ -133,7 +138,7 @@ private:
 
     void setBnd(Field<double,std::uint16_t>& F, const std::uint8_t b) const;
 
-    void updateRender(Fluid3D& fluid);
+    void updateTexture();
 
     void reinitLevelSet(const std::uint64_t nbIte);
     double gradLength(const Field<double,std::uint16_t>& F, const std::uint16_t i, const std::uint16_t j) const;
@@ -151,8 +156,6 @@ private:
 
     inline double getPressure(const std::uint16_t i, const std::uint16_t j, const std::uint16_t i2, const std::uint16_t j2);
 
-    std::shared_ptr<Renderer> _renderer = nullptr;
-
     double VstepTime = 0;
     double SstepTime = 0;
     double VstepProjectTime = 0;
@@ -162,7 +165,7 @@ private:
     double SstepAdvectTime = 0;
     std::vector<glm::vec2> particles {};
 
-    constexpr static const std::uint16_t _N = 65;
+    constexpr static const std::uint16_t _N = 129;
     constexpr static const double _viscosity = 1.15;
     constexpr static const double _diffusion = 0.000;
     constexpr static const double _dt = 0.0005;
@@ -184,6 +187,8 @@ private:
     Laplacian _laplacianViscosityX {};
     Laplacian _laplacianViscosityY {};
     Laplacian _laplacianDiffuse {};
+
+    std::vector<std::uint8_t> _texture = std::vector<std::uint8_t>(_N*_N*3);
 };
 
 template<typename T>
