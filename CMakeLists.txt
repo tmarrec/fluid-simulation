@@ -69,38 +69,23 @@ ADD_EXECUTABLE (${PROJECT_NAME}
 	src/utils.h
 	src/types.h
 
-    # ECS
-    src/ecs/System.h
-    src/ecs/Coordinator.h
-    src/ecs/EntityManager.h
-    src/ecs/SystemManager.h
-    src/ecs/ComponentArray.h
-    src/ecs/ComponentManager.h
-
-    # Components structs
-    src/Components.h
-
-    # Systems
-    src/systems/MeshRenderer.h
-    src/systems/MeshRenderer.cpp
-    src/systems/Fluids.h
-    src/systems/Fluids.cpp
-
     # Main
  	src/cowboy-engine.cpp
 
+    # Fluids
+    src/Fluids.h
+    src/Fluids.cpp
+
     # Engine
-	src/Game.h
+    src/Simulation.h
 	src/Renderer.h
     src/Shader.h
-    src/BasicEntities.h
 	src/Window.h
     src/Input.h
 
-	src/Game.cpp
+    src/Simulation.cpp
 	src/Renderer.cpp
     src/Shader.cpp
-    src/BasicEntities.cpp
 	src/Window.cpp
     src/Input.cpp
 

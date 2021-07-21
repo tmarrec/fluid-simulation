@@ -1,22 +1,18 @@
 #include "Renderer.h"
-#include <GL/gl.h>
-#include <glm/geometric.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-void Renderer::init(std::shared_ptr<Window> window)
+void Renderer::init(const WindowInfos windowInfos)
 {
-	_window = window;
-
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
     {
         ERROR("Failed to initialize glad");
     }
 
-    _windowInfos = _window->windowInfos();
+    _windowInfos = windowInfos;
     glViewport(0, 0, _windowInfos.x, _windowInfos.y);
     glEnable(GL_DEPTH_TEST);
 
@@ -78,50 +74,13 @@ void Renderer::writeImg(const std::uint32_t iteration) const
 
 }
 
-void Renderer::updateDynamicLine(const std::uint16_t N, const std::vector<double>& X, const std::vector<double>& Y)
-{
-    _N = N;
-    _X = X;
-    _Y = Y;
-}
-
 void Renderer::drawMesh(Mesh& mesh) const
 {
     GLenum renderMode = GL_TRIANGLES;
-    float N = _N;
-    float Ndiv = N/2;
-    std::uint64_t it = 0;
     switch (mesh.renderMode)
     {
         case LINES:
             renderMode = GL_LINES;
-            mesh.vertices.clear();
-            mesh.indices.clear();
-            for (float i = 0; i < N; ++i)
-            {
-                for (float j = 0; j < N; ++j)
-                {
-                    mesh.vertices.emplace_back(((i+0.5)/Ndiv)-2.0);
-                    mesh.vertices.emplace_back(0.201);
-                    mesh.vertices.emplace_back(((j+0.5)/Ndiv)-1.0);
-
-                    float u = 0.5*(_X[i+j*(N+1)]+_X[(i+1)+j*(N+1)]);
-                    float v = 0.5*(_Y[i+j*(N)]+_Y[(i+1)+j*(N)]);
-                    glm::vec2 uv = {u,v};
-                    uv = glm::normalize(uv);
-                    u = uv.x*0.75;
-                    v = uv.y*0.75;
-
-                    mesh.vertices.emplace_back(((i+0.5+u)/Ndiv)-2.0);
-                    mesh.vertices.emplace_back(0.201);
-                    mesh.vertices.emplace_back(((j+0.5+v)/Ndiv)-1.0);
-
-                    mesh.indices.emplace_back(it);
-                    mesh.indices.emplace_back(it+1);
-                    it += 2;
-                }
-            }
-            initMesh(mesh);
             break;
         case TRIANGLES:
             renderMode = GL_TRIANGLES;
@@ -221,8 +180,7 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
     model = glm::rotate(model, glm::radians(transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::rotate(model, glm::radians(transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::scale(model, glm::vec3{transform.scale});
-    const WindowInfos windowInfos = _window->windowInfos();
-    const glm::mat4 projection = glm::infinitePerspective(glm::radians(camera.FOV), static_cast<float>(windowInfos.x)/windowInfos.y, 0.1f);
+    const glm::mat4 projection = glm::infinitePerspective(glm::radians(camera.FOV), static_cast<float>(_windowInfos.x)/_windowInfos.y, 0.1f);
     const glm::mat4 view = glm::lookAt(camera.transform.position, camera.transform.position+camera.front, camera.up);
 
 
@@ -344,8 +302,8 @@ void Renderer::initTexture2D(const std::vector<std::uint8_t>& texture, const std
     glBindTexture(GL_TEXTURE_2D, textureGL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, texture.data());
     glGenerateMipmap(GL_TEXTURE_2D);

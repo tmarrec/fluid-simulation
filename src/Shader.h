@@ -1,16 +1,15 @@
 #pragma once
 
+#include "utils.h"
+
 #include <iostream>
-#include <string>
 #include <fstream>
 #include <sstream>
-
-#include "utils.h"
 #include <glad/glad.h>
+#include <glm/gtc/type_ptr.hpp>
 
 class Shader
 {
-
 public:
 	void use() const;
 
