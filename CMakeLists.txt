@@ -81,13 +81,11 @@ ADD_EXECUTABLE (${PROJECT_NAME}
 	src/Renderer.h
     src/Shader.h
 	src/Window.h
-    src/Input.h
 
     src/Simulation.cpp
 	src/Renderer.cpp
     src/Shader.cpp
 	src/Window.cpp
-    src/Input.cpp
 
     # stb
     extern/stb/stb_image_write.h

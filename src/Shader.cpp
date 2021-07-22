@@ -17,25 +17,9 @@ void Shader::setFrag(const std::string &filename)
     init();
 }
 
-void Shader::setGeo(const std::string &filename)
-{
-    _geoPath = filename;
-    init();
-}
-
-void Shader::set1i(const std::string &name, const int value) const
-{
-    glUniform1i(getLocation(name), value);
-}
-
 void Shader::set1f(const std::string &name, const float value) const
 {
     glUniform1f(getLocation(name), value);
-}
-
-void Shader::set4f(const std::string &name, const glm::vec4 values) const
-{
-    glUniform4f(getLocation(name), values.x, values.y, values.z, values.w);
 }
 
 void Shader::set3f(const std::string &name, const glm::vec3 values) const
@@ -60,26 +44,24 @@ void Shader::checkCompilation(std::uint64_t shader, const std::string& type)
 	if (type != "PROGRAM")
 	{
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
-		char* infoLog = new char[infoLogLength];
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 		if (!success)
 		{
+		    char* infoLog = new char[infoLogLength];
 			glGetShaderInfoLog(shader, infoLogLength, NULL, infoLog);
 			ERROR("Shader compilation error of type : " << type << "\n" << infoLog << "\n");
 		}
-		delete[] infoLog;
 	}
 	else
 	{
 		glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
-		char* infoLog = new char[infoLogLength];
 		glGetProgramiv(shader, GL_LINK_STATUS, &success);
 		if (!success)
 		{
+		    char* infoLog = new char[infoLogLength];
 			glGetProgramInfoLog(shader, infoLogLength, NULL, infoLog);
 			ERROR("Program linking error of type : " << type << "\n" << infoLog << "\n");
 		}
-		delete[] infoLog;
 	}
 }
 
@@ -96,14 +78,13 @@ void Shader::init()
 {
     glDeleteProgram(_id); // Could create trouble..
 
-    // 1. retrieve the vertex/fragment source code from filePath
+    // Retrieve the vertex/fragment source code
     std::string vertexCode;
     std::string fragmentCode;
-    std::string geoCode;
     std::ifstream vShaderFile;
     std::ifstream fShaderFile;
     std::ifstream gShaderFile;
-    // ensure ifstream objects can throw exceptions:
+    // Check if files exists
     vShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
     fShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
     gShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
@@ -125,21 +106,13 @@ void Shader::init()
             fShaderFile.close();
             fragmentCode = fShaderStream.str();
         }
-        if (!_geoPath.empty())
-        {
-            gShaderFile.open(_geoPath);
-            std::stringstream gShaderStream;
-            gShaderStream << gShaderFile.rdbuf();
-            gShaderFile.close();
-            geoCode = gShaderStream.str();
-        }
     }
     catch (const std::ifstream::failure & e)
     {
         ERROR("Shader file not found");
     }
 
-    // 2. compile shaders
+    // Compile shaders
     // Vertex shader
     GLuint vertex = 0;
     if (!_vertPath.empty())
@@ -160,16 +133,6 @@ void Shader::init()
         glCompileShader(fragment);
         checkCompilation(fragment, "FRAGMENT");
     }
-    // Geometry Shader
-    GLuint geometry = 0;
-    if (!_geoPath.empty())
-    {
-        const char* gShaderCode = geoCode.c_str();
-        geometry = glCreateShader(GL_GEOMETRY_SHADER);
-        glShaderSource(geometry, 1, &gShaderCode, NULL);
-        glCompileShader(geometry);
-        checkCompilation(geometry, "GEOMETRY");
-    }
 
     // Shader Program linking
     _id = glCreateProgram();
@@ -180,10 +143,6 @@ void Shader::init()
     if (!_fragPath.empty())
     {
         glAttachShader(_id, fragment);
-    }
-    if (!_geoPath.empty())
-    {
-        glAttachShader(_id, geometry);
     }
 
     glLinkProgram(_id);
@@ -197,9 +156,5 @@ void Shader::init()
     if (!_fragPath.empty())
     {
         glDeleteShader(fragment);
-    }
-    if (!_geoPath.empty())
-    {
-        glDeleteShader(geometry);
     }
 }

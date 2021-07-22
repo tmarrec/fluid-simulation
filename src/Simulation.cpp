@@ -2,6 +2,7 @@
 
 void Simulation::run(WindowInfos windowInfos)
 {
+    //_renderer = new Renderer(windowInfos);
 	_window.init(windowInfos);
 	_renderer.init(windowInfos);
 
@@ -18,9 +19,9 @@ void Simulation::mainLoop()
 	while (!_window.windowShouldClose())
 	{
         /*
-        if (iterations == 64)
+        if (it == 64)
             exit(0);
-        */
+            */
         //std::cout << "== Iteration " << iterations << " ==" << std::endl;
             
         auto startTime = std::chrono::high_resolution_clock::now();
@@ -39,10 +40,6 @@ void Simulation::mainLoop()
         _renderer.drawMesh(_fluidRenderer.meshVec);
 
         _renderer.endPass();
-        moveCamera();
-
-        Input::updateMouseMovements();
-
 
         //_renderer->writeImg(iterations);
         _window.swapBuffers();
@@ -58,10 +55,10 @@ void Simulation::mainLoop()
 
 void Simulation::updateMeshVec()
 {
-    auto& mesh = _fluidRenderer.meshVec;
-    auto& N = _fluid.N();
-    auto& X = _fluid.X();
-    auto& Y = _fluid.Y();
+    Mesh& mesh = _fluidRenderer.meshVec;
+    const std::uint16_t& N = _fluid.N();
+    const std::vector<double>& X = _fluid.X();
+    const std::vector<double>& Y = _fluid.Y();
 
     float z = 0.001f;
     std::uint64_t it = 0;
@@ -120,44 +117,6 @@ void Simulation::updateMeshVec()
     _renderer.initMesh(mesh);
 }
 
-void Simulation::moveCamera()
-{
-    if (Input::keyIsDown(GLFW_KEY_W))
-    {
-        _camera.transform.position += _camera.front * _camera.speed;
-    }
-    if (Input::keyIsDown(GLFW_KEY_A))
-    {
-        _camera.transform.position -= glm::normalize(glm::cross(_camera.front, _camera.up)) * _camera.speed;
-    }
-    if (Input::keyIsDown(GLFW_KEY_S))
-    {
-        _camera.transform.position -= _camera.front * _camera.speed;
-    }
-    if (Input::keyIsDown(GLFW_KEY_D))
-    {
-        _camera.transform.position += glm::normalize(glm::cross(_camera.front, _camera.up)) * _camera.speed;
-    }
-    if (Input::keyIsDown(GLFW_KEY_LEFT_SHIFT))
-    {
-        _camera.transform.position.y += _camera.speed;
-    }
-    if (Input::keyIsDown(GLFW_KEY_LEFT_CONTROL))
-    {
-        _camera.transform.position.y -= _camera.speed;
-    }
-    float sensitivity = 1.0f;
-    _camera.yaw += Input::mouseOffsetX*sensitivity;
-    _camera.pitch = glm::clamp(_camera.pitch - Input::mouseOffsetY*sensitivity, -89.9f, 89.9f);
-
-    glm::vec3 dir;
-    dir.x = cos(glm::radians(_camera.yaw))*cos(glm::radians(_camera.pitch));
-    dir.y = sin(glm::radians(_camera.pitch));
-    dir.z = sin(glm::radians(_camera.yaw))*cos(glm::radians(_camera.pitch));
-    dir = glm::normalize(dir);
-    _camera.front = dir;
-}
-
 void Simulation::initSimulation()
 {
     Shader shaderProgram {};
@@ -197,4 +156,12 @@ void Simulation::initSimulation()
     _fluidRenderer.materialVec = materialVec;
     _renderer.initMaterial(materialVec);
     _renderer.initMesh(_fluidRenderer.meshVec);
+
+    // Set camera front
+    glm::vec3 dir;
+    dir.x = cos(glm::radians(_camera.yaw))*cos(glm::radians(_camera.pitch));
+    dir.y = sin(glm::radians(_camera.pitch));
+    dir.z = sin(glm::radians(_camera.yaw))*cos(glm::radians(_camera.pitch));
+    dir = glm::normalize(dir);
+    _camera.front = dir;
 }
