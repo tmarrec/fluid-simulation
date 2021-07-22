@@ -5,6 +5,9 @@
 #include <Eigen/Sparse>
 #include <iomanip>
 #include <chrono>
+#include <unordered_map>
+#include <algorithm>
+#include <execution>
 
 struct Laplacian
 {
@@ -17,6 +20,13 @@ struct Laplacian
     std::uint8_t minus = 0;
 };
 
+struct Cell
+{
+    std::uint16_t i;
+    std::uint16_t j;
+    std::uint64_t label;
+};
+
 template<typename T, typename U>
 class Field
 {
@@ -24,12 +34,10 @@ public:
     Field(U Xsize, U Ysize) : _Xsize(Xsize), _Ysize(Ysize)
     {
         _grid.resize(Xsize*Ysize);
-        _labels.resize(Xsize*Ysize);
         _gridSet.resize(Xsize*Ysize);
         for (std::uint64_t it = 0; it < Xsize*Ysize; ++it)
         {
             _grid[it] = 0;
-            _labels[it] = 0;
             _gridSet[it] = false;
         }
         _maxIt = Xsize*Ysize;
@@ -60,9 +68,6 @@ public:
                     set(it, false);
                 }
             };
-            std::uint64_t& label(const U i, const U j)                  { return _labels[idx(i,j)]; }
-    const   std::uint64_t& label(const U i, const U j)          const   { return _labels[idx(i,j)]; }
-            void resetLabels()                                          { std::fill(_labels.begin(), _labels.end(), 0); }
             void setFromVec(const Eigen::VectorXd& v)
             {
                 for (std::uint64_t it = 0; it < _maxIt; ++it)
@@ -105,7 +110,6 @@ public:
 
 private:
     std::vector<T> _grid;
-    std::vector<std::uint64_t> _labels;
     std::vector<bool> _gridSet;
     U _Xsize;
     U _Ysize;
@@ -147,6 +151,7 @@ private:
 
     void extrapolate(Field<double,std::uint16_t>& F);
 
+    inline std::uint64_t hash(const std::uint16_t i, const std::uint16_t j) const;
 
     void setAMatrices(Laplacian& laplacian) const;
 
@@ -154,18 +159,11 @@ private:
 
     void initCG();
 
-    inline double getPressure(const std::uint16_t i, const std::uint16_t j, const std::uint16_t i2, const std::uint16_t j2);
+    void setActiveCells();
 
-    double VstepTime = 0;
-    double SstepTime = 0;
-    double VstepProjectTime = 0;
-    double VstepAdvectTime = 0;
-    double VstepDiffuseTime = 0;
-    double SstepDiffuseTime = 0;
-    double SstepAdvectTime = 0;
     std::vector<glm::vec2> particles {};
 
-    constexpr static const std::uint16_t _N = 129;
+    constexpr static const std::uint16_t _N = 35;
     constexpr static const double _viscosity = 1.15;
     constexpr static const double _diffusion = 0.000;
     constexpr static const double _dt = 0.0005;
@@ -180,8 +178,7 @@ private:
     Field<double, std::uint16_t> _prevFieldY {_N, _N+1};
     Field<double, std::uint16_t> _implicit {_N, _N};
     Field<double, std::uint16_t> _prevImplicit {_N, _N};
-    Field<double, std::uint16_t> _p {_N, _N};
-    Field<double, std::uint16_t> _div {_N, _N};
+    std::unordered_map<std::uint64_t, Cell> _activeCells;
 
     Laplacian _laplacianProject {};
     Laplacian _laplacianViscosityX {};
@@ -189,6 +186,7 @@ private:
     Laplacian _laplacianDiffuse {};
 
     std::vector<std::uint8_t> _texture = std::vector<std::uint8_t>(_N*_N*3);
+
 };
 
 template<typename T>

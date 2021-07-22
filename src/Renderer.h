@@ -18,7 +18,7 @@ struct FrameBuffer
 class Renderer
 {
 public:
-    void init(const WindowInfos windowInfos);
+    void init(const WindowInfos& windowInfos);
     void prePass();
     void endPass() const;
     void initMesh(Mesh& mesh) const;

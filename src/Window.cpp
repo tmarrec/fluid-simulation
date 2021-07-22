@@ -16,14 +16,6 @@ void Window::init(const WindowInfos& windowInfos)
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_FALSE);
 
 	windowInit();
-
-    glfwSetKeyCallback(_glfwWindow.get(), Input::keyCallback);
-    glfwSetCursorPosCallback(_glfwWindow.get(), Input::cursorPositionCallback);
-    glfwSetMouseButtonCallback(_glfwWindow.get(), Input::mouseButtonCallback);
-    if (glfwRawMouseMotionSupported())
-    {
-        glfwSetInputMode(_glfwWindow.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-    }
 }
 
 bool Window::windowShouldClose() const

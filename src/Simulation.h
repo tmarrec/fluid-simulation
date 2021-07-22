@@ -18,7 +18,6 @@ private:
 	void mainLoop();
     void initSimulation();
     void updateMeshVec();
-    void moveCamera();
 
 	Window _window = {};
     Renderer _renderer = {};
