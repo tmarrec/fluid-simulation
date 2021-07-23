@@ -23,28 +23,28 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 
     /*
     _substance(N-(N/2), N+(N/2)) = p;
-    _fieldX(N-(N/2), N+(N/2)) = z;
-    _fieldY(N-(N/2), N+(N/2)) = -z;
-    _fieldX(N-(N/2)+1, N+(N/2)) = z;
-    _fieldY(N-(N/2), N+(N/2)+1) = -z;
+    _grid._U(N-(N/2), N+(N/2)) = z;
+    _grid._V(N-(N/2), N+(N/2)) = -z;
+    _grid._U(N-(N/2)+1, N+(N/2)) = z;
+    _grid._V(N-(N/2), N+(N/2)+1) = -z;
 
     _substance(N-(N/2), N-(N/2)) = p;
-    _fieldX(N-(N/2), N-(N/2)) = z;
-    _fieldY(N-(N/2), N-(N/2)) = z;
-    _fieldX(N-(N/2)+1, N-(N/2)) = z;
-    _fieldY(N-(N/2), N-(N/2)+1) = z;
+    _grid._U(N-(N/2), N-(N/2)) = z;
+    _grid._V(N-(N/2), N-(N/2)) = z;
+    _grid._U(N-(N/2)+1, N-(N/2)) = z;
+    _grid._V(N-(N/2), N-(N/2)+1) = z;
 
     _substance(N+(N/2), N+(N/2)) = p;
-    _fieldX(N+(N/2), N+(N/2)) = -z;
-    _fieldY(N+(N/2), N+(N/2)) = -z;
-    _fieldX(N+(N/2)+1, N+(N/2)) = -z;
-    _fieldY(N+(N/2), N+(N/2)+1) = -z;
+    _grid._U(N+(N/2), N+(N/2)) = -z;
+    _grid._V(N+(N/2), N+(N/2)) = -z;
+    _grid._U(N+(N/2)+1, N+(N/2)) = -z;
+    _grid._V(N+(N/2), N+(N/2)+1) = -z;
 
     _substance(N+(N/2), N-(N/2)) = p;
-    _fieldX(N+(N/2), N-(N/2)) = -z;
-    _fieldY(N+(N/2), N-(N/2)) = z;
-    _fieldX(N+(N/2)+1, N-(N/2)) = -z;
-    _fieldY(N+(N/2), N-(N/2)+1) = z;
+    _grid._U(N+(N/2), N-(N/2)) = -z;
+    _grid._V(N+(N/2), N-(N/2)) = z;
+    _grid._U(N+(N/2)+1, N-(N/2)) = -z;
+    _grid._V(N+(N/2), N-(N/2)+1) = z;
     */
 
 
@@ -52,11 +52,13 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
     /* End Testings */
 
 
-    std::cin.get();
-    //
+    if (iteration > 2)
+    {
+        //std::cin.get();
+    }
 
-    // LEVEL-SET
-    double r = 5.9;
+    // LEVEL-SET Init
+    double r = 8.9;
     if (iteration == 0)
     {
         glm::vec2 pt;
@@ -76,7 +78,7 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
                 {
                     dist = std::min(dist, std::sqrt(std::pow(i-p.x,2)+std::pow(j-p.y,2))-r);
                 }
-                _prevImplicit(i,j) = dist;
+                _grid._surfacePrev(i,j) = dist;
             }
         }
     }
@@ -92,43 +94,44 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
         const std::uint16_t j = elem.second.j; 
         if (i < N)
         {
-            _fieldX(i,j) = 4;
-            _fieldX(i+1,j) = 4;
+            _grid._U(i,j) = 4;
+            _grid._U(i+1,j) = 4;
         }
         else if (i > N)
         {
-            _fieldX(i+1,j) = -4;
-            _fieldX(i,j) = -4;
+            _grid._U(i+1,j) = -4;
+            _grid._U(i,j) = -4;
         }
     });
 
-    extrapolate(_fieldX);
-    extrapolate(_fieldY);
+    extrapolate(_grid._U);
+    extrapolate(_grid._V);
 
     vStep();
     //sStep();
 
     updateTexture();
+
 }
 
 void Fluids::setActiveCells()
 {
     _activeCells.clear();
-    _fieldX.resetBool();
-    _fieldY.resetBool();
+    _grid._U.resetBool();
+    _grid._V.resetBool();
     std::uint64_t label = 1;
-    for (std::uint16_t j = 0; j < _implicit.y(); ++j)
+    for (std::uint16_t j = 0; j < _grid._surface.y(); ++j)
     {
-        for (std::uint16_t i = 0; i < _implicit.x(); ++i)
+        for (std::uint16_t i = 0; i < _grid._surface.x(); ++i)
         {
-            if (_prevImplicit(i,j) < 0)
+            if (_grid._surfacePrev(i,j) < 0)
             {
                 _activeCells.insert({hash(i,j), {i,j,label}});
-                _fieldX.set(i,j,true);
-                //_fieldX.set(i+1,j,true);
+                _grid._U.set(i,j,true);
+                _grid._U.set(i+1,j,true);
                 
-                _fieldY.set(i,j,true);
-                //_fieldY.set(i,j+1,true);
+                _grid._V.set(i,j,true);
+                _grid._V.set(i,j+1,true);
                 label++;
             }
         }
@@ -137,8 +140,8 @@ void Fluids::setActiveCells()
 
 void Fluids::levelSetStep()
 {
-    advect(_implicit, _prevImplicit, _fieldX, _fieldY, 0);
-    _prevImplicit = _implicit;
+    advect(_grid._surface, _grid._surfacePrev, 0);
+    _grid._surfacePrev = _grid._surface;
     //reinitLevelSet(32);
 }
 
@@ -199,15 +202,15 @@ void Fluids::extrapolate(Field<double,std::uint16_t>& F)
 
 void Fluids::reinitLevelSet(const std::uint64_t nbIte)
 {
-    Field<double, std::uint16_t> Ssf = _prevImplicit;
-    Field<double, std::uint16_t> n = _prevImplicit;
+    Field<double, std::uint16_t> Ssf = _grid._surfacePrev;
+    Field<double, std::uint16_t> n = _grid._surfacePrev;
     const double dx = 1.0/_N;
     // Init smoothing function
     for (std::uint16_t j = 0; j < _N; ++j)
     {
         for (std::uint16_t i = 0; i < _N; ++i)
         {
-            const double O0 = _prevImplicit(i,j);
+            const double O0 = _grid._surfacePrev(i,j);
             Ssf(i,j) = O0 / (std::sqrt(std::pow(O0, 2) + std::pow(dx, 2)));
         }
     }
@@ -218,11 +221,11 @@ void Fluids::reinitLevelSet(const std::uint64_t nbIte)
         {
             for (std::uint16_t i = 0; i < _N; ++i)
             {
-                const double gO = gradLength(_prevImplicit, i, j);
-                n(i,j) = _prevImplicit(i,j) + (0.5 * dx * (- Ssf(i,j) * (gO - 1.0)));
+                const double gO = gradLength(_grid._surfacePrev, i, j);
+                n(i,j) = _grid._surfacePrev(i,j) + (0.5 * dx * (- Ssf(i,j) * (gO - 1.0)));
             }
         }
-        _prevImplicit = n;
+        _grid._surfacePrev = n;
     }
 }
 
@@ -274,201 +277,70 @@ double Fluids::gradLength(const Field<double,std::uint16_t>& F, const std::uint1
 
 void Fluids::vStep()
 {
-    diffuse(_prevFieldX, _fieldX, 1, _laplacianViscosityX);
-    diffuse(_prevFieldY, _fieldY, 2, _laplacianViscosityY);
+    diffuse(_grid._UPrev, _grid._U, 1, _laplacianViscosityX);
+    diffuse(_grid._VPrev, _grid._V, 2, _laplacianViscosityY);
 
-    _prevFieldX = _fieldX;
-    _prevFieldY = _fieldY;
+    project(_grid._UPrev, _grid._VPrev);
 
-    project(_prevFieldX, _prevFieldY);
+    _grid._U = _grid._UPrev;
+    _grid._V = _grid._VPrev;
 
-    advect(_fieldX, _prevFieldX, _prevFieldX, _prevFieldY, 1);
-    advect(_fieldY, _prevFieldY, _prevFieldX, _prevFieldY, 2);
+    advect(_grid._U, _grid._UPrev, 1);
+    advect(_grid._V, _grid._VPrev, 2);
 
-    project(_fieldX, _fieldY);
+    project(_grid._U, _grid._V);
 }
 
 void Fluids::sStep()
 {
-    diffuse(_prevSubstance, _substance, 0, _laplacianDiffuse);
-    advect(_substance, _prevSubstance, _fieldX, _fieldY, 0);
+    diffuse(_grid._substancePrev, _grid._substance, 0, _laplacianDiffuse);
+    advect(_grid._substance, _grid._substancePrev, 0);
 }
 
 void Fluids::diffuse(Field<double,std::uint16_t>& F, const Field<double,std::uint16_t>& Fprev, const std::uint8_t b, const Laplacian& A)
 {
     Eigen::VectorXd x(A.diag.size());
-    ConjugateGradient(A, x, Fprev.vec());
+    ConjugateGradient(A, x, Fprev.vec(), _solverType);
     F.setFromVec(x);
     setBnd(F, b);
 }
 
-void Fluids::advect(Field<double,std::uint16_t>& F, const Field<double,std::uint16_t>& Fprev, const Field<double,std::uint16_t>& X, const Field<double,std::uint16_t>& Y, const std::uint8_t b) const
+inline double Fluids::interp(const Field<double,std::uint16_t>& F, double x, double y) const
+{
+    const std::uint16_t i0 = static_cast<std::uint16_t>(x);
+    const std::uint16_t i1 = i0 + 1;
+    const std::uint16_t j0 = static_cast<std::uint16_t>(y);
+    const std::uint16_t j1 = j0 + 1;
+
+    const double s1 = x - i0;
+    const double s0 = 1.0 - s1;
+    const double t1 = y - j0;
+    const double t0 = 1.0 - t1;
+
+    const double vA = F(i0,j0);
+    const double vB = F(i0,j1);
+    const double vC = F(i1,j0);
+    const double vD = F(i1,j1);
+
+    return s0*(t0*vA+t1*vB)+s1*(t0*vC+t1*vD);
+}
+
+void Fluids::advect(Field<double,std::uint16_t>& F, const Field<double,std::uint16_t>& Fprev, const std::uint8_t b) const
 {
 	const double dt = _dt * _N;
     for (std::uint16_t j = 0; j < _N; ++j)
     {
         for (std::uint16_t i = 0; i < _N; ++i)
         {
-            double xvel = 0;
-            double yvel = 0;
-
-            if (b != 0)
-            {
-                if (b == 1 && i == 0)
-                {
-                    yvel = 0.5*(Y(i,j)+Y(i,j+1));
-                }
-                else if (b == 1 && i == _N-1)
-                {
-                    yvel = 0.5*(Y(i-1,j)+Y(i-1,j+1));
-                }
-                else
-                {
-                    yvel = b == 2 ? Y(i,j) : 0.25*(Y(i,j)+Y(i,j+1)+Y(i-1,j)+Y(i-1,j+1));
-                }
-
-                if (b == 2 && j == 0)
-                {
-                    xvel = 0.5*(X(i,j)+X(i+1,j));
-                }
-                else if (b == 2 && j == _N-1)
-                {
-                    xvel = 0.5*(X(i,j-1)+X(i+1,j-1));
-                }
-                else
-                {
-                    xvel = b == 1 ? X(i,j) : 0.25*(X(i,j)+X(i+1,j)+X(i,j-1)+X(i+1,j-1));
-                }
-            }
-            else
-            {
-                xvel = 0.5*(X(i,j)+X(i+1,j));
-                yvel = 0.5*(Y(i,j)+Y(i,j+1));
-            }
-
             const double posx = static_cast<double>(i);
             const double posy = static_cast<double>(j);
-            const double x = std::clamp((posx-dt*xvel), 0.0, static_cast<double>(F.x()-1));
-            const double y = std::clamp((posy-dt*yvel), 0.0, static_cast<double>(F.y()-1));
+            const double x = std::clamp((posx-dt*_grid.getU(i,j,b)), 0.0, static_cast<double>(F.x()-1));
+            const double y = std::clamp((posy-dt*_grid.getV(i,j,b)), 0.0, static_cast<double>(F.y()-1));
 
-            const std::uint16_t i0 = static_cast<std::uint16_t>(x);
-            const std::uint16_t i1 = i0 + 1;
-            const std::uint16_t j0 = static_cast<std::uint16_t>(y);
-            const std::uint16_t j1 = j0 + 1;
-
-            const double s1 = x - i0;
-            const double s0 = 1.0 - s1;
-            const double t1 = y - j0;
-            const double t0 = 1.0 - t1;
-
-            const double vA = Fprev(i0,j0);
-            const double vB = Fprev(i0,j1);
-            const double vC = Fprev(i1,j0);
-            const double vD = Fprev(i1,j1);
-
-            F(i,j) = s0*(t0*vA+t1*vB)+s1*(t0*vC+t1*vD);
+            F(i,j) = interp(Fprev, x, y);
         }
     }
 	setBnd(F, b);
-}
-
-void Fluids::applyPreconditioner(const Eigen::VectorXd& r, const Laplacian& A, Eigen::VectorXd& z, const Solver solver) const
-{
-    if (solver == CG)
-    {
-        z = r;
-        return;
-    }
-    const std::uint64_t N2 = _N*_N; 
-    const std::uint64_t N3 = _N*_N;
-
-    // Solve Lq = r
-    Eigen::VectorXd q = Eigen::VectorXd::Zero(z.size());
-    for (std::int64_t n = 0; n < z.size(); ++n)
-    {
-        const std::uint64_t m = n % N2;
-        const std::uint64_t i = m % _N;
-        const std::uint64_t j = m / _N;
-        const std::uint64_t k = n / N2;
-
-        const std::uint64_t indmi = (i-1)+j*_N+k*N2;
-        const std::uint64_t indmj = i+(j-1)*_N+k*N2;
-        const std::uint64_t indmk = i+j*_N+(k-1)*N2;
-
-        const double a = i > 0 ? A.plusi.coeff(indmi) * A.precon.coeff(indmi) * q.coeff(indmi) : 0;
-        const double b = j > 0 ? A.plusj.coeff(indmj) * A.precon.coeff(indmj) * q.coeff(indmj) : 0;
-        const double c = k > 0 ? A.plusk.coeff(indmk) * A.precon.coeff(indmk) * q.coeff(indmk) : 0;
-
-        const double t = r.coeff(n) - a - b - c;
-        q.coeffRef(n) = t * A.precon.coeff(n);
-    }
-
-    // Solve L'z = q
-    for (std::int64_t n = z.size()-1; n >= 0; --n)
-    {
-        const std::uint64_t m = n % N2;
-        const std::uint64_t i = m % _N;
-        const std::uint64_t j = m / _N;
-        const std::uint64_t k = n / N2;
-
-        const std::uint64_t indpi = (i+1)+j*_N+k*N2;
-        const std::uint64_t indpj = i+(j+1)*_N+k*N2;
-        const std::uint64_t indpk = i+j*_N+(k+1)*N2;
-
-        const double a = indpi < N3 ? z.coeff(indpi) : 0;
-        const double b = indpj < N3 ? z.coeff(indpj) : 0;
-        const double c = indpk < N3 ? z.coeff(indpk) : 0;
-
-        const double prec = A.precon.coeff(n);
-        const double t = q.coeff(n) - A.plusi.coeff(n) * prec * a
-                                    - A.plusj.coeff(n) * prec * b
-                                    - A.plusk.coeff(n) * prec * c;
-        z.coeffRef(n) = t * prec;
-    }
-}
-
-void Fluids::ConjugateGradient(const Laplacian& A, Eigen::VectorXd& x, const Eigen::VectorXd& b)
-{
-    const std::uint64_t diagSize = A.diag.size();
-
-#ifdef DEBUG
-    Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> lltOfA(A.A);
-    if(lltOfA.info() == Eigen::NumericalIssue)
-    {
-        ERROR("DEBUG: Numerical Issue on the A matrix");
-    }
-#endif
-
-    // Solving Ap = b
-    Eigen::VectorXd r = b;
-    if (r.isZero(0))
-    {
-        x = b;
-        return;
-    }
-    x = Eigen::VectorXd::Zero(diagSize);
-    
-    Eigen::VectorXd z = x;
-    applyPreconditioner(r, A, z, _solverType);
-    Eigen::VectorXd s = z;
-    double sig = z.dot(r);
-
-    for (std::uint64_t i = 0; i < static_cast<std::uint64_t>(b.size()); ++i)
-    {
-        z = A.A * s;
-        const double alpha = sig / s.dot(z);
-        x = x + alpha * s;
-        r = r - alpha * z;
-        if (r.lpNorm<Eigen::Infinity>() < 10e-5)
-        {
-            break;
-        }
-        applyPreconditioner(r, A, z, _solverType);
-        const double signew = z.dot(r);
-        const double beta = signew / sig;
-        s = z + beta * s;
-        sig = signew;
-    }
 }
 
 void Fluids::project(Field<double,std::uint16_t>& X, Field<double,std::uint16_t>& Y)
@@ -521,7 +393,7 @@ void Fluids::project(Field<double,std::uint16_t>& X, Field<double,std::uint16_t>
         setAMatrices(laplacian);
         setPrecon(laplacian);
         
-        ConjugateGradient(laplacian, x, b);
+        ConjugateGradient(laplacian, x, b, _solverType);
 
         std::for_each(std::execution::par_unseq, _activeCells.begin(), _activeCells.end(),
         [&](const auto& elem)
@@ -538,6 +410,7 @@ void Fluids::project(Field<double,std::uint16_t>& X, Field<double,std::uint16_t>
             }
 
             X(i,j) -= 0.5*_N*(x.coeffRef(label-1) - idec);
+            X.set(i,j,true);
 
             double jdec = 0;
             auto testj = _activeCells.find(hash(i,j-1));
@@ -547,6 +420,7 @@ void Fluids::project(Field<double,std::uint16_t>& X, Field<double,std::uint16_t>
             }
 
             Y(i,j) -= 0.5*_N*(x.coeffRef(label-1) - jdec);
+            Y.set(i,j,true);
         });
 
         setBnd(X, 1);
@@ -599,7 +473,8 @@ void Fluids::updateTexture()
 		    texture[it*3+2] = static_cast<std::uint8_t>(std::clamp(value, 0.0, 255.0));
             sum += value;
             */
-            const double implicit = _implicit(i,j);
+            //const double implicit = _grid._surface(i,j);
+            const double implicit = _activeCells.find(hash(i,j)) != _activeCells.end() ? -255 : 255;
             _texture[it*3] = 0;
             _texture[it*3+1] = 0;
             _texture[it*3+2] = 0;
@@ -614,15 +489,6 @@ void Fluids::updateTexture()
                 _texture[it*3+1] = std::clamp(implicit*p, 0.0, 255.0);
                 _texture[it*3+0] = std::clamp(implicit*p, 0.0, 255.0);
             }
-            /*
-            const std::uint64_t m = i % N32;
-            const std::uint64_t x = m % (N + 2);
-            const std::uint64_t y = m / (N + 2);
-            double gO = gradLength(fluid, fluid.implicitFunctionFieldPrev, x, y);
-            texture[i*3] = std::clamp(gO*128, 0.0, 255.0);
-            texture[i*3+1] = 0;
-            texture[i*3+2] = 0;
-            */
             it++;
        }
 	}
@@ -684,7 +550,6 @@ void Fluids::writeVolumeFile([[maybe_unused]] const std::uint64_t iteration)
 
 void Fluids::initCG()
 {
-    INFO("Start to initialize Conjugate Gradient matrices.");
     const std::uint64_t N3 = _N*_N;
     const std::uint64_t N31 = (_N+1)*_N;
 
@@ -799,123 +664,16 @@ void Fluids::initCG()
     _laplacianDiffuse.A = ADiffuse;
     setAMatrices(_laplacianDiffuse);
     setPrecon(_laplacianDiffuse);
-
-    INFO("Conjugate Gradient matrices are initialized.");
-}
-
-void Fluids::setPrecon(Laplacian& A) const
-{
-    const std::uint64_t N3 = A.A.rows();
-    const std::uint64_t N2 = A.A.rows(); // TEMP
-    A.precon = Eigen::VectorXd::Zero(N3);
-    #pragma omp parallel for
-    for (std::uint32_t n = 0; n < N3; ++n)
-    {
-        const std::uint32_t m = n % N2;
-        const std::uint16_t i = m % _N;
-        const std::uint16_t j = m / _N;
-        const std::uint16_t k = n / N2;
-        const std::uint32_t indmi = (i-1)+j*_N+k*N2;
-        const std::uint32_t indmj = i+(j-1)*_N+k*N2;
-        const std::uint32_t indmk = i+j*_N+(k-1)*N2;
-
-        double a = 0;
-        double b = 0;
-        double c = 0;
-
-        double i0 = 0;
-        double i1 = 0;
-        double i2 = 0;
-        double i3 = 0;
-        double j0 = 0;
-        double j1 = 0;
-        double j2 = 0;
-        double j3 = 0;
-        double k0 = 0;
-        double k1 = 0;
-        double k2 = 0;
-        double k3 = 0;
-
-        if (i > 0)
-        {
-            a = std::pow(A.plusi.coeff(indmi) * A.precon.coeff(indmi), 2);
-            i0 = A.plusi.coeff(indmi);
-            i1 = A.plusj.coeff(indmi);
-            i2 = A.plusk.coeff(indmi);
-            i3 = std::pow(A.precon.coeff(indmi), 2);
-        }
-        if (j > 0)
-        {
-            b = std::pow(A.plusj.coeff(indmj) * A.precon.coeff(indmj), 2);
-            j0 = A.plusj.coeff(indmj);
-            j1 = A.plusi.coeff(indmj);
-            j2 = A.plusk.coeff(indmj);
-            j3 = std::pow(A.precon.coeff(indmj), 2);
-        }
-        if (k > 0)
-        {
-            c = std::pow(A.plusk.coeff(indmk) * A.precon.coeff(indmk), 2);
-            k0 = A.plusk.coeff(indmk);
-            k1 = A.plusi.coeff(indmk);
-            k2 = A.plusj.coeff(indmk);
-            k3 = std::pow(A.precon.coeff(indmk), 2);
-        }
-
-        double e = A.diag.coeff(n) - a - b - c 
-            - 0.97 * (
-                    i0 * (i1 + i2) * i3
-                +   j0 * (j1 + j2) * j3
-                +   k0 * (k1 + k2) * k3
-            );
-
-        if (e < 0.25 * A.diag.coeff(n))
-        {
-            e = A.diag.coeff(n);
-        }
-        A.precon.coeffRef(n) = 1/std::sqrt(e);
-    }
-}
-
-void Fluids::setAMatrices(Laplacian& laplacian) const
-{
-    const std::uint64_t N3 = laplacian.A.rows();
-    const std::uint64_t N2 = laplacian.A.rows(); // TEMP
-    laplacian.diag = Eigen::VectorXd::Zero(N3);
-    laplacian.plusi = Eigen::VectorXd::Zero(N3);
-    laplacian.plusj = Eigen::VectorXd::Zero(N3);
-    laplacian.plusk = Eigen::VectorXd::Zero(N3);
-
-    #pragma omp parallel for
-    for (std::uint32_t n = 0; n < N3; ++n)
-    {
-        const std::uint32_t m = n % N2;
-        const std::uint16_t i = m % _N;
-        const std::uint16_t j = m / _N;
-        const std::uint16_t k = n / N2;
-        laplacian.diag.coeffRef(n) = laplacian.A.coeff(n, n);
-        if (n+1 < N3 && i+1 < _N)
-        {
-            laplacian.plusi[n] = laplacian.A.coeff(n, (i+1)+j*_N+k*N2);
-        }
-        if (n+_N < N3)
-        {
-            laplacian.plusj[n] = laplacian.A.coeff(n, i+(j+1)*_N+k*N2);
-        }
-        if (n+N2 < N3)
-        {
-            laplacian.plusk[n] = laplacian.A.coeff(n, i+j*_N+(k+1)*N2);
-        }
-    }
 }
 
 const std::vector<double>& Fluids::X() const
 {
-    return _fieldX.data();
+    return _grid._U.data();
 }
 
 const std::vector<double>& Fluids::Y() const
 {
-    return _fieldY.data();
+    return _grid._V.data();
 }
 
 const std::uint16_t& Fluids::N() const

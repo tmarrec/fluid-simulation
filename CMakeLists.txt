@@ -75,6 +75,9 @@ ADD_EXECUTABLE (${PROJECT_NAME}
     # Fluids
     src/Fluids.h
     src/Fluids.cpp
+    src/ConjugateGradient.h
+    src/ConjugateGradient.cpp
+    src/StaggeredGrid.h
 
     # Engine
     src/Simulation.h
