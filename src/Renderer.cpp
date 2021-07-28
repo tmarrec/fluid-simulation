@@ -71,7 +71,6 @@ void Renderer::writeImg(const std::uint32_t iteration) const
     path += ".png";
     stbi_write_png(path.c_str(), _windowInfos.x, _windowInfos.y, nbChannels, buffer.data(), stride);
     stbi_write_png("last.png", _windowInfos.x, _windowInfos.y, nbChannels, buffer.data(), stride);
-
 }
 
 void Renderer::drawMesh(Mesh& mesh) const

@@ -5,45 +5,61 @@
 #include <Eigen/Sparse>
 #include <iomanip>
 
+enum CellPosition
+{
+    UNKNOWN,
+    OUTSIDE,
+    OUTSIDE_EXTRAPOLATED,
+    INSIDE,
+};
+
+struct Cell
+{
+    std::uint16_t i;
+    std::uint16_t j;
+    std::uint64_t label;
+};
+
 template<typename T, typename U>
 class Field
 {
 public:
-    Field(U Xsize, U Ysize) : _Xsize(Xsize), _Ysize(Ysize)
+    explicit Field(U Xsize, U Ysize) : _Xsize(Xsize), _Ysize(Ysize)
     {
         _grid.resize(Xsize*Ysize);
-        _gridSet.resize(Xsize*Ysize);
+        _pos.resize(Xsize*Ysize);
         for (std::uint64_t it = 0; it < Xsize*Ysize; ++it)
         {
             _grid[it] = 0;
-            _gridSet[it] = false;
+            _pos[it] = UNKNOWN;
         }
         _maxIt = Xsize*Ysize;
     }
-            T& operator()(const U idx)                                  { return _grid[idx]; }
-    const   T& operator()(const U idx)                          const   { return _grid[idx]; }
+            T& operator()(const std::uint64_t idx)                      { return _grid[idx]; }
+    const   T& operator()(const std::uint64_t idx)              const   { return _grid[idx]; }
             T& operator()(const U i, const U j)                         { return _grid[idx(i,j)]; }
     const   T& operator()(const U i, const U j)                 const   { return _grid[idx(i,j)]; }
     const   U& x()                                              const   { return _Xsize; }
     const   U& y()                                              const   { return _Ysize; }
     const   std::uint64_t& maxIt()                              const   { return _maxIt; }
     const   std::vector<T>& data()                              const   { return _grid; }
-            bool isSet(const U i, const U j)                    const   { return _gridSet[idx(i,j)]; }
-            void set(const U i, const U j, const bool value)            { _gridSet[idx(i,j)] = value; }
-            void set(const U idx, const bool value)                     { _gridSet[idx] = value; }
+    const   CellPosition& pos(const U i, const U j)             const   { return _pos[idx(i,j)]; }
+            CellPosition& pos(const U i, const U j)                     { return _pos[idx(i,j)]; }
+            CellPosition& pos(const std::uint64_t idx)                  { return _pos[idx]; }
+            bool checked(const U i, const U j)                  const   { return _pos[idx(i,j)] == INSIDE || _pos[idx(i,j)] == OUTSIDE_EXTRAPOLATED; }
             void reset()
             {
                 std::fill(_grid.begin(), _grid.end(), 0.0);
                 for (std::uint64_t it = 0; it < _maxIt; ++it)
                 {
-                    set(it, false);
+                    pos(it) = UNKNOWN;
                 }
             };
-            void resetBool()
+            void resetPos()
             {
                 for (std::uint64_t it = 0; it < _maxIt; ++it)
                 {
-                    set(it, false);
+                    pos(it) = UNKNOWN;
                 }
             };
             void setFromVec(const Eigen::VectorXd& v)
@@ -89,17 +105,21 @@ public:
 private:
     std::uint64_t _maxIt;
     std::vector<T> _grid;
-    std::vector<bool> _gridSet;
+    std::vector<CellPosition> _pos;
     U _Xsize;
     U _Ysize;
 };
 
-template<typename T, typename U>
+template<typename T, typename R>
 class StaggeredGrid
 {
 public:
-    StaggeredGrid(U N) : _N(N) {}
-    inline const T getU(const U i, const U j, const std::uint8_t b) const
+    explicit StaggeredGrid(R N) : _N(N) {}
+    inline std::uint64_t hash(const std::uint16_t i, const std::uint16_t j) const
+    {
+        return (i << 16) | j;
+    }
+    inline const T getU(const R i, const R j, const std::uint8_t b) const
     {
         switch (b)
         {
@@ -127,8 +147,7 @@ public:
         }
         ERROR("b should be either 0, 1 or 2");
     }
-
-    inline const T getV(const U i, const U j, const std::uint8_t b) const
+    inline const T getV(const R i, const R j, const std::uint8_t b) const
     {
         switch (b)
         {
@@ -156,16 +175,34 @@ public:
         }
         ERROR("b should be either 0, 1 or 2");
     }
+    void tagActiveCells()
+    {
+        _activeCells.clear();
+        std::uint64_t label = 1;
+        for (std::uint16_t j = 0; j < _surface.y(); ++j)
+        {
+            for (std::uint16_t i = 0; i < _surface.x(); ++i)
+            {
+                if (_surface(i,j) < 0.0)
+                {
+                    _activeCells.insert({hash(i,j), {i,j,label}});
+                    label++;
+                }
+            }
+        }
+    }
 
-    U _N;
-    Field<T, U> _substance {_N, _N};
-    Field<T, U> _surface {_N, _N};
-    Field<T, U> _U {static_cast<std::uint16_t>(_N+1), _N};
-    Field<T, U> _V {_N, static_cast<std::uint16_t>(_N+1)};
+    R _N;
+    Field<T, R> _substance {_N, _N};
+    Field<T, R> _surface {_N, _N};
+    Field<T, R> _U {static_cast<std::uint16_t>(_N+1), _N};
+    Field<T, R> _V {_N, static_cast<std::uint16_t>(_N+1)};
 
-    Field<T, U> _substancePrev {_N, _N};
-    Field<T, U> _surfacePrev {_N, _N};
-    Field<T, U> _UPrev {static_cast<std::uint16_t>(_N+1), _N};
-    Field<T, U> _VPrev {_N, static_cast<std::uint16_t>(_N+1)};
+    Field<T, R> _substancePrev {_N, _N};
+    Field<T, R> _surfacePrev {_N, _N};
+    Field<T, R> _UPrev {static_cast<std::uint16_t>(_N+1), _N};
+    Field<T, R> _VPrev {_N, static_cast<std::uint16_t>(_N+1)};
+
+    std::unordered_map<std::uint64_t, Cell> _activeCells;
 private:
 };
