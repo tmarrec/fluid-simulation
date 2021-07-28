@@ -9,17 +9,10 @@
 #include <algorithm>
 #include <execution>
 
-struct Cell
-{
-    std::uint16_t i;
-    std::uint16_t j;
-    std::uint64_t label;
-};
-
 class Fluids
 {
 public:
-    Fluids();
+    explicit Fluids();
     void update([[maybe_unused]] std::uint64_t iteration);
     const std::vector<std::uint8_t>& texture() const;
     const std::vector<double>& X() const;
@@ -27,14 +20,15 @@ public:
     const std::uint16_t& N() const;
 
 private:
+    void step();
     void vStep();
     void sStep();
     void levelSetStep();
 
     void diffuse(Field<double,std::uint16_t>& F, const Field<double,std::uint16_t>& Fprev, const std::uint8_t b, const Laplacian& A);
 
-    inline void advect(Field<double,std::uint16_t>& F, const Field<double,std::uint16_t>& Fprev, const std::uint8_t b) const;
-    void project(Field<double,std::uint16_t>& X, Field<double,std::uint16_t>& Y);
+    inline void advect(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>& Fprev, const std::uint8_t b) const;
+    void project();
 
     void setBnd(Field<double,std::uint16_t>& F, const std::uint8_t b) const;
 
@@ -47,19 +41,17 @@ private:
 
     void extrapolate(Field<double,std::uint16_t>& F);
 
-    inline std::uint64_t hash(const std::uint16_t i, const std::uint16_t j) const;
-
-    void initCG();
+    void pressureMatrix(Laplacian& A, Eigen::VectorXd& b) const;
 
     inline double interp(const Field<double,std::uint16_t>& F, double x, double y) const;
 
-    void setActiveCells();
+    inline double pressureAt(const std::uint16_t i, const std::uint16_t j, const Eigen::VectorXd x, const std::uint64_t l) const;
 
     std::vector<glm::vec2> particles {};
 
-    constexpr static const std::uint16_t _N = 65;
+    constexpr static const std::uint16_t _N = 19;
     constexpr static const double _viscosity = 1.15;
-    constexpr static const double _diffusion = 0.000;
+    constexpr static const double _diffusion = 1.000;
     constexpr static const double _dt = 0.0005;
     constexpr static const Solver _solverType = CG;
     constexpr static const Advection _advectionType = SEMI_LAGRANGIAN;
@@ -73,7 +65,6 @@ private:
 
     StaggeredGrid<double, std::uint16_t> _grid {_N};
 
-    std::unordered_map<std::uint64_t, Cell> _activeCells;
 };
 
 template<typename T>

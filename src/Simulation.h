@@ -35,7 +35,7 @@ private:
                 .scale = {1, 1, 1}
             }
     };
-    Fluids _fluid = {};
+    Fluids _fluid;
     FluidRenderer _fluidRenderer =
     {
 

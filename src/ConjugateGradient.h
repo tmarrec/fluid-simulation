@@ -19,3 +19,4 @@ void ConjugateGradient(const Laplacian& A, Eigen::VectorXd& x, const Eigen::Vect
 void applyPreconditioner(const Eigen::VectorXd& r, const Laplacian& A, Eigen::VectorXd& z, const Solver solver);
 void setPrecon(Laplacian& A);
 void setAMatrices(Laplacian& laplacian);
+void initLaplacians(const std::uint16_t N, const double dt, const double viscosity, const double diffusion, Laplacian& laplacianViscosityX, Laplacian& laplacianViscosityY, Laplacian& laplacianProject, Laplacian& laplacianDiffuse);
