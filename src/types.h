@@ -84,7 +84,9 @@ struct FluidRenderer
     Transform transform;
     Mesh mesh;
     Mesh meshVec;
+    Mesh meshGrid;
     Material material;
     Material materialVec;
+    Material materialGrid;
 };
 

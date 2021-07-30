@@ -18,6 +18,7 @@ private:
 	void mainLoop();
     void initSimulation();
     void updateMeshVec();
+    void updateMeshGrid();
 
 	Window _window = {};
     Renderer _renderer = {};
@@ -74,7 +75,15 @@ private:
             .indices = {},
             .renderMode = LINES,
         },
+        .meshGrid = Mesh
+        {
+            .vertices = {},
+            .normals = {},
+            .indices = {},
+            .renderMode = LINES,
+        },
         .material = {},
         .materialVec = {},
+        .materialGrid = {},
     };
 };

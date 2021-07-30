@@ -78,6 +78,50 @@ public:
                 }
                 return v;
             }
+            inline double gradLength(const U i, const U j)      const
+            {
+                double gradI = 0;
+                double gradJ = 0;
+                if (i == 0)
+                {
+                    gradI = operator()(1,j) - operator()(0,j);
+                }
+                else if (i == _Xsize-1)
+                {
+                    gradI = operator()(_Xsize-1,j) - operator()(_Xsize-2,j);
+                }
+                else
+                {
+                    if (std::abs(operator()(i+1,j)) < std::abs(operator()(i-1,j)))
+                    {
+                        gradI = operator()(i,j) - operator()(i+1,j);
+                    }
+                    else
+                    {
+                        gradI = operator()(i-1,j) - operator()(i,j);
+                    }
+                }
+                if (j == 0)
+                {
+                    gradJ = operator()(i,1) - operator()(i,0);
+                }
+                else if (j == _Ysize-1)
+                {
+                    gradJ = operator()(i,_Ysize-1) - operator()(i,_Ysize-2);
+                }
+                else
+                {
+                    if (std::abs(operator()(i,j+1)) < std::abs(operator()(i,j-1)))
+                    {
+                        gradJ = operator()(i,j) - operator()(i,j+1);
+                    }
+                    else
+                    {
+                        gradJ = operator()(i,j-1) - operator()(i,j);
+                    }
+                }
+                return std::sqrt(std::pow(gradI, 2)+std::pow(gradJ, 2));
+            }
 
     friend std::ostream& operator<<(std::ostream& os, const Field& obj)
     {
