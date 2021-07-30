@@ -17,6 +17,7 @@ public:
     const std::vector<std::uint8_t>& texture() const;
     const std::vector<double>& X() const;
     const std::vector<double>& Y() const;
+    bool isCellActive(std::uint16_t i, std::uint16_t j) const;
     const std::uint16_t& N() const;
 
 private:
@@ -35,7 +36,6 @@ private:
     void updateTexture();
 
     void reinitLevelSet(const std::uint64_t nbIte);
-    double gradLength(const Field<double,std::uint16_t>& F, const std::uint16_t i, const std::uint16_t j) const;
 
     void writeVolumeFile(const std::uint64_t iteration);
 
@@ -49,7 +49,7 @@ private:
 
     std::vector<glm::vec2> particles {};
 
-    constexpr static const std::uint16_t _N = 19;
+    constexpr static const std::uint16_t _N = 45;
     constexpr static const double _viscosity = 1.15;
     constexpr static const double _diffusion = 1.000;
     constexpr static const double _dt = 0.0005;

@@ -13,14 +13,14 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
     std::uint16_t N = _N/2;
 
     // LEVEL-SET Init
-    double r = 2.9;
+    double r = 9.9;
     if (iteration == 0)
     {
         glm::vec2 pt;
-        pt.x = N-(N/2.0);
+        pt.x = N-(N/2.3);
         pt.y = N;
         particles.emplace_back(pt);
-        pt.x = N+(N/2.0);
+        pt.x = N+(N/2.3);
         pt.y = N;
         particles.emplace_back(pt);
 
@@ -41,8 +41,9 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
     step();
 
     updateTexture();
-    
+
     std::cin.get();
+    
 }
 
 void Fluids::step()
@@ -103,7 +104,7 @@ void Fluids::step()
                 }
                 if (interp(_grid._surface, static_cast<double>(i)+0.5, j) < 0.0)
                 {
-                    _grid._U(i+1,j) = -4.1;
+                    _grid._U(i+1,j) = -4;
                 }
             }
         }
@@ -239,59 +240,13 @@ void Fluids::reinitLevelSet(const std::uint64_t nbIte)
         {
             for (std::uint16_t i = 0; i < _N; ++i)
             {
-                const double gO = gradLength(_grid._surface, i, j);
+                const double gO = _grid._surface.gradLength(i, j);
                 n(i,j) = _grid._surface(i,j) + (0.5 * dx * (- Ssf(i,j) * (gO - 1.0)));
             }
         }
         _grid._surface = n;
     }
 }
-
-double Fluids::gradLength(const Field<double,std::uint16_t>& F, const std::uint16_t i, const std::uint16_t j) const
-{
-    double gradI = 0;
-    double gradJ = 0;
-    if (i == 0)
-    {
-        gradI = F(1,j) - F(0,j);
-    }
-    else if (i == _N-1)
-    {
-        gradI = F(_N-1,j) - F(_N-2,j);
-    }
-    else
-    {
-        if (std::abs(F(i+1,j)) < std::abs(F(i-1,j)))
-        {
-            gradI = F(i,j) - F(i+1,j);
-        }
-        else
-        {
-            gradI = F(i-1,j) - F(i,j);
-        }
-    }
-    if (j == 0)
-    {
-        gradJ = F(i,1) - F(i,0);
-    }
-    else if (j == _N-1)
-    {
-        gradJ = F(i,_N-1) - F(i,_N-2);
-    }
-    else
-    {
-        if (std::abs(F(i,j+1)) < std::abs(F(i,j-1)))
-        {
-            gradJ = F(i,j) - F(i,j+1);
-        }
-        else
-        {
-            gradJ = F(i,j-1) - F(i,j);
-        }
-    }
-    return std::sqrt(std::pow(gradI, 2)+std::pow(gradJ, 2));
-}
-
 
 void Fluids::vStep()
 {
@@ -342,22 +297,6 @@ void Fluids::advect(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>&
 	setBnd(F, b);
 }
 
-inline double Fluids::pressureAt(const std::uint16_t i, const std::uint16_t j, const Eigen::VectorXd x, const std::uint64_t l) const
-{
-    double p = 0;
-    auto pCell = _grid._activeCells.find(_grid.hash(i,j));
-    if (pCell != _grid._activeCells.end())
-    {
-        p = x.coeffRef(pCell->second.label-1);
-    }
-    else
-    {
-        // Air-Liquid so we use ghost pressure
-        p = 0;
-    }
-    return p;
-}
-
 void Fluids::pressureMatrix(Laplacian& laplacian, Eigen::VectorXd& b) const
 {
     const double h = 1.0/_N;
@@ -401,6 +340,17 @@ void Fluids::pressureMatrix(Laplacian& laplacian, Eigen::VectorXd& b) const
     setPrecon(laplacian);
 }
 
+inline double Fluids::pressureAt(const std::uint16_t i, const std::uint16_t j, const Eigen::VectorXd x, const std::uint64_t l) const
+{
+    auto pCell = _grid._activeCells.find(_grid.hash(i,j));
+    if (pCell != _grid._activeCells.end())
+    {
+        return x.coeffRef(pCell->second.label-1);
+    }
+    // Air-Liquid so we use ghost pressure
+    return 0;
+}
+
 void Fluids::project()
 {
     if (_grid._activeCells.size() > 0)
@@ -418,7 +368,7 @@ void Fluids::project()
             const std::uint16_t i = elem.second.i; 
             const std::uint16_t j = elem.second.j; 
             const std::uint64_t label = elem.second.label; 
-            
+
             _grid._U(i,j) -= 0.5*_N*(pressureAt(i,j,x,label) - pressureAt(i-1,j,x,label));
             _grid._U(i+1,j) -= 0.5*_N*(pressureAt(i+1,j,x,label) - pressureAt(i,j,x,label));
 
@@ -487,9 +437,14 @@ void Fluids::updateTexture()
             }
             else
             {
+                _texture[it*3+0] = 0;
+                _texture[it*3+1] = 0;
+                _texture[it*3+2] = 0;
+                /*
                 _texture[it*3+0] = std::clamp(implicit*p, 0.0, 255.0);
                 _texture[it*3+1] = std::clamp(implicit*p, 0.0, 255.0);
                 _texture[it*3+2] = std::clamp(implicit*p, 0.0, 255.0);
+                */
             }
 
             /*
@@ -573,4 +528,8 @@ const std::uint16_t& Fluids::N() const
     return _N;
 }
 
+bool Fluids::isCellActive(std::uint16_t i, std::uint16_t j) const
+{
+    return _grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end();
+}
 
