@@ -32,9 +32,9 @@ void Simulation::mainLoop()
 	    _renderer.initTexture2D(_fluid.texture(), _fluidRenderer.material.texture);
         updateMeshVec();
         updateMeshGrid();
+        updateMeshGridBorder();
 
         _renderer.prePass();
-
 
         _renderer.applyMaterial(_fluidRenderer.material, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.mesh);
@@ -45,12 +45,17 @@ void Simulation::mainLoop()
         _renderer.applyMaterial(_fluidRenderer.materialGrid, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.meshGrid);
 
+        _renderer.setLineWidth(2);
+        _renderer.applyMaterial(_fluidRenderer.materialGridBorder, _camera, _fluidRenderer.transform);
+        _renderer.drawMesh(_fluidRenderer.meshGridBorder);
+        _renderer.setLineWidth(1);
+
         _renderer.endPass();
 
         //_renderer.writeImg(it);
         _window.swapBuffers();
-
 		_window.pollEvents();
+
         auto stopTime = std::chrono::high_resolution_clock::now();
         dt = std::chrono::duration<float, std::chrono::seconds::period>(stopTime - startTime).count();
         //std::cout << "Done in " << dt << " sec" << std::endl << std::endl;
@@ -99,7 +104,45 @@ void Simulation::updateMeshGrid()
     }
 
     _renderer.initMesh(mesh);
+}
 
+void Simulation::updateMeshGridBorder()
+{
+    Mesh& mesh = _fluidRenderer.meshGridBorder;
+    float z = 0.0011f;
+
+    mesh.vertices.clear();
+    mesh.indices.clear();
+
+    mesh.vertices.emplace_back(-0.5f);
+    mesh.vertices.emplace_back(z);
+    mesh.vertices.emplace_back(-0.5f);
+
+    mesh.vertices.emplace_back(0.5f);
+    mesh.vertices.emplace_back(z);
+    mesh.vertices.emplace_back(-0.5f);
+
+    mesh.vertices.emplace_back(0.5f);
+    mesh.vertices.emplace_back(z);
+    mesh.vertices.emplace_back(0.5f);
+
+    mesh.vertices.emplace_back(-0.5f);
+    mesh.vertices.emplace_back(z);
+    mesh.vertices.emplace_back(0.5f);
+
+    mesh.indices.emplace_back(0);
+    mesh.indices.emplace_back(1);
+
+    mesh.indices.emplace_back(1);
+    mesh.indices.emplace_back(2);
+
+    mesh.indices.emplace_back(2);
+    mesh.indices.emplace_back(3);
+
+    mesh.indices.emplace_back(3);
+    mesh.indices.emplace_back(0);
+
+    _renderer.initMesh(mesh);
 }
 
 void Simulation::updateMeshVec()
@@ -164,57 +207,6 @@ void Simulation::updateMeshVec()
             }
         }
     }
-    /*
-    for (float i = 0; i < N+1; ++i)
-    {
-        for (float j = 0; j < N+1; ++j)
-        {
-            // Arrow line drawing
-            glm::vec2 A = { ((i+0.5)/N)-0.5, ((j+0.5)/N)-0.5 };
-            mesh.vertices.emplace_back(A.x);
-            mesh.vertices.emplace_back(z);
-            mesh.vertices.emplace_back(A.y);
-
-            float u = 0.5*(X[i+j*(N+1)]+X[(i+1)+j*(N+1)]);
-            float v = 0.5*(Y[i+j*(N)]+Y[i+(j+1)*(N)]);
-
-            glm::vec2 uv = {u,v};
-            uv = glm::normalize(uv);
-            u = uv.x*0.5;
-            v = uv.y*0.5;
-
-            glm::vec2 B = { ((i+0.5+u)/N)-0.5, ((j+0.5+v)/N)-0.5 };
-
-            mesh.vertices.emplace_back(B.x);
-            mesh.vertices.emplace_back(z);
-            mesh.vertices.emplace_back(B.y);
-
-            // Arrow head drawing
-            float size = (1.0/N)/5;
-            float h = size*sqrtf(3), w = size;
-            glm::vec2 U = glm::normalize(B-A);
-            glm::vec2 V = glm::vec2(-U.y, U.x);
-            glm::vec2 v1 = B - h*U + w*V;
-            glm::vec2 v2 = B - h*U - w*V;
-
-            mesh.vertices.emplace_back(v1.x);
-            mesh.vertices.emplace_back(z);
-            mesh.vertices.emplace_back(v1.y);
-
-            mesh.vertices.emplace_back(v2.x);
-            mesh.vertices.emplace_back(z);
-            mesh.vertices.emplace_back(v2.y);
-
-            mesh.indices.emplace_back(it);
-            mesh.indices.emplace_back(it+1);
-            mesh.indices.emplace_back(it+1);
-            mesh.indices.emplace_back(it+2);
-            mesh.indices.emplace_back(it+1);
-            mesh.indices.emplace_back(it+3);
-            it += 4;
-        }
-    }
-    */
     _renderer.initMesh(mesh);
 }
 
@@ -256,7 +248,6 @@ void Simulation::initSimulation()
     };
     _fluidRenderer.materialVec = materialVec;
     _renderer.initMaterial(materialVec);
-    _renderer.initMesh(_fluidRenderer.meshVec);
 
     Shader shaderProgramGrid {};
     shaderProgramGrid.setVert("shaders/vert.vert");
@@ -275,7 +266,24 @@ void Simulation::initSimulation()
     };
     _fluidRenderer.materialGrid = materialGrid;
     _renderer.initMaterial(materialGrid);
-    _renderer.initMesh(_fluidRenderer.meshGrid);
+
+    Shader shaderProgramGridBorder {};
+    shaderProgramGridBorder.setVert("shaders/vert.vert");
+    shaderProgramGridBorder.setFrag("shaders/gridBorder.frag");
+    Material materialGridBorder = 
+    {
+        .shader = shaderProgramGridBorder,
+        .is2D = true,
+        .texCoords =
+        {
+            1.0f, 1.0f,
+            1.0f, 0.0f,
+            0.0f, 0.0f, 
+            0.0f, 1.0f
+        },
+    };
+    _fluidRenderer.materialGridBorder = materialGridBorder;
+    _renderer.initMaterial(materialGridBorder);
 
     // Set camera front
     glm::vec3 dir;

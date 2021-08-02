@@ -241,6 +241,7 @@ public:
     Field<T, R> _surface {_N, _N};
     Field<T, R> _U {static_cast<std::uint16_t>(_N+1), _N};
     Field<T, R> _V {_N, static_cast<std::uint16_t>(_N+1)};
+    Field<T, R> _pressure {_N, _N};
 
     Field<T, R> _substancePrev {_N, _N};
     Field<T, R> _surfacePrev {_N, _N};

@@ -19,6 +19,7 @@ private:
     void initSimulation();
     void updateMeshVec();
     void updateMeshGrid();
+    void updateMeshGridBorder();
 
 	Window _window = {};
     Renderer _renderer = {};
@@ -82,8 +83,16 @@ private:
             .indices = {},
             .renderMode = LINES,
         },
+        .meshGridBorder = Mesh
+        {
+            .vertices = {},
+            .normals = {},
+            .indices = {},
+            .renderMode = LINES,
+        },
         .material = {},
         .materialVec = {},
         .materialGrid = {},
+        .materialGridBorder = {},
     };
 };
