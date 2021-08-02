@@ -6,7 +6,7 @@ int main()
     PRINT_TITLE();
 
     WindowInfos windowInfos;
-    windowInfos.title = "cowboy-engine";
+    windowInfos.title = "fluid-simulation - Tristan Marrec";
     windowInfos.x = 1000;
     windowInfos.y = 1000;
 

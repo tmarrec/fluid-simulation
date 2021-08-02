@@ -25,7 +25,7 @@ void Renderer::prePass()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, _screenbuffer.FBO);
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.15f, 0.15f, 0.15f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -44,6 +44,7 @@ void Renderer::endPass() const
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
+    /* Only when rendering 3D fluids
     // Raymarching step
 	_raymarchingbuffer.shader->use();
     glEnable(GL_BLEND);
@@ -53,6 +54,7 @@ void Renderer::endPass() const
 	glBindTexture(GL_TEXTURE_2D, _raymarchingbuffer.texture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glDisable(GL_BLEND);
+    */
 }
 
 void Renderer::writeImg(const std::uint32_t iteration) const
@@ -315,4 +317,9 @@ void Renderer::freeMesh(Mesh& mesh) const
     glDeleteBuffers(1, &mesh.NBO);
     glDeleteBuffers(1, &mesh.EBO);
     glDeleteBuffers(1, &mesh.TBO);
+}
+
+void Renderer::setLineWidth(const float width) const
+{
+    glLineWidth(width);
 }

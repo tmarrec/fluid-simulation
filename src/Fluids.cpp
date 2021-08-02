@@ -13,14 +13,14 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
     std::uint16_t N = _N/2;
 
     // LEVEL-SET Init
-    double r = 9.9;
+    double r = 8.9;
     if (iteration == 0)
     {
         glm::vec2 pt;
-        pt.x = N-(N/2.3);
+        pt.x = N-(N/2.65);
         pt.y = N;
         particles.emplace_back(pt);
-        pt.x = N+(N/2.3);
+        pt.x = N+(N/2.65);
         pt.y = N;
         particles.emplace_back(pt);
 
@@ -362,12 +362,15 @@ void Fluids::project()
         pressureMatrix(A, b);
         ConjugateGradient(A, x, b, _solverType);
 
+        _grid._pressure.reset();
         std::for_each(_grid._activeCells.begin(), _grid._activeCells.end(),
         [&](const auto& elem)
         {
             const std::uint16_t i = elem.second.i; 
             const std::uint16_t j = elem.second.j; 
             const std::uint64_t label = elem.second.label; 
+
+            _grid._pressure(i,j) = x.coeff(label-1);
 
             _grid._U(i,j) -= 0.5*_N*(pressureAt(i,j,x,label) - pressureAt(i-1,j,x,label));
             _grid._U(i+1,j) -= 0.5*_N*(pressureAt(i+1,j,x,label) - pressureAt(i,j,x,label));
@@ -428,12 +431,21 @@ void Fluids::updateTexture()
             */
             //const double implicit = _grid._surface(i,j);
             const double implicit = _grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end() ? -255 : 255;
-            const std::uint64_t p = 50;
+            double p = 0;
+            double pneg = 0;
+            if (_grid._pressure(i,j) < 0)
+            {
+                pneg = _grid._pressure(i,j)*(-1);
+            }
+            else
+            {
+                p = _grid._pressure(i,j);
+            }
             if (implicit < 0)
             {
-                _texture[it*3+0] = 0;
-                _texture[it*3+1] = 0;
-                _texture[it*3+2] = std::clamp(-implicit*p, 0.0, 255.0);
+                _texture[it*3+0] = std::clamp(p*2000, 0.0, 255.0);
+                _texture[it*3+1] = std::clamp(pneg*2000, 0.0, 255.0);
+                _texture[it*3+2] = std::clamp(-implicit*50, 0.0, 255.0);
             }
             else
             {
@@ -441,9 +453,9 @@ void Fluids::updateTexture()
                 _texture[it*3+1] = 0;
                 _texture[it*3+2] = 0;
                 /*
-                _texture[it*3+0] = std::clamp(implicit*p, 0.0, 255.0);
-                _texture[it*3+1] = std::clamp(implicit*p, 0.0, 255.0);
-                _texture[it*3+2] = std::clamp(implicit*p, 0.0, 255.0);
+                _texture[it*3+0] = std::clamp(implicit*50, 0.0, 255.0);
+                _texture[it*3+1] = std::clamp(implicit*50, 0.0, 255.0);
+                _texture[it*3+2] = std::clamp(implicit*50, 0.0, 255.0);
                 */
             }
 

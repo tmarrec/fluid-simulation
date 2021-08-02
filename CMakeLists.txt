@@ -1,19 +1,13 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.18.4)
 
-PROJECT (cowboy-engine VERSION "0.1")
+PROJECT (fluid-simulation VERSION "0.1")
 
 SET (ALLOW_DUPLICATE_CUSTOM_TARGETS TRUE)
-
-OPTION (DEBUG_GUI "Debug interface" OFF)
-IF (DEBUG_GUI)
-    ADD_DEFINITIONS(-DDEBUG_GUI)
-    MESSAGE ("[cowboy-engine] Using debug GUI")
-ENDIF()
 
 OPTION (DISABLE_GUI "Disable window" OFF)
 IF (DISABLE_GUI)
     ADD_DEFINITIONS(-DDISABLE_GUI)
-    MESSAGE ("[cowboy-engine] GUI is disabled")
+    MESSAGE ("[fluid-simulation] GUI is disabled")
 ENDIF()
 
 # ╔═════════════════════════╗
@@ -70,7 +64,7 @@ ADD_EXECUTABLE (${PROJECT_NAME}
 	src/types.h
 
     # Main
- 	src/cowboy-engine.cpp
+ 	src/main.cpp
 
     # Fluids
     src/Fluids.h
