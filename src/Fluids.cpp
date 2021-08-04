@@ -1,5 +1,6 @@
 #include "Fluids.h"
 #include "ConjugateGradient.h"
+#include <iomanip>
 
 Fluids::Fluids()
 {
@@ -13,16 +14,16 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
     std::uint16_t N = _N/2;
 
     // LEVEL-SET Init
-    double r = 8.9;
+    double r = 4.5;
     if (iteration == 0)
     {
         glm::vec2 pt;
-        pt.x = N-(N/2.65);
+        pt.x = N-(N/2.0);
         pt.y = N;
         particles.emplace_back(pt);
-        pt.x = N+(N/2.65);
+        pt.x = N+(N/2.0);
         pt.y = N;
-        particles.emplace_back(pt);
+        //particles.emplace_back(pt);
 
         for (std::uint16_t j = 0; j < _N; ++j)
         {
@@ -38,16 +39,44 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
         }
     }
 
+    for (std::uint64_t j = 0; j < _N; ++j)
+    {
+        for (std::uint64_t i = 0; i < _N; ++i)
+        {
+            std::uint64_t shift = _N/2;
+            double x = (double)i;
+            double y = (double)j;
+            _grid._U(i,j) = 5;
+            //_grid._U(i,j) = (y-shift)*2;
+            //_grid._V(i,j) = -(x-shift)*2;
+        }
+    }
+
+    /*
+    std::cout << _grid._surface << std::endl;
+    std::cout << std::fixed << std::setprecision(2);
+    for (std::uint16_t j = 0; j < _grid._surface.y()-0; ++j)
+    {
+        for (std::uint16_t i = 0; i < _grid._surface.x()-0; ++i)
+        {
+            _grid._surface.gradLength(i,j);
+        }
+        std::cout << std::endl;
+    }
+    */
+
+
     step();
 
     updateTexture();
 
     std::cin.get();
-    
+    usleep(20000);
 }
 
 void Fluids::step()
 {
+    /*
     _grid._U.resetPos();
     _grid._V.resetPos();
     for (std::uint16_t j = 0; j < _grid._surface.y(); ++j)
@@ -79,6 +108,8 @@ void Fluids::step()
     // Extrapolate the velocity field
     extrapolate(_grid._U);
     extrapolate(_grid._V);
+    
+
 
     // Add external forces
     for (std::uint16_t j = 0; j < _grid._surface.y(); ++j)
@@ -109,14 +140,17 @@ void Fluids::step()
             }
         }
     }
+    */
 
     // Advect level-set everywhere using the fully extrapolated velocity
     advect(_grid._surface, _grid._surfacePrev, 0);
-    //reinitLevelSet(256);
+    redistancing(32, _grid._surface);
 
     // Advect velocity everywhere using the fully extrapolated velocity
+    /*
     advect(_grid._U, _grid._UPrev, 1);
     advect(_grid._V, _grid._VPrev, 2);
+    */
 
 
     // Tag the cells that are inside the liquids and assign integer labels
@@ -219,33 +253,91 @@ void Fluids::extrapolate(Field<double,std::uint16_t>& F)
     } while (nbNeg > 0);
 }
 
-void Fluids::reinitLevelSet(const std::uint64_t nbIte)
+void Fluids::redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t>& field)
 {
-    Field<double, std::uint16_t> Ssf = _grid._surface;
-    Field<double, std::uint16_t> n = _grid._surface;
+    std::cout << field << std::endl;
+    Field<double, std::uint16_t> Ssf = field;
+    Field<double, std::uint16_t> n = field;
     const double dx = 1.0/_N;
     // Init smoothing function
-    for (std::uint16_t j = 0; j < _N; ++j)
+    double sum = 0.0;
+    for (std::uint16_t j = 0; j < field.y()-0; ++j)
     {
-        for (std::uint16_t i = 0; i < _N; ++i)
+        for (std::uint16_t i = 0; i < field.x()-0; ++i)
         {
-            const double O0 = _grid._surface(i,j);
-            Ssf(i,j) = O0 / (std::sqrt(std::pow(O0, 2) + std::pow(dx, 2)));
+            sum += field.gradLength(i,j);
         }
     }
+    std::cout << "=== BEFORE ===" << std::endl;
+    std::cout << std::fixed << std::setprecision(2);
+    for (std::uint16_t j = 0; j < _grid._surface.y()-0; ++j)
+    {
+        for (std::uint16_t i = 0; i < _grid._surface.x()-0; ++i)
+        {
+            std::cout << _grid._surface.gradLength(i,j) << " ";
+        }
+        std::cout << std::endl;
+    }
+    for (std::uint16_t j = 0; j < field.y()-0; ++j)
+    {
+        for (std::uint16_t i = 0; i < field.x()-0; ++i)
+        {
+            const double O0 = field(i,j);
+
+            Ssf(i,j) = O0 / (std::sqrt(std::pow(O0, 2) + std::pow(dx, 2)));
+            std::cout << Ssf(i,j) << std::endl;
+            //Ssf(i,j) = O0 >= 0 ? 1.0 : -1.0;
+        }
+    }
+
     // Step forward in fictious time
     for (std::uint64_t relaxit = 0; relaxit < nbIte; ++relaxit)
     {
-        for (std::uint16_t j = 0; j < _N; ++j)
+        for (std::uint16_t j = 0; j < field.y(); ++j)
         {
-            for (std::uint16_t i = 0; i < _N; ++i)
+            for (std::uint16_t i = 0; i < field.x(); ++i)
             {
-                const double gO = _grid._surface.gradLength(i, j);
-                n(i,j) = _grid._surface(i,j) + (0.5 * dx * (- Ssf(i,j) * (gO - 1.0)));
+                /*
+                const double gO = field.gradLength(i, j);
+                n(i,j) = (0.5 * dx * (- Ssf(i,j) * (gO - 1.0))) + field(i,j);
+                */
+                if (std::abs(field(i,j)) < 3.5)
+                {
+                    const double gO = field.gradLength(i, j);
+                    n(i,j) = (0.5 * dx * (- Ssf(i,j) * (gO - 1.0))) + field(i,j);
+                }
+                else if (field(i,j) > 0)
+                {
+                    n(i,j) = 10000;
+                }
+                else if (field(i,j) < 0)
+                {
+                    n(i,j) = -10000;
+                }
             }
         }
-        _grid._surface = n;
+        field = n;
     }
+
+    std::cout << "=== AFTER ===" << std::endl;
+    std::cout << std::fixed << std::setprecision(2);
+    for (std::uint16_t j = 0; j < _grid._surface.y()-0; ++j)
+    {
+        for (std::uint16_t i = 0; i < _grid._surface.x()-0; ++i)
+        {
+            std::cout << _grid._surface.gradLength(i,j) << " ";
+        }
+        std::cout << std::endl;
+    }
+    double sum2 = 0.0;
+    for (std::uint16_t j = 0; j < field.y(); ++j)
+    {
+        for (std::uint16_t i = 0; i < field.x(); ++i)
+        {
+            sum2 += field.gradLength(i,j);
+        }
+    }
+    std::cout << (sum-sum2)/(_N*_N) << std::endl;
 }
 
 void Fluids::vStep()
@@ -288,9 +380,8 @@ void Fluids::advect(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>&
         {
             const double posx = static_cast<double>(i);
             const double posy = static_cast<double>(j);
-            const double x = std::clamp((posx-dt*_grid.getU(i,j,b)), 0.0, static_cast<double>(F.x()-1));
-            const double y = std::clamp((posy-dt*_grid.getV(i,j,b)), 0.0, static_cast<double>(F.y()-1));
-
+            const double x = std::clamp((posx-dt*_grid.getU(i,j,b)), 0.0, static_cast<double>(F.x()-0.0));
+            const double y = std::clamp((posy-dt*_grid.getV(i,j,b)), 0.0, static_cast<double>(F.y()-0.0));
             F(i,j) = interp(Fprev, x, y);
         }
     }
@@ -404,7 +495,7 @@ void Fluids::setBnd(Field<double,std::uint16_t>& F, const std::uint8_t b) const
         for (std::uint16_t i = 0; i < _N+1; ++i)
         {
             F(0,i) = F(1,i);
-            F(_N-1,i)= F(_N-2,i);
+            F(_N-1,i) = F(_N-2,i);
             if (i < _N)
             {
                 F(i,0) = -F(i,1);
@@ -429,8 +520,8 @@ void Fluids::updateTexture()
 		    texture[it*3+2] = static_cast<std::uint8_t>(std::clamp(value, 0.0, 255.0));
             sum += value;
             */
-            //const double implicit = _grid._surface(i,j);
-            const double implicit = _grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end() ? -255 : 255;
+            const double implicit = _grid._surface(i,j);
+            //const double implicit = _grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end() ? -255 : 255;
             double p = 0;
             double pneg = 0;
             if (_grid._pressure(i,j) < 0)
@@ -443,8 +534,8 @@ void Fluids::updateTexture()
             }
             if (implicit < 0)
             {
-                _texture[it*3+0] = std::clamp(p*2000, 0.0, 255.0);
-                _texture[it*3+1] = std::clamp(pneg*2000, 0.0, 255.0);
+                _texture[it*3+0] = std::clamp(p*6000, 0.0, 255.0) + (_grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end() ? 50 : 0);
+                _texture[it*3+1] = std::clamp(pneg*6000, 0.0, 255.0);
                 _texture[it*3+2] = std::clamp(-implicit*50, 0.0, 255.0);
             }
             else
@@ -452,16 +543,14 @@ void Fluids::updateTexture()
                 _texture[it*3+0] = 0;
                 _texture[it*3+1] = 0;
                 _texture[it*3+2] = 0;
-                /*
-                _texture[it*3+0] = std::clamp(implicit*50, 0.0, 255.0);
-                _texture[it*3+1] = std::clamp(implicit*50, 0.0, 255.0);
-                _texture[it*3+2] = std::clamp(implicit*50, 0.0, 255.0);
-                */
+                //_texture[it*3+0] = std::clamp(implicit*50, 0.0, 255.0);
+                //_texture[it*3+1] = std::clamp(implicit*50, 0.0, 255.0);
+                //_texture[it*3+2] = std::clamp(implicit*50, 0.0, 255.0);
             }
 
             /*
-            const double gO = gradLength(_grid._surface, i, j);
-            _texture[it*3] = std::clamp(gO*128, 0.0, 255.0);
+            const double gO = _grid._surface.gradLength(i, j);
+            _texture[it*3] = std::clamp(gO*96, 0.0, 255.0);
             _texture[it*3+1] = 0;
             _texture[it*3+2] = 0;
             */

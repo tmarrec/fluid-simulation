@@ -84,11 +84,11 @@ public:
                 double gradJ = 0;
                 if (i == 0)
                 {
-                    gradI = operator()(1,j) - operator()(0,j);
+                    gradI = operator()(0,j) - operator()(1,j);
                 }
                 else if (i == _Xsize-1)
                 {
-                    gradI = operator()(_Xsize-1,j) - operator()(_Xsize-2,j);
+                    gradI = operator()(_Xsize-2,j) - operator()(_Xsize-1,j);
                 }
                 else
                 {
@@ -103,11 +103,11 @@ public:
                 }
                 if (j == 0)
                 {
-                    gradJ = operator()(i,1) - operator()(i,0);
+                    gradJ = operator()(i,0) - operator()(i,1);
                 }
                 else if (j == _Ysize-1)
                 {
-                    gradJ = operator()(i,_Ysize-1) - operator()(i,_Ysize-2);
+                    gradJ = operator()(i,_Ysize-2) - operator()(i,_Ysize-1);
                 }
                 else
                 {

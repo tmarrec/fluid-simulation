@@ -25,7 +25,7 @@ void Renderer::prePass()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, _screenbuffer.FBO);
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -73,6 +73,7 @@ void Renderer::writeImg(const std::uint32_t iteration) const
     path += ".png";
     stbi_write_png(path.c_str(), _windowInfos.x, _windowInfos.y, nbChannels, buffer.data(), stride);
     stbi_write_png("last.png", _windowInfos.x, _windowInfos.y, nbChannels, buffer.data(), stride);
+    INFO("Frame " << iteration << " saved");
 }
 
 void Renderer::drawMesh(Mesh& mesh) const
@@ -156,14 +157,7 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
     {
         if (!material.is2D)
         {
-            glBindTexture(GL_TEXTURE_3D, material.texture);
-            _raymarchingbuffer.shader->use();
-            _raymarchingbuffer.shader->set2f("u_resolution", {_windowInfos.x, _windowInfos.y});
-            _raymarchingbuffer.shader->set3f("u_eyePos", camera.transform.position);
-            _raymarchingbuffer.shader->set3f("u_eyeFront", camera.front);
-            _raymarchingbuffer.shader->set1f("u_eyeFOV", camera.FOV);
-            _raymarchingbuffer.shader->set1f("u_absorption", material.absorption);
-            _raymarchingbuffer.shader->set3f("u_lightIntensity", material.lightIntensity);
+            ERROR("3D texture not implemented!");
         }
         else
         {
@@ -181,7 +175,7 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
     model = glm::rotate(model, glm::radians(transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::rotate(model, glm::radians(transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::scale(model, glm::vec3{transform.scale});
-    const glm::mat4 projection = glm::infinitePerspective(glm::radians(camera.FOV), static_cast<float>(_windowInfos.x)/_windowInfos.y, 0.1f);
+    const glm::mat4 projection = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f, 0.1f, 10.0f);
     const glm::mat4 view = glm::lookAt(camera.transform.position, camera.transform.position+camera.front, camera.up);
 
 
