@@ -26,10 +26,8 @@ private:
 
     Camera _camera = 
     {
-        .yaw = -90,
+        .yaw = -90-90-90,
         .pitch = -90,
-        .speed = 0.1f,
-        .FOV = 60,
         .transform = Transform
             {
                 .position = {0.0, 1, 0.0},

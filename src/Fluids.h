@@ -35,7 +35,7 @@ private:
 
     void updateTexture();
 
-    void reinitLevelSet(const std::uint64_t nbIte);
+    void redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t>& field);
 
     void writeVolumeFile(const std::uint64_t iteration);
 

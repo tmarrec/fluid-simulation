@@ -154,7 +154,7 @@ void Simulation::updateMeshVec()
 
     float z = 0.001f;
     std::uint64_t it = 0;
-    float reduce = 600.0f;
+    float reduce = 500.0f;
 
     mesh.vertices.clear();
     mesh.indices.clear();
@@ -172,6 +172,22 @@ void Simulation::updateMeshVec()
                 mesh.vertices.emplace_back(A.y);
 
                 glm::vec2 B = A + glm::vec2{size, 0.0f };
+                mesh.vertices.emplace_back(B.x);
+                mesh.vertices.emplace_back(z);
+                mesh.vertices.emplace_back(B.y);
+
+                mesh.indices.emplace_back(it);
+                mesh.indices.emplace_back(it+1);
+                it += 2;
+
+                size = float(X[(i+1)+j*(N+1)]/reduce);
+
+                A = { ((i+1)/N)-0.5f, ((j+0.5f)/N)-0.5f };
+                mesh.vertices.emplace_back(A.x);
+                mesh.vertices.emplace_back(z);
+                mesh.vertices.emplace_back(A.y);
+
+                B = A + glm::vec2{size, 0.0f };
                 mesh.vertices.emplace_back(B.x);
                 mesh.vertices.emplace_back(z);
                 mesh.vertices.emplace_back(B.y);
@@ -197,6 +213,22 @@ void Simulation::updateMeshVec()
                 mesh.vertices.emplace_back(A.y);
 
                 glm::vec2 B = A + glm::vec2{0.0f, size};
+                mesh.vertices.emplace_back(B.x);
+                mesh.vertices.emplace_back(z);
+                mesh.vertices.emplace_back(B.y);
+
+                mesh.indices.emplace_back(it);
+                mesh.indices.emplace_back(it+1);
+                it += 2;
+
+                size = float(Y[i+(j+1)*N]/reduce);
+
+                A = { ((i+0.5f)/N)-0.5f, ((j+1)/N)-0.5f };
+                mesh.vertices.emplace_back(A.x);
+                mesh.vertices.emplace_back(z);
+                mesh.vertices.emplace_back(A.y);
+
+                B = A + glm::vec2{0.0f, size};
                 mesh.vertices.emplace_back(B.x);
                 mesh.vertices.emplace_back(z);
                 mesh.vertices.emplace_back(B.y);

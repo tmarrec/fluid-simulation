@@ -7,8 +7,8 @@ int main()
 
     WindowInfos windowInfos;
     windowInfos.title = "fluid-simulation - Tristan Marrec";
-    windowInfos.x = 1000;
-    windowInfos.y = 1000;
+    windowInfos.x = 800;
+    windowInfos.y = 800;
 
 	Simulation sim;
 	sim.run(windowInfos);
