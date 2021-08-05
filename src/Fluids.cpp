@@ -14,16 +14,16 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
     std::uint16_t N = _N/2;
 
     // LEVEL-SET Init
-    double r = 4.5;
+    double r = 8;
     if (iteration == 0)
     {
         glm::vec2 pt;
-        pt.x = N-(N/2.0);
+        pt.x = N-(N/1.75);
         pt.y = N;
         particles.emplace_back(pt);
-        pt.x = N+(N/2.0);
+        pt.x = N+(N/1.75);
         pt.y = N;
-        //particles.emplace_back(pt);
+        particles.emplace_back(pt);
 
         for (std::uint16_t j = 0; j < _N; ++j)
         {
@@ -46,7 +46,7 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
             std::uint64_t shift = _N/2;
             double x = (double)i;
             double y = (double)j;
-            _grid._U(i,j) = 5;
+            //_grid._U(i,j) = 10;
             //_grid._U(i,j) = (y-shift)*2;
             //_grid._V(i,j) = -(x-shift)*2;
         }
@@ -70,13 +70,12 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 
     updateTexture();
 
-    std::cin.get();
-    usleep(20000);
+    //std::cin.get();
+    //usleep(30000);
 }
 
 void Fluids::step()
 {
-    /*
     _grid._U.resetPos();
     _grid._V.resetPos();
     for (std::uint16_t j = 0; j < _grid._surface.y(); ++j)
@@ -109,9 +108,8 @@ void Fluids::step()
     extrapolate(_grid._U);
     extrapolate(_grid._V);
     
-
-
     // Add external forces
+    double flow = 4.0;
     for (std::uint16_t j = 0; j < _grid._surface.y(); ++j)
     {
         for (std::uint16_t i = 0; i < _grid._surface.x(); ++i)
@@ -120,37 +118,34 @@ void Fluids::step()
             {
                 if (interp(_grid._surface, static_cast<double>(i)-0.5, j) < 0.0)
                 {
-                    _grid._U(i,j) = 4;
+                    _grid._U(i,j) = flow;
                 }
                 if (interp(_grid._surface, static_cast<double>(i)+0.5, j) < 0.0)
                 {
-                    _grid._U(i+1,j) = 4;
+                    _grid._U(i+1,j) = flow;
                 }
             }
             else if (i > _N/2)
             {
                 if (interp(_grid._surface, static_cast<double>(i)-0.5, j) < 0.0)
                 {
-                    _grid._U(i,j) = -4;
+                    _grid._U(i,j) = -flow;
                 }
                 if (interp(_grid._surface, static_cast<double>(i)+0.5, j) < 0.0)
                 {
-                    _grid._U(i+1,j) = -4;
+                    _grid._U(i+1,j) = -flow;
                 }
             }
         }
     }
-    */
 
     // Advect level-set everywhere using the fully extrapolated velocity
     advect(_grid._surface, _grid._surfacePrev, 0);
-    redistancing(32, _grid._surface);
+    //redistancing(64, _grid._surface);
 
     // Advect velocity everywhere using the fully extrapolated velocity
-    /*
     advect(_grid._U, _grid._UPrev, 1);
     advect(_grid._V, _grid._VPrev, 2);
-    */
 
 
     // Tag the cells that are inside the liquids and assign integer labels
@@ -285,7 +280,6 @@ void Fluids::redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t
             const double O0 = field(i,j);
 
             Ssf(i,j) = O0 / (std::sqrt(std::pow(O0, 2) + std::pow(dx, 2)));
-            std::cout << Ssf(i,j) << std::endl;
             //Ssf(i,j) = O0 >= 0 ? 1.0 : -1.0;
         }
     }
@@ -297,10 +291,9 @@ void Fluids::redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t
         {
             for (std::uint16_t i = 0; i < field.x(); ++i)
             {
-                /*
                 const double gO = field.gradLength(i, j);
                 n(i,j) = (0.5 * dx * (- Ssf(i,j) * (gO - 1.0))) + field(i,j);
-                */
+                /*
                 if (std::abs(field(i,j)) < 3.5)
                 {
                     const double gO = field.gradLength(i, j);
@@ -314,6 +307,7 @@ void Fluids::redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t
                 {
                     n(i,j) = -10000;
                 }
+                */
             }
         }
         field = n;
@@ -329,6 +323,8 @@ void Fluids::redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t
         }
         std::cout << std::endl;
     }
+    std::cout << "=== AFTER IMPLICIT ===" << std::endl;
+    std::cout << _grid._surface << std::endl; 
     double sum2 = 0.0;
     for (std::uint16_t j = 0; j < field.y(); ++j)
     {
@@ -524,6 +520,7 @@ void Fluids::updateTexture()
             //const double implicit = _grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end() ? -255 : 255;
             double p = 0;
             double pneg = 0;
+            /*
             if (_grid._pressure(i,j) < 0)
             {
                 pneg = _grid._pressure(i,j)*(-1);
@@ -532,10 +529,11 @@ void Fluids::updateTexture()
             {
                 p = _grid._pressure(i,j);
             }
-            if (implicit < 0)
+            */
+            if (implicit <= 0)
             {
-                _texture[it*3+0] = std::clamp(p*6000, 0.0, 255.0) + (_grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end() ? 50 : 0);
-                _texture[it*3+1] = std::clamp(pneg*6000, 0.0, 255.0);
+                _texture[it*3+0] = std::clamp(p*3000, 0.0, 255.0);
+                _texture[it*3+1] = std::clamp(pneg*3000, 0.0, 255.0);
                 _texture[it*3+2] = std::clamp(-implicit*50, 0.0, 255.0);
             }
             else
@@ -547,6 +545,12 @@ void Fluids::updateTexture()
                 //_texture[it*3+1] = std::clamp(implicit*50, 0.0, 255.0);
                 //_texture[it*3+2] = std::clamp(implicit*50, 0.0, 255.0);
             }
+            /*
+            if (_grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end())
+            {
+                _texture[it*3+0] = std::clamp(_texture[it*3+0] + 50.0, 0.0, 255.0);
+            }
+            */
 
             /*
             const double gO = _grid._surface.gradLength(i, j);

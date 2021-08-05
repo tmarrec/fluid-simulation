@@ -54,7 +54,7 @@ void Simulation::mainLoop()
 
         //_renderer.writeImg(it);
         _window.swapBuffers();
-		_window.pollEvents();
+        _window.pollEvents();
 
         auto stopTime = std::chrono::high_resolution_clock::now();
         dt = std::chrono::duration<float, std::chrono::seconds::period>(stopTime - startTime).count();

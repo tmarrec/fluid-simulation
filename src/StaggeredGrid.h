@@ -227,10 +227,33 @@ public:
         {
             for (std::uint16_t i = 0; i < _surface.x(); ++i)
             {
-                if (_surface(i,j) < 0.0)
+                if (_surface(i,j) <= 0.0)
                 {
-                    _activeCells.insert({hash(i,j), {i,j,label}});
-                    label++;
+                    if (_activeCells.find(hash(i,j)) == _activeCells.end())
+                    {
+                        _activeCells.insert({hash(i,j), {i,j,label}});
+                        label++;
+                    }
+                    if (i-1 >= 0 && _activeCells.find(hash(i-1,j)) == _activeCells.end())
+                    {
+                        _activeCells.insert({hash(i-1,j), {i-1,j,label}});
+                        label++;
+                    }
+                    if (j-1 >= 0 && _activeCells.find(hash(i,j-1)) == _activeCells.end())
+                    {
+                        _activeCells.insert({hash(i,j-1), {i,j-1,label}});
+                        label++;
+                    }
+                    if (i+1 < _surface.x() && _activeCells.find(hash(i+1,j)) == _activeCells.end())
+                    {
+                        _activeCells.insert({hash(i+1,j), {i+1,j,label}});
+                        label++;
+                    }
+                    if (j+1 < _surface.y() && _activeCells.find(hash(i,j+1)) == _activeCells.end())
+                    {
+                        _activeCells.insert({hash(i,j+1), {i,j+1,label}});
+                        label++;
+                    }
                 }
             }
         }
