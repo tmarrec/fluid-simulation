@@ -43,7 +43,6 @@ void Renderer::endPass() const
 	glBindTexture(GL_TEXTURE_2D, _screenbuffer.texture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-
     /* Only when rendering 3D fluids
     // Raymarching step
 	_raymarchingbuffer.shader->use();
