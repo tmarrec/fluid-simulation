@@ -39,7 +39,7 @@ private:
 
     void writeVolumeFile(const std::uint64_t iteration);
 
-    void extrapolate(Field<double,std::uint16_t>& F);
+    void extrapolate(Field<double,std::uint16_t>& F, std::uint16_t nbIte = 0);
 
     void pressureMatrix(Laplacian& A, Eigen::VectorXd& b) const;
 
@@ -49,7 +49,7 @@ private:
 
     std::vector<glm::vec2> particles {};
 
-    constexpr static const std::uint16_t _N = 45;
+    constexpr static const std::uint16_t _N = 128;
     constexpr static const double _viscosity = 1.15;
     constexpr static const double _diffusion = 1.000;
     constexpr static const double _dt = 0.0005;
@@ -64,6 +64,8 @@ private:
     std::vector<std::uint8_t> _texture = std::vector<std::uint8_t>(_N*_N*3);
 
     StaggeredGrid<double, std::uint16_t> _grid {_N};
+
+    std::uint64_t _iteration = 0;
 
 };
 
