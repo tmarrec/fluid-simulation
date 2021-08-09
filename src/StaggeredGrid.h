@@ -125,7 +125,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Field& obj)
     {
-        os << std::fixed << std::setprecision(2);
+        os << std::fixed << std::setprecision(0);
         for (U j = 0; j < obj._Ysize; ++j)
         {
             for (U i = 0; i < obj._Xsize; ++i)

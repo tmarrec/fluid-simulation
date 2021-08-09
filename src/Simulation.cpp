@@ -39,11 +39,13 @@ void Simulation::mainLoop()
         _renderer.applyMaterial(_fluidRenderer.material, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.mesh);
 
+        /*
         _renderer.applyMaterial(_fluidRenderer.materialVec, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.meshVec);
 
         _renderer.applyMaterial(_fluidRenderer.materialGrid, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.meshGrid);
+        */
 
         _renderer.setLineWidth(2);
         _renderer.applyMaterial(_fluidRenderer.materialGridBorder, _camera, _fluidRenderer.transform);
