@@ -125,7 +125,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Field& obj)
     {
-        os << std::fixed << std::setprecision(0);
+        os << std::fixed << std::setprecision(2);
         for (U j = 0; j < obj._Ysize; ++j)
         {
             for (U i = 0; i < obj._Xsize; ++i)
@@ -236,22 +236,22 @@ public:
                     }
                     if (i-1 >= 0 && _activeCells.find(hash(i-1,j)) == _activeCells.end())
                     {
-                        _activeCells.insert({hash(i-1,j), {i-1,j,label}});
+                        _activeCells.insert({hash(i-1,j), {static_cast<std::uint16_t>(i-1),j,label}});
                         label++;
                     }
                     if (j-1 >= 0 && _activeCells.find(hash(i,j-1)) == _activeCells.end())
                     {
-                        _activeCells.insert({hash(i,j-1), {i,j-1,label}});
+                        _activeCells.insert({hash(i,j-1), {i,static_cast<std::uint16_t>(j-1),label}});
                         label++;
                     }
                     if (i+1 < _surface.x() && _activeCells.find(hash(i+1,j)) == _activeCells.end())
                     {
-                        _activeCells.insert({hash(i+1,j), {i+1,j,label}});
+                        _activeCells.insert({hash(i+1,j), {static_cast<std::uint16_t>(i+1),j,label}});
                         label++;
                     }
                     if (j+1 < _surface.y() && _activeCells.find(hash(i,j+1)) == _activeCells.end())
                     {
-                        _activeCells.insert({hash(i,j+1), {i,j+1,label}});
+                        _activeCells.insert({hash(i,j+1), {i,static_cast<std::uint16_t>(j+1),label}});
                         label++;
                     }
                 }

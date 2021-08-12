@@ -54,7 +54,7 @@ void Simulation::mainLoop()
 
         _renderer.endPass();
 
-        //_renderer.writeImg(it);
+        _renderer.writeImg(it);
         _window.swapBuffers();
         _window.pollEvents();
 
@@ -156,7 +156,7 @@ void Simulation::updateMeshVec()
 
     float z = 0.001f;
     std::uint64_t it = 0;
-    float reduce = 500.0f;
+    float reduce = 400.0f;
 
     mesh.vertices.clear();
     mesh.indices.clear();
