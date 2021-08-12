@@ -46,10 +46,11 @@ private:
     inline double interp(const Field<double,std::uint16_t>& F, double x, double y) const;
 
     inline double pressureAt(const std::uint16_t i, const std::uint16_t j, const Eigen::VectorXd x, const std::uint64_t l) const;
+    inline double div(const std::uint16_t i, const std::uint16_t j) const;
 
     std::vector<glm::vec2> particles {};
 
-    constexpr static const std::uint16_t _N = 128;
+    constexpr static const std::uint16_t _N = 257;
     constexpr static const double _viscosity = 1.15;
     constexpr static const double _diffusion = 1.000;
     constexpr static const double _dt = 0.0005;
