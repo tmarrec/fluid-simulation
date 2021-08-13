@@ -15,16 +15,16 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
     std::uint16_t N = _N/2;
 
     // LEVEL-SET Init
-    double r = 24;
+    double r = 8;
     if (iteration == 0)
     {
         glm::vec2 pt;
-        pt.x = N-(N/2.1);
+        pt.x = N/*-(N/2.1)*/;
         pt.y = N/*-(N/2.0)*/;
-        particles.emplace_back(pt);
+        //particles.emplace_back(pt);
         pt.x = N+(N/2.1);
         pt.y = N;
-        particles.emplace_back(pt);
+        //particles.emplace_back(pt);
 
         for (std::uint16_t j = 0; j < _N; ++j)
         {
@@ -42,15 +42,10 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
                 else
                 {
                     _grid._surface(i,j) = 10;
-                    if (j >= 10 && j <= 12 && i > 2 && i < _N-3)
-                    {
-                        _grid._surface(i,j) = -10;
-                    }
                 }
             }
         }
 
-        /*
         for (std::uint16_t j = _N; j > _N-16; --j)
         {
             for (std::uint16_t i = 0; i < _N; ++i)
@@ -58,7 +53,6 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
                 _grid._surface(i,j) = -10;
             }
         }
-        */
     }
 
     for (std::uint64_t j = 0; j < _N; ++j)
@@ -79,10 +73,7 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 
     updateTexture();
 
-    if (iteration > 12)
-    {
-        //std::cin.get();
-    }
+    std::cin.get();
     //usleep(30000);
 }
 
@@ -100,24 +91,6 @@ void Fluids::step()
                 _grid._V.pos(i,j) = INSIDE;
                 _grid._U.pos(i+1,j) = INSIDE;
                 _grid._V.pos(i,j+1) = INSIDE;
-                /*
-                if (interp(_grid._surface, static_cast<double>(i)-0.5, j) < 0.0)
-                {
-                    _grid._U.pos(i,j) = INSIDE;
-                }
-                if (interp(_grid._surface, i, static_cast<double>(j)-0.5) < 0.0)
-                {
-                    _grid._V.pos(i,j) = INSIDE;
-                }
-                if (interp(_grid._surface, static_cast<double>(i)+0.5, j) < 0.0)
-                {
-                    _grid._U.pos(i+1,j) = INSIDE;
-                }
-                if (interp(_grid._surface, i, static_cast<double>(j)+0.5) < 0.0)
-                {
-                    _grid._V.pos(i,j+1) = INSIDE;
-                }
-                */
             }
         }
     }
@@ -126,46 +99,47 @@ void Fluids::step()
     extrapolate(_grid._U);
     extrapolate(_grid._V);
 
+    setBnd(_grid._U, 1);
+    setBnd(_grid._V, 2);
+
+    // Advect level-set everywhere using the fully extrapolated velocity
+    advect(_grid._surface, _grid._surfacePrev, 0);
+    redistancing(4, _grid._surface);
+
+    // Advect velocity everywhere using the fully extrapolated velocity
+    advect(_grid._U, _grid._UPrev, 1);
+    advect(_grid._V, _grid._VPrev, 2);
+
     // Add external forces
-    double flow = 6;
-    if (_iteration <= 16)
+    double flow = 0.025;
+    if (_iteration >= 0)
     {
         for (std::uint16_t j = 0; j < _grid._surface.y(); ++j)
         {
             for (std::uint16_t i = 0; i < _grid._surface.x(); ++i)
             {
-                if (_grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end())
+                if (_grid._surface(i,j) < 0.0)
                 {
-                    /*
                     _grid._V(i,j) += flow;
                     _grid._V(i,j+1) += flow;
-                    */
+                    /*
                     if (i < _N/2)
                     {
-                        _grid._U(i,j) = flow;
-                        _grid._U(i+1,j) = flow;
+                        _grid._U(i,j) += flow;
+                        _grid._U(i+1,j) += flow;
                     }
-                    else if (i > _N/2)
+                    else if (i > (_N/2))
                     {
-                        _grid._U(i,j) = -flow;
-                        _grid._U(i+1,j) = -flow;
+                        _grid._U(i,j) += -flow;
+                        _grid._U(i+1,j) += -flow;
                     }
+                    */
                 }
             }
         }
     }
     setBnd(_grid._U, 1);
     setBnd(_grid._V, 2);
-
-    // Advect level-set everywhere using the fully extrapolated velocity
-    advect(_grid._surface, _grid._surfacePrev, 0);
-    redistancing(2, _grid._surface);
-
-    // Advect velocity everywhere using the fully extrapolated velocity
-    /*
-    advect(_grid._U, _grid._UPrev, 1);
-    advect(_grid._V, _grid._VPrev, 2);
-    */
 
     // Tag the cells that are inside the liquids and assign integer labels
     _grid.tagActiveCells();
