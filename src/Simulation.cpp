@@ -39,13 +39,11 @@ void Simulation::mainLoop()
         _renderer.applyMaterial(_fluidRenderer.material, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.mesh);
 
-        /*
         _renderer.applyMaterial(_fluidRenderer.materialVec, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.meshVec);
 
         _renderer.applyMaterial(_fluidRenderer.materialGrid, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.meshGrid);
-        */
 
         _renderer.setLineWidth(2);
         _renderer.applyMaterial(_fluidRenderer.materialGridBorder, _camera, _fluidRenderer.transform);
@@ -54,7 +52,7 @@ void Simulation::mainLoop()
 
         _renderer.endPass();
 
-        _renderer.writeImg(it);
+        //_renderer.writeImg(it);
         _window.swapBuffers();
         _window.pollEvents();
 
@@ -156,7 +154,7 @@ void Simulation::updateMeshVec()
 
     float z = 0.001f;
     std::uint64_t it = 0;
-    float reduce = 400.0f;
+    float reduce = 40.0f;
 
     mesh.vertices.clear();
     mesh.indices.clear();
@@ -205,7 +203,7 @@ void Simulation::updateMeshVec()
     {
         for (float i = 0; i < N; ++i)
         {
-            if (_fluid.isCellActive(i,j))
+            //if (_fluid.isCellActive(i,j))
             {
                 float size = float(Y[i+j*N]/reduce);
 
