@@ -55,26 +55,12 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
         }
     }
 
-    for (std::uint64_t j = 0; j < _N; ++j)
-    {
-        for (std::uint64_t i = 0; i < _N; ++i)
-        {
-            std::uint64_t shift = _N/2;
-            double x = (double)i;
-            double y = (double)j;
-            //_grid._U(i,j) = 5;
-            //_grid._U(i,j) = (y-shift)*2;
-            //_grid._V(i,j) = -(x-shift)*2;
-        }
-    }
-
-
     step();
 
     updateTexture();
 
-    std::cin.get();
-    //usleep(30000);
+    //std::cin.get();
+    //usleep(7000);
 }
 
 void Fluids::step()
@@ -85,7 +71,7 @@ void Fluids::step()
     {
         for (std::uint16_t i = 0; i < _grid._surface.x(); ++i)
         {
-            if (_grid._surface(i,j) <= 0)
+            if (_grid._surface(i,j) < 0)
             {
                 _grid._U.pos(i,j) = INSIDE;
                 _grid._V.pos(i,j) = INSIDE;
@@ -99,19 +85,16 @@ void Fluids::step()
     extrapolate(_grid._U);
     extrapolate(_grid._V);
 
-    setBnd(_grid._U, 1);
-    setBnd(_grid._V, 2);
-
     // Advect level-set everywhere using the fully extrapolated velocity
     advect(_grid._surface, _grid._surfacePrev, 0);
-    redistancing(4, _grid._surface);
+    //redistancing(4, _grid._surface);
 
     // Advect velocity everywhere using the fully extrapolated velocity
     advect(_grid._U, _grid._UPrev, 1);
     advect(_grid._V, _grid._VPrev, 2);
 
     // Add external forces
-    double flow = 0.025;
+    double flow = 0.05;
     if (_iteration >= 0)
     {
         for (std::uint16_t j = 0; j < _grid._surface.y(); ++j)
@@ -122,24 +105,10 @@ void Fluids::step()
                 {
                     _grid._V(i,j) += flow;
                     _grid._V(i,j+1) += flow;
-                    /*
-                    if (i < _N/2)
-                    {
-                        _grid._U(i,j) += flow;
-                        _grid._U(i+1,j) += flow;
-                    }
-                    else if (i > (_N/2))
-                    {
-                        _grid._U(i,j) += -flow;
-                        _grid._U(i+1,j) += -flow;
-                    }
-                    */
                 }
             }
         }
     }
-    setBnd(_grid._U, 1);
-    setBnd(_grid._V, 2);
 
     // Tag the cells that are inside the liquids and assign integer labels
     _grid.tagActiveCells();
@@ -360,15 +329,16 @@ void Fluids::advect(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>&
 {
     Fprev = F;
 	const double dt = _dt * _N;
-    const double dx = 0.0;
     for (std::uint16_t j = 0; j < F.y(); ++j)
     {
         for (std::uint16_t i = 0; i < F.x(); ++i)
         {
             const double posx = static_cast<double>(i);
             const double posy = static_cast<double>(j);
-            const double x = std::clamp((posx-dt*_grid.getU(i,j,b)), 0.5, static_cast<double>(F.x())-1.5);
-            const double y = std::clamp((posy-dt*_grid.getV(i,j,b)), 0.5, static_cast<double>(F.y())-1.5);
+
+            const double x = std::clamp((posx-dt*_grid.getU(i,j,b)), 0.0, static_cast<double>(F.x()-0.5));
+            const double y = std::clamp((posy-dt*_grid.getV(i,j,b)), 0.0, static_cast<double>(F.y()-0.5));
+
             F(i,j) = interp(Fprev, x, y);
         }
     }
@@ -402,7 +372,16 @@ void Fluids::pressureMatrix(Laplacian& laplacian, Eigen::VectorXd& b) const
         {
             tripletListA.emplace_back(Eigen::Triplet<double>(label-1, nCell->second.label-1, -1));
         }
-        tripletListA.emplace_back(Eigen::Triplet<double>(label-1, label-1, 4));
+        std::uint8_t nonSolidNeib = 4;
+        if (i == 0)
+            nonSolidNeib--;
+        if (j == 0)
+            nonSolidNeib--;
+        if (i == _grid._surface.x()-1)
+            nonSolidNeib--;
+        if (j == _grid._surface.y()-1)
+            nonSolidNeib--;
+        tripletListA.emplace_back(Eigen::Triplet<double>(label-1, label-1, nonSolidNeib));
 
         b.coeffRef(label-1) = div(i,j);
     }); 
@@ -418,26 +397,22 @@ void Fluids::pressureMatrix(Laplacian& laplacian, Eigen::VectorXd& b) const
 inline double Fluids::div(const std::uint16_t i, const std::uint16_t j) const
 {
     const double h = 1.0/_N;
-    const double Udiv = _grid._U(i+1,j) - _grid._U(i,j);
-    const double Vdiv = _grid._V(i,j+1) - _grid._V(i,j);
-    return - (Udiv + Vdiv) * h;
+    double Udiv = _grid._U(i+1,j) - _grid._U(i,j);
+    double Vdiv = _grid._V(i,j+1) - _grid._V(i,j);
+    double rhs = - h * (Udiv + Vdiv);
+    return rhs;
 }
 
 inline double Fluids::pressureAt(const std::uint16_t i, const std::uint16_t j, const Eigen::VectorXd x, const std::uint64_t l) const
 {
-    auto pCell = _grid._activeCells.find(_grid.hash(i,j));
-    if (pCell != _grid._activeCells.end())
-    {
-        return x.coeffRef(pCell->second.label-1);
-    }
-    // Air-Liquid so we use ghost pressure
-    return 0;
+    return _grid._pressure(i,j);
 }
 
 void Fluids::project()
 {
     if (_grid._activeCells.size() > 0)
     {
+
         Eigen::VectorXd x(_grid._activeCells.size());
         Eigen::VectorXd b(_grid._activeCells.size());
 
@@ -446,6 +421,15 @@ void Fluids::project()
         ConjugateGradient(A, x, b, _solverType);
 
         _grid._pressure.reset();
+        std::for_each(_grid._activeCells.begin(), _grid._activeCells.end(),
+        [&](const auto& elem)
+        {
+            const std::uint16_t i = elem.second.i; 
+            const std::uint16_t j = elem.second.j; 
+            const std::uint64_t label = elem.second.label; 
+
+            _grid._pressure(i,j) = x.coeff(label-1);
+        });
 
         // Should optimize
         for (std::uint16_t j = 0; j < _grid._U.y(); ++j)
@@ -454,7 +438,18 @@ void Fluids::project()
             {
                 if (_grid._U.pos(i,j) == INSIDE)
                 {
-                    _grid._U(i,j) -= 0.5*_N*(pressureAt(i,j,x,0) - pressureAt(i-1,j,x,0));
+                    if (i == _grid._U.x()-1)
+                    {
+                        _grid._U(i,j) = -_grid._U(i-1,j);
+                    }
+                    else if (i == 0)
+                    {
+                        _grid._U(i,j) = -_grid._U(i+1,j);
+                    }
+                    else
+                    {
+                        _grid._U(i,j) -= 0.5*_N*(pressureAt(i,j,x,0) - pressureAt(i-1,j,x,0));
+                    }
                 }
             }
         }
@@ -464,33 +459,32 @@ void Fluids::project()
             {
                 if (_grid._V.pos(i,j) == INSIDE)
                 {
-                    _grid._V(i,j) -= 0.5*_N*(pressureAt(i,j,x,0) - pressureAt(i,j-1,x,0));
+                    if (j == _grid._V.y()-1)
+                    {
+                        _grid._V(i,j) = -_grid._V(i,j-1);
+                    }
+                    else if (j == 0)
+                    {
+                        _grid._V(i,j) = -_grid._V(i,j+1);
+                    }
+                    else
+                    {
+                        _grid._V(i,j) -= 0.5*_N*(pressureAt(i,j,x,0) - pressureAt(i,j-1,x,0));
+                    }
                 }
             }
         }
-        std::for_each(_grid._activeCells.begin(), _grid._activeCells.end(),
-        [&](const auto& elem)
-        {
-            const std::uint16_t i = elem.second.i; 
-            const std::uint16_t j = elem.second.j; 
-            const std::uint64_t label = elem.second.label; 
 
-            _grid._pressure(i,j) = x.coeff(label-1);
-
-            //_grid._U(i,j) -= 0.5*_N*(pressureAt(i,j,x,label) - pressureAt(i-1,j,x,label));
-            //_grid._U(i+1,j) -= 0.5*_N*(pressureAt(i+1,j,x,label) - pressureAt(i,j,x,label));
-
-            //_grid._V(i,j) -= 0.5*_N*(pressureAt(i,j,x,label) - pressureAt(i,j-1,x,label));
-            //_grid._V(i,j+1) -= 0.5*_N*(pressureAt(i,j+1,x,label) - pressureAt(i,j,x,label));
-        });
-
+        /*
         setBnd(_grid._U, 1);
         setBnd(_grid._V, 2);
+        */
     }
 }
 
 void Fluids::setBnd(Field<double,std::uint16_t>& F, const std::uint8_t b) const
 {
+    /*
     if (b == 1)
     {
         for (std::uint16_t i = 0; i < _N+1; ++i)
@@ -517,6 +511,7 @@ void Fluids::setBnd(Field<double,std::uint16_t>& F, const std::uint8_t b) const
             }
         }
     }
+    */
 }
 
 void Fluids::updateTexture()
@@ -534,9 +529,8 @@ void Fluids::updateTexture()
 		    texture[it*3+2] = static_cast<std::uint8_t>(std::clamp(value, 0.0, 255.0));
             sum += value;
             */
-            //const double implicit = _grid._surface(i,j);
-            //const double implicit = _grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end() ? -255 : 255;
-            const double implicit = _grid._surface(i,j) <= 0 ? -255 : 255;
+            const double implicit = _grid._surface(i,j);
+            //const double implicit = _grid._surface(i,j) <= 0 ? -255 : 255;
             double p = 0;
             double pneg = 0;
             if (_grid._pressure(i,j) < 0)
@@ -562,10 +556,12 @@ void Fluids::updateTexture()
                 //_texture[it*3+1] = std::clamp(implicit*50, 0.0, 255.0);
                 //_texture[it*3+2] = std::clamp(implicit*50, 0.0, 255.0);
             }
+            /*
             if (_grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end())
             {
                 _texture[it*3+0] = std::clamp(_texture[it*3+0] + 100.0, 0.0, 255.0);
             }
+            */
 
             /*
             const double gO = _grid._surface.gradLength(i, j);
@@ -586,51 +582,6 @@ const std::vector<std::uint8_t>& Fluids::texture() const
 
 void Fluids::writeVolumeFile([[maybe_unused]] const std::uint64_t iteration)
 {
-    /*
-    const std::uint64_t N = fluid.N;
-    const std::uint64_t N2 = N*N;
-    const std::uint64_t N22 = (N+2)*(N+2);
-    const std::uint64_t N3 = N*N*N;
-    std::string path = "result/";
-    path += std::to_string(iteration);
-    path += ".vol";
-    std::ofstream file (path, std::ios::binary | std::ofstream::trunc);
-    file << 'V';
-    file << 'O';
-    file << 'L';
-    write(file, (uint8_t)3); // Version
-    write(file, (int32_t)1); // Type
-    std::uint16_t n = fluid.N;
-    write(file, (int32_t)n);
-    write(file, (int32_t)n);
-    write(file, (int32_t)n);
-    write(file, (int32_t)1); // Nb channels
-    float xmin = -0.5f;
-    float ymin = -0.5f;
-    float zmin = -0.5f;
-    float xmax = 0.5f;
-    float ymax = 0.5f;
-    float zmax = 0.5f;
-    write(file, xmin);
-    write(file, ymin);
-    write(file, zmin);
-    write(file, xmax);
-    write(file, ymax);
-    write(file, zmax);
-
-    for (std::uint64_t n = 0; n < N3; ++n)
-    {
-        const std::uint32_t m = n % N2;
-        const std::uint16_t i = m % N + 1;
-        const std::uint16_t j = m / N + 1;
-        const std::uint16_t k = n / N2 + 1;
-        const std::uint64_t ind = i+j*(N+2)+k*N22;
-        float value = std::clamp(_substance(ind), 0.0, 255.0);
-        write(file, value);
-    }
-
-    file.close();
-    */
 }
 
 const std::vector<double>& Fluids::X() const
