@@ -50,7 +50,7 @@ private:
 
     std::vector<glm::vec2> particles {};
 
-    constexpr static const std::uint16_t _N = 33;
+    constexpr static const std::uint16_t _N = 35;
     constexpr static const double _viscosity = 1.15;
     constexpr static const double _diffusion = 1.000;
     constexpr static const double _dt = 0.0005;
