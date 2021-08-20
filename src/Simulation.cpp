@@ -39,18 +39,18 @@ void Simulation::mainLoop()
         _renderer.applyMaterial(_fluidRenderer.material, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.mesh);
 
+        /*
         _renderer.applyMaterial(_fluidRenderer.materialVec, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.meshVec);
 
         _renderer.applyMaterial(_fluidRenderer.materialGrid, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.meshGrid);
+        */
 
-        /*
         _renderer.setLineWidth(2);
         _renderer.applyMaterial(_fluidRenderer.materialGridBorder, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.meshGridBorder);
         _renderer.setLineWidth(1);
-        */
 
         _renderer.endPass();
 
@@ -156,7 +156,7 @@ void Simulation::updateMeshVec()
 
     float z = 0.001f;
     std::uint64_t it = 0;
-    float reduce = 200.0f;
+    float reduce = 10.0f;
 
     mesh.vertices.clear();
     mesh.indices.clear();
