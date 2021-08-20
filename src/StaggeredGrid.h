@@ -7,11 +7,16 @@
 
 enum CellPosition
 {
-    UNKNOWN,
-    OUTSIDE,
-    OUTSIDE_EXTRAPOLATED,
-    INSIDE,
+    AIR             = (1 << 0),
+    LIQUID          = (1 << 1),
+    SOLID           = (1 << 2),
+    EXTRAPOLATED    = (1 << 3),
 };
+
+constexpr inline CellPosition operator|(CellPosition a, CellPosition b)
+{
+    return static_cast<CellPosition>(static_cast<int>(a) | static_cast<int>(b));
+}
 
 struct Cell
 {
@@ -31,7 +36,7 @@ public:
         for (std::uint64_t it = 0; it < Xsize*Ysize; ++it)
         {
             _grid[it] = 0;
-            _pos[it] = UNKNOWN;
+            _pos[it] = AIR;
         }
         _maxIt = Xsize*Ysize;
     }
@@ -46,20 +51,20 @@ public:
     const   CellPosition& pos(const U i, const U j)             const   { return _pos[idx(i,j)]; }
             CellPosition& pos(const U i, const U j)                     { return _pos[idx(i,j)]; }
             CellPosition& pos(const std::uint64_t idx)                  { return _pos[idx]; }
-            bool checked(const U i, const U j)                  const   { return _pos[idx(i,j)] == INSIDE || _pos[idx(i,j)] == OUTSIDE_EXTRAPOLATED; }
+            bool checked(const U i, const U j)                  const   { return _pos[idx(i,j)] & LIQUID || _pos[idx(i,j)] & EXTRAPOLATED; }
             void reset()
             {
                 std::fill(_grid.begin(), _grid.end(), 0.0);
                 for (std::uint64_t it = 0; it < _maxIt; ++it)
                 {
-                    pos(it) = UNKNOWN;
+                    pos(it) = AIR;
                 }
             };
             void resetPos()
             {
                 for (std::uint64_t it = 0; it < _maxIt; ++it)
                 {
-                    pos(it) = UNKNOWN;
+                    pos(it) = AIR;
                 }
             };
             void setFromVec(const Eigen::VectorXd& v)

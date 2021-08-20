@@ -22,16 +22,12 @@ public:
 
 private:
     void step();
-    void vStep();
-    void sStep();
-    void levelSetStep();
 
     void diffuse(Field<double,std::uint16_t>& F, const Field<double,std::uint16_t>& Fprev, const std::uint8_t b, const Laplacian& A);
+    void addForces();
 
     inline void advect(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>& Fprev, const std::uint8_t b) const;
     void project();
-
-    void setBnd(Field<double,std::uint16_t>& F, const std::uint8_t b) const;
 
     void updateTexture();
 
@@ -50,7 +46,7 @@ private:
 
     std::vector<glm::vec2> particles {};
 
-    constexpr static const std::uint16_t _N = 35;
+    constexpr static const std::uint16_t _N = 129;
     constexpr static const double _viscosity = 1.15;
     constexpr static const double _diffusion = 1.000;
     constexpr static const double _dt = 0.0005;
