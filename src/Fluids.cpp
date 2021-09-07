@@ -11,107 +11,55 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 {
     _iteration = iteration;
     
-    /* Testings */
-    std::uint16_t N = _N/2;
-
-    // LEVEL-SET Init
-    double r = 25;
-    if (iteration == 0)
-    {
-        glm::vec2 pt;
-        pt.x = N/*-(N/2.1)*/;
-        pt.y = N;
-        particles.emplace_back(pt);
-        pt.x = N+(N/2.1);
-        pt.y = N;
-        //particles.emplace_back(pt);
-
-        for (std::uint16_t j = 0; j < _N; ++j)
-        {
-            for (std::uint16_t i = 0; i < _N; ++i)
-            {
-                _grid._surface(i,j) = 10;
-            }
-        }
-
-        /*
-        for (std::uint16_t j = _N; j > _N-16; --j)
-        {
-            for (std::uint16_t i = 0; i < _N; ++i)
-            {
-                _grid._surface(i,j) = -10;
-            }
-        }
-        */
-    }
-
-    if (_iteration == 0)
-    {
-        for (std::uint16_t j = 0; j < _N; ++j)
-        {
-            for (std::uint16_t i = 0; i < _N; ++i)
-            {
-                if (particles.size() > 0)
-                {
-                    double dist = std::sqrt(std::pow(i-particles.front().x,2)+std::pow(j-particles.front().y,2))-r;
-                    for (const auto& p : particles)
-                    {
-                        dist = std::min(dist, std::sqrt(std::pow(i-p.x,2)+std::pow(j-p.y,2))-r);
-                    }
-                    if (dist <= 0)
-                    _grid._surface(i,j) = dist;
-                }
-            }
-        }
-    }
-
     step();
 
     updateTexture();
 
     //std::cin.get();
-    usleep(1000);
 }
 
 void Fluids::step()
 {
     _grid._U.resetPos();
     _grid._V.resetPos();
+
+
     for (std::uint16_t j = 0; j < _grid._surface.y()+1; ++j)
     {
         for (std::uint16_t i = 0; i < _grid._surface.x()+1; ++i)
         {
             if (_grid._surface(i,j) < 0)
             {
-                _grid._U.pos(i,j) = LIQUID;
-                _grid._U.pos(i+1,j) = LIQUID;
-                _grid._V.pos(i,j) = LIQUID;
-                _grid._V.pos(i,j+1) = LIQUID;
+                _grid._U.label(i,j) = LIQUID;
+                _grid._U.label(i+1,j) = LIQUID;
+                _grid._V.label(i,j) = LIQUID;
+                _grid._V.label(i,j+1) = LIQUID;
             }
         }
     }
+
     for (std::uint16_t j = 0; j < _grid._surface.y()+1; ++j)
     {
         for (std::uint16_t i = 0; i < _grid._surface.x()+1; ++i)
         {
             if (j < _grid._U.y() && (i == 0 || i == _grid._surface.x()))
             {
-                _grid._U.pos(i,j) = SOLID;
+                _grid._U.label(i,j) = SOLID;
             }
             if (i < _grid._V.x() && (j == 0 || j == _grid._surface.y()))
             {
-                _grid._V.pos(i,j) = SOLID;
+                _grid._V.label(i,j) = SOLID;
             }
         }
     }
 
     // Extrapolate the velocity field
-    extrapolate(_grid._U);
-    extrapolate(_grid._V);
+    extrapolate(_grid._U, _grid._UPrev);
+    extrapolate(_grid._V, _grid._VPrev);
 
     // Advect level-set everywhere using the fully extrapolated velocity
     advect(_grid._surface, _grid._surfacePrev, 0);
-    redistancing(3, _grid._surface);
+    redistancing(4, _grid._surface, _grid._surfacePrev);
 
     // Advect velocity everywhere using the fully extrapolated velocity
     advect(_grid._U, _grid._UPrev, 1);
@@ -129,14 +77,34 @@ void Fluids::step()
 
 void Fluids::addForces()
 {
-    const double G = 0.1;
+    if (_iteration == 0)
+    {
+        for (std::uint16_t j = 0; j < _N; ++j)
+        {
+            for (std::uint16_t i = 0; i < _N; ++i)
+            {
+                _grid._surface(i,j) = 10;
+            }
+        }
+    }
+    const double G = 15.0;
+    std::uint64_t s = 64;
     for (std::uint16_t j = 0; j < _grid._V.y(); ++j)
     {
         for (std::uint16_t i = 0; i < _grid._V.x(); ++i)
         {
-            if (!(_grid._V.pos(i,j) & SOLID))
+            if (!(_grid._V.label(i,j) & SOLID))
             {
                 _grid._V(i,j) += G;
+                std::uint16_t cubeSize = 32;
+                if (
+                    ((i >= s && i < s+cubeSize) && (j >= 64 && j < 64+cubeSize))
+                )
+                {
+                    _grid._surface(i,j) = -10;
+                    _grid._V(i,j) = 500;
+                    _grid._V(i,j+1) = 500;
+                }
             }
         }
     }
@@ -162,10 +130,9 @@ inline double Fluids::interp(const Field<double,std::uint16_t>& F, double x, dou
     return s0*(t0*vA+t1*vB)+s1*(t0*vC+t1*vD);
 }
 
-void Fluids::extrapolate(Field<double,std::uint16_t>& F, std::uint16_t nbIte)
+void Fluids::extrapolate(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>& Ftemp, std::uint16_t nbIte)
 {
     std::uint16_t it = 0;
-    Field<double,std::uint16_t> temp {F.x(), F.y()};
     std::uint64_t nbNeg = 0;
     do
     {
@@ -177,20 +144,20 @@ void Fluids::extrapolate(Field<double,std::uint16_t>& F, std::uint16_t nbIte)
             const std::uint16_t i = m % F.x();
             const std::uint16_t j = m / F.x();
 
-            if (F.pos(i,j) & LIQUID)
+            if (F.label(i,j) & LIQUID)
             {
-                temp(i,j) = F(i,j);
-                temp.pos(i,j) = LIQUID;
+                Ftemp(i,j) = F(i,j);
+                Ftemp.label(i,j) = LIQUID;
             }
-            else if (F.pos(i,j) & SOLID)
+            else if (F.label(i,j) & SOLID)
             {
-                temp(i,j) = F(i,j);
-                temp.pos(i,j) = SOLID;
+                Ftemp(i,j) = F(i,j);
+                Ftemp.label(i,j) = SOLID;
             }
-            else if (F.pos(i,j) & EXTRAPOLATED)
+            else if (F.label(i,j) & EXTRAPOLATED)
             {
-                temp(i,j) = F(i,j);
-                temp.pos(i,j) = temp.pos(i,j) | EXTRAPOLATED;
+                Ftemp(i,j) = F(i,j);
+                Ftemp.label(i,j) = Ftemp.label(i,j) | EXTRAPOLATED;
             }
             else
             {
@@ -219,23 +186,20 @@ void Fluids::extrapolate(Field<double,std::uint16_t>& F, std::uint16_t nbIte)
                 if (nbNeighbors > 0)
                 {
                     nbNeg++;
-                    temp(i,j) = value/nbNeighbors;
-                    temp.pos(i,j) = temp.pos(i,j) | EXTRAPOLATED;
+                    Ftemp(i,j) = value/nbNeighbors;
+                    Ftemp.label(i,j) = Ftemp.label(i,j) | EXTRAPOLATED;
                 }
             }
         }
-        F = temp;
-        if (nbIte > 0)
+        F = Ftemp;
+        if (nbIte > 0 && ++it == nbIte)
         {
-            if (++it == nbIte)
-            {
-                return;
-            }
+            return;
         }
     } while (nbNeg > 0);
 }
 
-void Fluids::redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t>& field)
+void Fluids::redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t>& field, Field<double, std::uint16_t>& fieldTemp)
 {
     const double dx = 1.0/_N;
     auto F = field;
@@ -244,22 +208,22 @@ void Fluids::redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t
     {
         for (std::uint16_t i = 0; i < field.x(); ++i)
         {
-            if (    (i+1 < field.x() && !(field(i,j) >= 0) ^ (field(i+1,j) < 0)) ||
-                    (i-1 >= 0 && !(field(i,j) >= 0) ^ (field(i-1,j) < 0)) ||
-                    (j+1 < field.y() && !(field(i,j) >= 0) ^ (field(i,j+1) < 0)) ||
-                    (j-1 >= 0 && !(field(i,j) >= 0) ^ (field(i,j-1) < 0))   )
+            if (    (i+1 < field.x() && !((field(i,j) >= 0) ^ (field(i+1,j) < 0))) ||
+                    (i-1 >= 0 && !((field(i,j) >= 0) ^ (field(i-1,j) < 0))) ||
+                    (j+1 < field.y() && !((field(i,j) >= 0) ^ (field(i,j+1) < 0))) ||
+                    (j-1 >= 0 && !((field(i,j) >= 0) ^ (field(i,j-1) < 0)))   )
             {
                 F(i,j) = 1;
-                F.pos(i,j) = LIQUID;
+                F.label(i,j) = LIQUID;
             }
             else
             {
                 F(i,j) = 0;
-                F.pos(i,j) = AIR;
+                F.label(i,j) = EMPTY;
             }
         }
     }
-    extrapolate(F, 2);
+    extrapolate(F, fieldTemp, 2);
 
     std::uint8_t dist = 2;
     for (std::uint16_t j = 0; j < field.y(); ++j)
@@ -315,9 +279,11 @@ void Fluids::redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t
 
 void Fluids::diffuse(Field<double,std::uint16_t>& F, const Field<double,std::uint16_t>& Fprev, const std::uint8_t b, const Laplacian& A)
 {
+    /*
     Eigen::VectorXd x(A.diag.size());
     ConjugateGradient(A, x, Fprev.vec(), _solverType);
     F.setFromVec(x);
+    */
 }
 
 
@@ -329,7 +295,7 @@ void Fluids::advect(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>&
     {
         for (std::uint16_t i = 0; i < F.x(); ++i)
         {
-            if (!(F.pos(i,j) & SOLID))
+            if (!(F.label(i,j) & SOLID))
             {
                 const double posx = static_cast<double>(i);
                 const double posy = static_cast<double>(j);
@@ -343,52 +309,71 @@ void Fluids::advect(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>&
     }
 }
 
-void Fluids::pressureMatrix(Laplacian& laplacian, Eigen::VectorXd& b) const
+void Fluids::preparePressureSolving(Laplacian& laplacian, Eigen::VectorXd& b)
 {
-    std::vector<Eigen::Triplet<double>> tripletListA;
-    std::for_each(_grid._activeCells.begin(), _grid._activeCells.end(),
-    [&](const auto& it)
+    laplacian.A = Eigen::SparseMatrix<double>(_grid.activeCellsNb(), _grid.activeCellsNb());
+    laplacian.A.reserve(Eigen::VectorXi::Constant(_grid.activeCellsNb(), 5));
+    _grid._Adiag.reset();
+    _grid._Ax.reset();
+    _grid._Ay.reset();
+    _grid._precon.reset();
+    _grid._Az.reset();
+
+    const double scale = 1;
+    for (std::uint64_t n = 0; n < _grid._surface.maxIt(); ++n)
     {
-        const std::uint16_t i = it.second.i; 
-        const std::uint16_t j = it.second.j; 
-        const std::uint64_t label = it.second.label; 
-        std::unordered_map<std::uint64_t,Cell>::const_iterator nCell;
-        if (((nCell = _grid._activeCells.find(_grid.hash(i+1,j)))) != _grid._activeCells.end() && i+1 < _N)
+        const std::uint64_t m = n % _grid._surface.maxIt();
+        const std::uint16_t i = m % _grid._surface.x();
+        const std::uint16_t j = m / _grid._surface.x();
+        std::uint64_t id = _grid._pressureID(i,j);
+        if (id > 0)
         {
-            tripletListA.emplace_back(Eigen::Triplet<double>(label-1, nCell->second.label-1, -1));
-        }
-        if (((nCell = _grid._activeCells.find(_grid.hash(i-1,j)))) != _grid._activeCells.end() && i != 0)
-        {
-            tripletListA.emplace_back(Eigen::Triplet<double>(label-1, nCell->second.label-1, -1));
-        }
-        if (((nCell = _grid._activeCells.find(_grid.hash(i,j+1)))) != _grid._activeCells.end() && j+1 < _N)
-        {
-            tripletListA.emplace_back(Eigen::Triplet<double>(label-1, nCell->second.label-1, -1));
-        }
-        if (((nCell = _grid._activeCells.find(_grid.hash(i,j-1)))) != _grid._activeCells.end() && j != 0)
-        {
-            tripletListA.emplace_back(Eigen::Triplet<double>(label-1, nCell->second.label-1, -1));
-        }
-        std::uint8_t nonSolidNeib = 4;
-        if (i == 0)
-            nonSolidNeib--;
-        if (j == 0)
-            nonSolidNeib--;
-        if (i == _grid._surface.x()-1)
-            nonSolidNeib--;
-        if (j == _grid._surface.y()-1)
-            nonSolidNeib--;
-        tripletListA.emplace_back(Eigen::Triplet<double>(label-1, label-1, nonSolidNeib));
+            const std::uint64_t realID = id-1;
+            std::uint64_t neibID = 0;
+            if (i > 0 && (neibID = _grid._pressureID(i-1,j)) > 0)
+            {
+                laplacian.A.coeffRef(realID, neibID-1) = -scale;
+                _grid._Adiag(i,j) += scale;
+            }
+            if (i+1 < _N && (neibID = _grid._pressureID(i+1,j)) > 0)
+            {
+                laplacian.A.coeffRef(realID, neibID-1) = -scale;
+                _grid._Adiag(i,j) += scale;
+                _grid._Ax(i,j) = -scale;
+            }
+            else if (i+1 < _N && _grid._surface.label(i+1,j) & EMPTY)
+            {
+                _grid._Adiag(i,j) += scale;
+            }
+            if (j > 0 && (neibID = _grid._pressureID(i,j-1)) > 0)
+            {
+                laplacian.A.coeffRef(realID, neibID-1) = -scale;
+                _grid._Adiag(i,j) += scale;
+            }
+            if (j+1 < _N && (neibID = _grid._pressureID(i,j+1)) > 0)
+            {
+                laplacian.A.coeffRef(realID, neibID-1) = -scale;
+                _grid._Adiag(i,j) += scale;
+                _grid._Ay(i,j) = -scale;
+            }
+            else if (j+1 < _N && _grid._surface.label(i,j+1) & EMPTY)
+            {
+                _grid._Adiag(i,j) += scale;
+            }
 
-        b.coeffRef(label-1) = div(i,j);
-    }); 
-
-    Eigen::SparseMatrix<double> A = Eigen::SparseMatrix<double>(_grid._activeCells.size(), _grid._activeCells.size());
-
-    A.setFromTriplets(tripletListA.begin(), tripletListA.end());
-    laplacian.A = A;
-    setAMatrices(laplacian);
-    setPrecon(laplacian);
+            std::uint8_t nonSolidNeib = 4;
+            if (i == 0)
+                nonSolidNeib--;
+            if (j == 0)
+                nonSolidNeib--;
+            if (i == _grid._surface.x()-1)
+                nonSolidNeib--;
+            if (j == _grid._surface.y()-1)
+                nonSolidNeib--;
+            laplacian.A.coeffRef(realID, realID) = nonSolidNeib;
+            b.coeffRef(realID) = div(i,j);
+        }
+    }
 }
 
 inline double Fluids::div(const std::uint16_t i, const std::uint16_t j) const
@@ -407,42 +392,31 @@ inline double Fluids::pressureAt(const std::uint16_t i, const std::uint16_t j, c
 
 void Fluids::project()
 {
-    if (_grid._activeCells.size() > 0)
+    if (_grid.activeCellsNb() > 0)
     {
-        Eigen::VectorXd x(_grid._activeCells.size());
-        Eigen::VectorXd b(_grid._activeCells.size());
+        Eigen::VectorXd x (_grid.activeCellsNb());
+        Eigen::VectorXd b (_grid.activeCellsNb());
 
         Laplacian A {};
-        pressureMatrix(A, b);
-        ConjugateGradient(A, x, b, _solverType);
+        preparePressureSolving(A, b);
+        ConjugateGradient(A, x, b, _solverType, _grid);
 
         _grid._pressure.reset();
-        std::for_each(_grid._activeCells.begin(), _grid._activeCells.end(),
-        [&](const auto& elem)
-        {
-            const std::uint16_t i = elem.second.i; 
-            const std::uint16_t j = elem.second.j; 
-            const std::uint64_t label = elem.second.label; 
 
-            _grid._pressure(i,j) = x.coeff(label-1);
-        });
-
-        // Should optimize
-        for (std::uint16_t j = 0; j < _grid._U.y(); ++j)
+        std::uint64_t id;
+        for (std::uint16_t j = 0; j < std::max(_grid._U.y(), _grid._V.y()); ++j)
         {
-            for (std::uint16_t i = 0; i < _grid._U.x(); ++i)
+            for (std::uint16_t i = 0; i < std::max(_grid._U.x(), _grid._V.x()); ++i)
             {
-                if (_grid._U.pos(i,j) == LIQUID)
+                if (j < _grid._surface.y() && i < _grid._surface.x() && (id = _grid._pressureID(i,j)) > 0)
+                {
+                    _grid._pressure(i,j) = x(id-1);
+                }
+                if (j < _grid._U.y() && i < _grid._U.x() && _grid._U.label(i,j) == LIQUID)
                 {
                     _grid._U(i,j) -= _N*(pressureAt(i,j,x,0) - pressureAt(i-1,j,x,0));
                 }
-            }
-        }
-        for (std::uint16_t j = 0; j < _grid._V.y(); ++j)
-        {
-            for (std::uint16_t i = 0; i < _grid._V.x(); ++i)
-            {
-                if (_grid._V.pos(i,j) == LIQUID)
+                if (j < _grid._V.y() && i < _grid._V.x() && _grid._V.label(i,j) == LIQUID)
                 {
                     _grid._V(i,j) -= _N*(pressureAt(i,j,x,0) - pressureAt(i,j-1,x,0));
                 }
@@ -472,16 +446,16 @@ void Fluids::updateTexture()
             double pneg = 0;
             if (_grid._pressure(i,j) < 0)
             {
-                pneg = _grid._pressure(i,j)*(-1);
+                //pneg = _grid._pressure(i,j)*(-1);
             }
             else
             {
-                p = _grid._pressure(i,j);
+                //p = _grid._pressure(i,j);
             }
             if (implicit <= 0)
             {
-                _texture[it*3+0] = std::clamp(p*1500, 0.0, 255.0);
-                _texture[it*3+1] = std::clamp(pneg*1500, 0.0, 255.0);
+                _texture[it*3+0] = std::clamp(p*150, 0.0, 255.0);
+                _texture[it*3+1] = std::clamp(pneg*150, 0.0, 255.0);
                 _texture[it*3+2] = std::clamp(-implicit*50, 0.0, 255.0);
             }
             else
@@ -494,7 +468,7 @@ void Fluids::updateTexture()
                 //_texture[it*3+2] = std::clamp(implicit*50, 0.0, 255.0);
             }
             /*
-            if (_grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end())
+            if (_grid.activeCellsNb().find(_grid.hash(i,j)) != _grid.activeCellsNb().end())
             {
                 _texture[it*3+0] = std::clamp(_texture[it*3+0] + 100.0, 0.0, 255.0);
             }
@@ -538,6 +512,5 @@ const std::uint16_t& Fluids::N() const
 
 bool Fluids::isCellActive(std::uint16_t i, std::uint16_t j) const
 {
-    return _grid._activeCells.find(_grid.hash(i,j)) != _grid._activeCells.end();
+    return _grid._pressureID(i,j) > 0;
 }
-

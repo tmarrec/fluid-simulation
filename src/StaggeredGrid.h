@@ -5,17 +5,17 @@
 #include <Eigen/Sparse>
 #include <iomanip>
 
-enum CellPosition
+enum CellLabel
 {
-    AIR             = (1 << 0),
+    EMPTY           = (1 << 0),
     LIQUID          = (1 << 1),
     SOLID           = (1 << 2),
     EXTRAPOLATED    = (1 << 3),
 };
 
-constexpr inline CellPosition operator|(CellPosition a, CellPosition b)
+constexpr inline CellLabel operator|(CellLabel a, CellLabel b)
 {
-    return static_cast<CellPosition>(static_cast<int>(a) | static_cast<int>(b));
+    return static_cast<CellLabel>(static_cast<int>(a) | static_cast<int>(b));
 }
 
 struct Cell
@@ -32,11 +32,11 @@ public:
     explicit Field(U Xsize, U Ysize) : _Xsize(Xsize), _Ysize(Ysize)
     {
         _grid.resize(Xsize*Ysize);
-        _pos.resize(Xsize*Ysize);
+        _label.resize(Xsize*Ysize);
         for (std::uint64_t it = 0; it < Xsize*Ysize; ++it)
         {
             _grid[it] = 0;
-            _pos[it] = AIR;
+            _label[it] = EMPTY;
         }
         _maxIt = Xsize*Ysize;
     }
@@ -48,23 +48,23 @@ public:
     const   U& y()                                              const   { return _Ysize; }
     const   std::uint64_t& maxIt()                              const   { return _maxIt; }
     const   std::vector<T>& data()                              const   { return _grid; }
-    const   CellPosition& pos(const U i, const U j)             const   { return _pos[idx(i,j)]; }
-            CellPosition& pos(const U i, const U j)                     { return _pos[idx(i,j)]; }
-            CellPosition& pos(const std::uint64_t idx)                  { return _pos[idx]; }
-            bool checked(const U i, const U j)                  const   { return _pos[idx(i,j)] & LIQUID || _pos[idx(i,j)] & EXTRAPOLATED; }
+    const   CellLabel& label(const U i, const U j)              const   { return _label[idx(i,j)]; }
+            CellLabel& label(const U i, const U j)                      { return _label[idx(i,j)]; }
+            CellLabel& label(const std::uint64_t idx)                   { return _label[idx]; }
+            bool checked(const U i, const U j)                  const   { return _label[idx(i,j)] & LIQUID || _label[idx(i,j)] & EXTRAPOLATED; }
             void reset()
             {
                 std::fill(_grid.begin(), _grid.end(), 0.0);
                 for (std::uint64_t it = 0; it < _maxIt; ++it)
                 {
-                    pos(it) = AIR;
+                    label(it) = EMPTY;
                 }
             };
             void resetPos()
             {
                 for (std::uint64_t it = 0; it < _maxIt; ++it)
                 {
-                    pos(it) = AIR;
+                    label(it) = EMPTY;
                 }
             };
             void setFromVec(const Eigen::VectorXd& v)
@@ -154,7 +154,7 @@ public:
 private:
     std::uint64_t _maxIt;
     std::vector<T> _grid;
-    std::vector<CellPosition> _pos;
+    std::vector<CellLabel> _label;
     U _Xsize;
     U _Ysize;
 };
@@ -226,20 +226,27 @@ public:
     }
     void tagActiveCells()
     {
-        _activeCells.clear();
-        std::uint64_t label = 1;
+        _activeCells = 0;
+        _pressureID.reset();
+        std::uint64_t id = 0;
         for (std::uint16_t j = 0; j < _surface.y(); ++j)
         {
             for (std::uint16_t i = 0; i < _surface.x(); ++i)
             {
                 if (_surface(i,j) < 0.0)
                 {
-                    _activeCells.insert({hash(i,j), {i,j,label}});
-                    label++;
+                    _surface.label(i,j) = LIQUID;
+                    _pressureID(i,j) = ++id;
+                    _activeCells++;
+                }
+                else
+                {
+                    _surface.label(i,j) = EMPTY;
                 }
             }
         }
     }
+    inline std::uint64_t activeCellsNb() { return _activeCells; };
 
     R _N;
     Field<T, R> _substance {_N, _N};
@@ -247,12 +254,20 @@ public:
     Field<T, R> _U {static_cast<std::uint16_t>(_N+1), _N};
     Field<T, R> _V {_N, static_cast<std::uint16_t>(_N+1)};
     Field<T, R> _pressure {_N, _N};
+    Field<T, R> _Adiag {_N, _N};
+    Field<T, R> _Ax {_N, _N};
+    Field<T, R> _Ay {_N, _N};
+    Field<T, R> _Az {_N, _N};
+    Field<T, R> _precon {_N, _N};
+    Field<T, R> _q {_N, _N};
+    Field<T, R> _z {_N, _N};
+    Field<std::uint64_t, R> _pressureID {_N, _N};
 
     Field<T, R> _substancePrev {_N, _N};
     Field<T, R> _surfacePrev {_N, _N};
     Field<T, R> _UPrev {static_cast<std::uint16_t>(_N+1), _N};
     Field<T, R> _VPrev {_N, static_cast<std::uint16_t>(_N+1)};
-
-    std::unordered_map<std::uint64_t, Cell> _activeCells;
+    
 private:
+    std::uint64_t _activeCells {0};
 };

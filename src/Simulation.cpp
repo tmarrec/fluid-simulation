@@ -19,10 +19,10 @@ void Simulation::mainLoop()
 
 	while (!_window.windowShouldClose())
 	{
-        /*
-        if (it == 64)
-            exit(0);
-            */
+        if (it == 256)
+        {
+            //exit(0);
+        }
         //std::cout << "== Iteration " << iterations << " ==" << std::endl;
             
         auto startTime = std::chrono::high_resolution_clock::now();
@@ -54,7 +54,7 @@ void Simulation::mainLoop()
 
         _renderer.endPass();
 
-        //_renderer.writeImg(it);
+//        _renderer.writeImg(it);
         _window.swapBuffers();
         _window.pollEvents();
 
@@ -156,7 +156,7 @@ void Simulation::updateMeshVec()
 
     float z = 0.001f;
     std::uint64_t it = 0;
-    float reduce = 10.0f;
+    float reduce = 900.0f;
 
     mesh.vertices.clear();
     mesh.indices.clear();
