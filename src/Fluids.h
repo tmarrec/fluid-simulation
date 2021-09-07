@@ -31,13 +31,13 @@ private:
 
     void updateTexture();
 
-    void redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t>& field);
+    void redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t>& field, Field<double, std::uint16_t>& fieldTemp);
 
     void writeVolumeFile(const std::uint64_t iteration);
 
-    void extrapolate(Field<double,std::uint16_t>& F, std::uint16_t nbIte = 0);
+    void extrapolate(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>& Ftemp, std::uint16_t nbIte = 0);
 
-    void pressureMatrix(Laplacian& A, Eigen::VectorXd& b) const;
+    void preparePressureSolving(Laplacian& A, Eigen::VectorXd& b);
 
     inline double interp(const Field<double,std::uint16_t>& F, double x, double y) const;
 
@@ -46,11 +46,11 @@ private:
 
     std::vector<glm::vec2> particles {};
 
-    constexpr static const std::uint16_t _N = 129;
+    constexpr static const std::uint16_t _N = 256;
     constexpr static const double _viscosity = 1.15;
     constexpr static const double _diffusion = 1.000;
-    constexpr static const double _dt = 0.0005;
-    constexpr static const Solver _solverType = CG;
+    constexpr static const double _dt = 0.000004;
+    constexpr static const Solver _solverType = PCG;
     constexpr static const Advection _advectionType = SEMI_LAGRANGIAN;
 
     Laplacian _laplacianProject {};
@@ -63,7 +63,6 @@ private:
     StaggeredGrid<double, std::uint16_t> _grid {_N};
 
     std::uint64_t _iteration = 0;
-
 };
 
 template<typename T>
