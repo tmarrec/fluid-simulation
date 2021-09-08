@@ -42,9 +42,10 @@ void Renderer::endPass() const
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, _screenbuffer.texture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+}
 
-    /* Only when rendering 3D fluids
-    // Raymarching step
+void Renderer::raymarchPass() const
+{
 	_raymarchingbuffer.shader->use();
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -53,7 +54,6 @@ void Renderer::endPass() const
 	glBindTexture(GL_TEXTURE_2D, _raymarchingbuffer.texture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glDisable(GL_BLEND);
-    */
 }
 
 void Renderer::writeImg(const std::uint32_t iteration) const
@@ -123,7 +123,6 @@ void Renderer::_initFrameBuffer(FrameBuffer& framebuffer, std::string vert, std:
 
     // Do this at each resize
     framebuffer.shader->use();
-	//framebuffer.shader->set1i("screenTexture", 0);
     
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.FBO);
 	// Color attachment texture
@@ -154,9 +153,16 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
     }
     if (material.hasTexture)
     {
-        if (!material.is2D)
+        if (material.dim == 3)
         {
-            ERROR("3D texture not implemented!");
+            glBindTexture(GL_TEXTURE_3D, material.texture);
+            _raymarchingbuffer.shader->use();
+            _raymarchingbuffer.shader->set2f("u_resolution", {_windowInfos.x, _windowInfos.y});
+            _raymarchingbuffer.shader->set3f("u_eyePos", camera.transform.position);
+            _raymarchingbuffer.shader->set3f("u_eyeFront", camera.front);
+            _raymarchingbuffer.shader->set1f("u_eyeFOV", 60);
+            _raymarchingbuffer.shader->set1f("u_absorption", material.absorption);
+            _raymarchingbuffer.shader->set3f("u_lightIntensity", material.lightIntensity);
         }
         else
         {
@@ -174,9 +180,9 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
     model = glm::rotate(model, glm::radians(transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::rotate(model, glm::radians(transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::scale(model, glm::vec3{transform.scale});
-    const glm::mat4 projection = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f, 0.1f, 10.0f);
-    const glm::mat4 view = glm::lookAt(camera.transform.position, camera.transform.position+camera.front, camera.up);
+    glm::mat4 projection = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f, 0.1f, 10.0f);
 
+    const glm::mat4 view = glm::lookAt(camera.transform.position, camera.transform.position+camera.front, camera.up);
 
     shader.setMat4("model", model);
     shader.setMat4("view", view);
@@ -223,7 +229,7 @@ void Renderer::initMesh(Mesh& mesh) const
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLuint), (GLvoid*)nullptr);
 		glEnableVertexAttribArray(2);
 
-        if (!mesh.is2D)
+        if (mesh.dim == 3)
         {
             std::vector<float> texCoords =
             {
@@ -246,7 +252,7 @@ void Renderer::initMesh(Mesh& mesh) const
             glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
             glEnableVertexAttribArray(3);
         }
-        else
+        else if (mesh.dim == 2)
         {
             std::vector<float> texCoords =
             {
@@ -283,8 +289,12 @@ void Renderer::initTexture3D(const std::vector<std::uint8_t>& texture, const std
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    /*
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    */
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, size, size, size, 0, GL_RED, GL_UNSIGNED_BYTE, texture.data());
     glGenerateMipmap(GL_TEXTURE_3D);

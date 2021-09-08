@@ -4,21 +4,21 @@ out vec4 FragColor;
 
 uniform sampler3D u_densityTex;
 uniform vec2 u_resolution;  // Width and height of the shader
-uniform vec3 u_eyePos; // Camera position
+uniform vec3 u_eyePos; // Camera positi1n
 uniform vec3 u_eyeFront; // Camera front
 uniform float u_eyeFOV; // Camera field of view
 uniform float u_absorption;
 uniform vec3 u_lightIntensity;
 
-#define MAX_STEPS 100
-#define MAX_DIST 100.0f
+#define MAX_STEPS 64
+#define MAX_DIST 64.0f
 #define SURFACE_DIST 0.01f
 
-const int numSamples = 150;
+const int numSamples = 128;
 const float cubeSize = 3.0f;
 const float maxDist = sqrt(3.0f);
 const float scale = maxDist / float(numSamples);
-const int numLightSamples = 40;
+const int numLightSamples = 64;
 const float lscale = maxDist / float(numLightSamples);
 const vec3 lightPos = vec3(2,4,1);
 

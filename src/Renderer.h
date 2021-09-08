@@ -5,6 +5,12 @@
 #include "Shader.h"
 #include "Window.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/gtx/string_cast.hpp>
+
 struct FrameBuffer
 {
     GLuint FBO;
@@ -21,6 +27,7 @@ public:
     void init(const WindowInfos& windowInfos);
     void prePass();
     void endPass() const;
+    void raymarchPass() const;
     void initMesh(Mesh& mesh) const;
     void drawMesh(Mesh& mesh) const;
     void freeMesh(Mesh& mesh) const;
