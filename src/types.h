@@ -39,7 +39,7 @@ struct Transform
 struct Mesh
 {
     bool initialized = false;
-    bool is2D = false;
+    std::uint16_t dim = 2;
 
     std::vector<float> vertices; 
     std::vector<float> normals; 
@@ -58,6 +58,7 @@ struct Camera
 {
     float yaw;
     float pitch;
+    float speed;
     glm::vec3 front = {0.0f, 0.0f, 1.0f};
     glm::vec3 up = {0.0f, 1.0f, 0.0f};
     glm::mat4 projection = glm::zero<glm::mat4>();
@@ -67,8 +68,8 @@ struct Camera
 struct Material
 {
     Shader shader = {};
+    std::uint16_t dim = 2;
     bool hasTexture = false;
-    bool is2D = false;
     bool noShader = false;
     float absorption = 100.0f;
     glm::vec3 lightIntensity = glm::vec3(1.0, 1.0, 1.0);

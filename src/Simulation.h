@@ -5,6 +5,7 @@
 #include "Shader.h"
 #include "Window.h"
 #include "Fluids.h"
+#include "Input.h"
 
 #include <iostream>
 #include <numeric>
@@ -20,20 +21,23 @@ private:
     void updateMeshVec();
     void updateMeshGrid();
     void updateMeshGridBorder();
+    void setCameraDir();
+    void handleInputs();
 
 	Window _window = {};
     Renderer _renderer = {};
 
     Camera _camera = 
     {
-        .yaw = -90-90-90,
-        .pitch = -90,
+        .yaw = -572,
+        .pitch = -31,
+        .speed = 1,
         .transform = Transform
-            {
-                .position = {0.0, 1, 0.0},
-                .rotation = {0, 0, 0},
-                .scale = {1, 1, 1}
-            }
+        {
+            .position = {14.85, 9.39, -8.22},
+            .rotation = {90, 0, 0},
+            .scale = {1, 1, 1}
+        },
     };
     Fluids _fluid;
     FluidRenderer _fluidRenderer =
@@ -47,7 +51,6 @@ private:
         },
         .mesh = Mesh
         {
-            .is2D = true,
             .vertices =
             {
                 -0.5f, 0.0f, -0.5f,

@@ -1,13 +1,11 @@
 #include "Simulation.h"
+#include <glm/gtx/string_cast.hpp>
 
 void Simulation::run(WindowInfos windowInfos)
 {
-    //_renderer = new Renderer(windowInfos);
 	_window.init(windowInfos);
 	_renderer.init(windowInfos);
-
     initSimulation();
-
 	mainLoop();
 }
 
@@ -16,9 +14,13 @@ void Simulation::mainLoop()
     [[maybe_unused]] float dt = 0.0f;
     std::uint64_t it = 0;
 
-
 	while (!_window.windowShouldClose())
 	{
+        /*
+        std::cout << _camera.yaw << std::endl;
+        std::cout << _camera.pitch << std::endl;
+        std::cout << glm::to_string(_camera.transform.position) << std::endl;
+        */
         if (it == 256)
         {
             //exit(0);
@@ -29,10 +31,19 @@ void Simulation::mainLoop()
 
         _fluid.update(it);
 
-	    _renderer.initTexture2D(_fluid.texture(), _fluidRenderer.material.texture);
-        updateMeshVec();
-        updateMeshGrid();
-        updateMeshGridBorder();
+        handleInputs();
+        setCameraDir();
+        if (Config::dim == 2)
+        {
+	        _renderer.initTexture2D(_fluid.texture(), _fluidRenderer.material.texture);
+            updateMeshVec();
+            updateMeshGrid();
+            updateMeshGridBorder();
+        }
+        else if (Config::dim == 3)
+        {
+	        _renderer.initTexture3D(_fluid.texture(), _fluidRenderer.material.texture);
+        }
 
         _renderer.prePass();
 
@@ -53,8 +64,12 @@ void Simulation::mainLoop()
         _renderer.setLineWidth(1);
 
         _renderer.endPass();
+        if (Config::dim == 3)
+        {
+            _renderer.raymarchPass();
+        }
 
-//        _renderer.writeImg(it);
+        _renderer.writeImg(it);
         _window.swapBuffers();
         _window.pollEvents();
 
@@ -64,12 +79,17 @@ void Simulation::mainLoop()
 
         it++;
 	}
+
+    _renderer.freeMesh(_fluidRenderer.mesh);
+    _renderer.freeMesh(_fluidRenderer.meshGrid);
+    _renderer.freeMesh(_fluidRenderer.meshGridBorder);
+    _renderer.freeMesh(_fluidRenderer.meshVec);
 }
 
 void Simulation::updateMeshGrid()
 {
     Mesh& mesh = _fluidRenderer.meshGrid;
-    const std::uint16_t& N = _fluid.N();
+    const std::uint16_t& N = Config::N;
 
     float z = 0.001f;
     std::uint64_t it = 0;
@@ -149,6 +169,7 @@ void Simulation::updateMeshGridBorder()
 
 void Simulation::updateMeshVec()
 {
+    /*
     Mesh& mesh = _fluidRenderer.meshVec;
     const std::uint16_t& N = _fluid.N();
     const std::vector<double>& X = _fluid.X();
@@ -242,17 +263,29 @@ void Simulation::updateMeshVec()
         }
     }
     _renderer.initMesh(mesh);
+    */
 }
 
 void Simulation::initSimulation()
 {
     Shader shaderProgram {};
-    shaderProgram.setVert("shaders/vert2D.vert");
-    shaderProgram.setFrag("shaders/fluid2D.frag");
+
+    _fluidRenderer.mesh.dim = Config::dim;
+    if (Config::dim == 3)
+    {
+        shaderProgram.setVert("shaders/vert.vert");
+        shaderProgram.setFrag("shaders/fluid3D.frag");
+    }
+    else if (Config::dim == 2)
+    {
+        shaderProgram.setVert("shaders/vert2D.vert");
+        shaderProgram.setFrag("shaders/fluid2D.frag");
+    }
     Material material = 
     {
         .shader = shaderProgram,
-        .is2D = true,
+        .dim = Config::dim,
+        .hasTexture = true,
         .texCoords =
         {
             1.0f, 1.0f,
@@ -271,7 +304,6 @@ void Simulation::initSimulation()
     Material materialVec = 
     {
         .shader = shaderProgramVec,
-        .is2D = true,
         .texCoords =
         {
             1.0f, 1.0f,
@@ -289,7 +321,6 @@ void Simulation::initSimulation()
     Material materialGrid = 
     {
         .shader = shaderProgramGrid,
-        .is2D = true,
         .texCoords =
         {
             1.0f, 1.0f,
@@ -307,7 +338,6 @@ void Simulation::initSimulation()
     Material materialGridBorder = 
     {
         .shader = shaderProgramGridBorder,
-        .is2D = true,
         .texCoords =
         {
             1.0f, 1.0f,
@@ -318,7 +348,10 @@ void Simulation::initSimulation()
     };
     _fluidRenderer.materialGridBorder = materialGridBorder;
     _renderer.initMaterial(materialGridBorder);
+}
 
+void Simulation::setCameraDir()
+{
     // Set camera front
     glm::vec3 dir;
     dir.x = cos(glm::radians(_camera.yaw))*cos(glm::radians(_camera.pitch));
@@ -326,4 +359,46 @@ void Simulation::initSimulation()
     dir.z = sin(glm::radians(_camera.yaw))*cos(glm::radians(_camera.pitch));
     dir = glm::normalize(dir);
     _camera.front = dir;
+}
+
+void Simulation::handleInputs()
+{
+    if (Input::keyIsDown(GLFW_KEY_W))
+    {
+        _camera.transform.position += _camera.front * _camera.speed;
+    }
+    if (Input::keyIsDown(GLFW_KEY_A))
+    {
+        _camera.transform.position -= glm::normalize(glm::cross(_camera.front, _camera.up)) * _camera.speed;
+    }
+    if (Input::keyIsDown(GLFW_KEY_S))
+    {
+        _camera.transform.position -= _camera.front * _camera.speed;
+    }
+    if (Input::keyIsDown(GLFW_KEY_D))
+    {
+        _camera.transform.position += glm::normalize(glm::cross(_camera.front, _camera.up)) * _camera.speed;
+    }
+    if (Input::keyIsDown(GLFW_KEY_LEFT_SHIFT))
+    {
+        _camera.transform.position.y += _camera.speed;
+    }
+    if (Input::keyIsDown(GLFW_KEY_LEFT_CONTROL))
+    {
+        _camera.transform.position.y -= _camera.speed;
+    }
+
+    float sensitivity = 1.0f;
+    _camera.yaw += Input::mouseOffsetX*sensitivity;
+    _camera.pitch = glm::clamp(_camera.pitch - Input::mouseOffsetY*sensitivity, -89.9f, 89.9f);
+
+    glm::vec3 dir;
+    dir.x = cos(glm::radians(_camera.yaw))*cos(glm::radians(_camera.pitch));
+    dir.y = sin(glm::radians(_camera.pitch));
+    dir.z = sin(glm::radians(_camera.yaw))*cos(glm::radians(_camera.pitch));
+    dir = glm::normalize(dir);
+    _camera.front = dir;
+
+    Input::updateMouseMovements();
+
 }

@@ -37,23 +37,15 @@ void readConfig()
 
         inipp::get_value(ini.sections["SOLVER"], "solver", temp);
         if (temp == "CG")
-        {
             Config::solver = CG;
-        }
         else if (temp == "PCG")
-        {
             Config::solver = PCG;
-        }
 
         inipp::get_value(ini.sections["SOLVER"], "advection", temp);
         if (temp == "SEMI_LAGRANGIAN")
-        {
             Config::advection = SEMI_LAGRANGIAN;
-        }
         else if (temp == "MACCORMACK")
-        {
             Config::advection = MACCORMACK;
-        }
     }
 
     INFO("\033[1m=== CONFIGURATION ===\033[0m");

@@ -2,6 +2,7 @@
 
 #include "types.h"
 #include "utils.h"
+#include "Input.h"
 
 #include <GLFW/glfw3.h>
 #include <memory>
