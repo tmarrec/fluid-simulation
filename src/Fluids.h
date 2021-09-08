@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "config.h"
 #include "StaggeredGrid.h"
 #include "ConjugateGradient.h"
 
@@ -22,47 +23,22 @@ public:
 
 private:
     void step();
-
-    void diffuse(Field<double,std::uint16_t>& F, const Field<double,std::uint16_t>& Fprev, const std::uint8_t b, const Laplacian& A);
     void addForces();
-
-    inline void advect(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>& Fprev, const std::uint8_t b) const;
+    void diffuse(Field<double,std::uint16_t>& F, const Field<double,std::uint16_t>& Fprev, const std::uint8_t b, const Laplacian& A);
+    void advect(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>& Fprev, const std::uint8_t b) const;
     void project();
-
     void updateTexture();
-
     void redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t>& field, Field<double, std::uint16_t>& fieldTemp);
-
     void writeVolumeFile(const std::uint64_t iteration);
-
     void extrapolate(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>& Ftemp, std::uint16_t nbIte = 0);
-
     void preparePressureSolving(Laplacian& A, Eigen::VectorXd& b);
-
     inline double interp(const Field<double,std::uint16_t>& F, double x, double y) const;
-
     inline double pressureAt(const std::uint16_t i, const std::uint16_t j, const Eigen::VectorXd x, const std::uint64_t l) const;
     inline double div(const std::uint16_t i, const std::uint16_t j) const;
 
-    std::vector<glm::vec2> particles {};
-
-    constexpr static const std::uint16_t _N = 256;
-    constexpr static const double _viscosity = 1.15;
-    constexpr static const double _diffusion = 1.000;
-    constexpr static const double _dt = 0.000004;
-    constexpr static const Solver _solverType = PCG;
-    constexpr static const Advection _advectionType = SEMI_LAGRANGIAN;
-
-    Laplacian _laplacianProject {};
-    Laplacian _laplacianViscosityX {};
-    Laplacian _laplacianViscosityY {};
-    Laplacian _laplacianDiffuse {};
-
-    std::vector<std::uint8_t> _texture = std::vector<std::uint8_t>(_N*_N*3);
-
-    StaggeredGrid<double, std::uint16_t> _grid {_N};
-
     std::uint64_t _iteration = 0;
+    std::vector<std::uint8_t> _texture = std::vector<std::uint8_t>(Config::N*Config::N*3);
+    StaggeredGrid<double, std::uint16_t> _grid {Config::N};
 };
 
 template<typename T>

@@ -19,3 +19,6 @@
 [submodule "extern/stb"]
 	path = extern/stb
 	url = https://github.com/nothings/stb.git
+[submodule "extern/inipp"]
+	path = extern/inipp
+	url = https://github.com/mcmtroffaes/inipp

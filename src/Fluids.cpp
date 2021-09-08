@@ -2,9 +2,10 @@
 #include "ConjugateGradient.h"
 #include <iomanip>
 
+
 Fluids::Fluids()
 {
-    //initLaplacians(_N, _dt, _viscosity, _diffusion, _laplacianViscosityX, _laplacianViscosityY, _laplacianProject, _laplacianDiffuse);
+    //initLaplacians(Config::N, _dt, _viscosity, _diffusion, _laplacianViscosityX, _laplacianViscosityY, _laplacianProject, _laplacianDiffuse);
 }
 
 void Fluids::update([[maybe_unused]] std::uint64_t iteration)
@@ -22,7 +23,6 @@ void Fluids::step()
 {
     _grid._U.resetPos();
     _grid._V.resetPos();
-
 
     for (std::uint16_t j = 0; j < _grid._surface.y()+1; ++j)
     {
@@ -79,9 +79,9 @@ void Fluids::addForces()
 {
     if (_iteration == 0)
     {
-        for (std::uint16_t j = 0; j < _N; ++j)
+        for (std::uint16_t j = 0; j < Config::N; ++j)
         {
-            for (std::uint16_t i = 0; i < _N; ++i)
+            for (std::uint16_t i = 0; i < Config::N; ++i)
             {
                 _grid._surface(i,j) = 10;
             }
@@ -163,7 +163,7 @@ void Fluids::extrapolate(Field<double,std::uint16_t>& F, Field<double,std::uint1
             {
                 std::uint8_t nbNeighbors = 0;
                 double value = 0.0;
-                if (i < _N-1 && F.checked(i+1,j))
+                if (i < Config::N-1 && F.checked(i+1,j))
                 {
                     nbNeighbors++;
                     value += F(i+1,j);
@@ -173,7 +173,7 @@ void Fluids::extrapolate(Field<double,std::uint16_t>& F, Field<double,std::uint1
                     nbNeighbors++;
                     value += F(i-1,j);
                 }
-                if (j < _N-1 && F.checked(i,j+1))
+                if (j < Config::N-1 && F.checked(i,j+1))
                 {
                     nbNeighbors++;
                     value += F(i,j+1);
@@ -201,7 +201,7 @@ void Fluids::extrapolate(Field<double,std::uint16_t>& F, Field<double,std::uint1
 
 void Fluids::redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t>& field, Field<double, std::uint16_t>& fieldTemp)
 {
-    const double dx = 1.0/_N;
+    const double dx = 1.0/Config::N;
     auto F = field;
     auto QNew = field;
     for (std::uint16_t j = 0; j < field.y(); ++j)
@@ -290,7 +290,7 @@ void Fluids::diffuse(Field<double,std::uint16_t>& F, const Field<double,std::uin
 void Fluids::advect(Field<double,std::uint16_t>& F, Field<double,std::uint16_t>& Fprev, const std::uint8_t b) const
 {
     Fprev = F;
-	const double dt = _dt * _N;
+	const double dt = Config::dt * Config::N;
     for (std::uint16_t j = 0; j < F.y(); ++j)
     {
         for (std::uint16_t i = 0; i < F.x(); ++i)
@@ -335,13 +335,13 @@ void Fluids::preparePressureSolving(Laplacian& laplacian, Eigen::VectorXd& b)
                 laplacian.A.coeffRef(realID, neibID-1) = -scale;
                 _grid._Adiag(i,j) += scale;
             }
-            if (i+1 < _N && (neibID = _grid._pressureID(i+1,j)) > 0)
+            if (i+1 < Config::N && (neibID = _grid._pressureID(i+1,j)) > 0)
             {
                 laplacian.A.coeffRef(realID, neibID-1) = -scale;
                 _grid._Adiag(i,j) += scale;
                 _grid._Ax(i,j) = -scale;
             }
-            else if (i+1 < _N && _grid._surface.label(i+1,j) & EMPTY)
+            else if (i+1 < Config::N && _grid._surface.label(i+1,j) & EMPTY)
             {
                 _grid._Adiag(i,j) += scale;
             }
@@ -350,13 +350,13 @@ void Fluids::preparePressureSolving(Laplacian& laplacian, Eigen::VectorXd& b)
                 laplacian.A.coeffRef(realID, neibID-1) = -scale;
                 _grid._Adiag(i,j) += scale;
             }
-            if (j+1 < _N && (neibID = _grid._pressureID(i,j+1)) > 0)
+            if (j+1 < Config::N && (neibID = _grid._pressureID(i,j+1)) > 0)
             {
                 laplacian.A.coeffRef(realID, neibID-1) = -scale;
                 _grid._Adiag(i,j) += scale;
                 _grid._Ay(i,j) = -scale;
             }
-            else if (j+1 < _N && _grid._surface.label(i,j+1) & EMPTY)
+            else if (j+1 < Config::N && _grid._surface.label(i,j+1) & EMPTY)
             {
                 _grid._Adiag(i,j) += scale;
             }
@@ -378,7 +378,7 @@ void Fluids::preparePressureSolving(Laplacian& laplacian, Eigen::VectorXd& b)
 
 inline double Fluids::div(const std::uint16_t i, const std::uint16_t j) const
 {
-    const double h = 1.0/_N;
+    const double h = 1.0/Config::N;
     double Udiv = _grid._U(i+1,j) - _grid._U(i,j);
     double Vdiv = _grid._V(i,j+1) - _grid._V(i,j);
     double rhs = - h * (Udiv + Vdiv);
@@ -399,7 +399,7 @@ void Fluids::project()
 
         Laplacian A {};
         preparePressureSolving(A, b);
-        ConjugateGradient(A, x, b, _solverType, _grid);
+        ConjugateGradient(A, x, b, _grid);
 
         _grid._pressure.reset();
 
@@ -414,11 +414,11 @@ void Fluids::project()
                 }
                 if (j < _grid._U.y() && i < _grid._U.x() && _grid._U.label(i,j) == LIQUID)
                 {
-                    _grid._U(i,j) -= _N*(pressureAt(i,j,x,0) - pressureAt(i-1,j,x,0));
+                    _grid._U(i,j) -= Config::N*(pressureAt(i,j,x,0) - pressureAt(i-1,j,x,0));
                 }
                 if (j < _grid._V.y() && i < _grid._V.x() && _grid._V.label(i,j) == LIQUID)
                 {
-                    _grid._V(i,j) -= _N*(pressureAt(i,j,x,0) - pressureAt(i,j-1,x,0));
+                    _grid._V(i,j) -= Config::N*(pressureAt(i,j,x,0) - pressureAt(i,j-1,x,0));
                 }
             }
         }
@@ -429,9 +429,9 @@ void Fluids::updateTexture()
 {
     std::uint64_t it = 0;
     //double sum = 0;
-    for (std::uint16_t i = 0; i < _N; ++i)
+    for (std::uint16_t i = 0; i < Config::N; ++i)
     {
-        for (std::uint16_t j = 0; j < _N; ++j)
+        for (std::uint16_t j = 0; j < Config::N; ++j)
         {
             /*
             double value = _substance(i,j);
@@ -507,7 +507,7 @@ const std::vector<double>& Fluids::Y() const
 
 const std::uint16_t& Fluids::N() const
 {
-    return _N;
+    return Config::N;
 }
 
 bool Fluids::isCellActive(std::uint16_t i, std::uint16_t j) const

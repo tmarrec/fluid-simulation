@@ -84,8 +84,13 @@ ADD_EXECUTABLE (${PROJECT_NAME}
     src/Shader.cpp
 	src/Window.cpp
 
-    # stb
+    # Export images
     extern/stb/stb_image_write.h
+
+    # Read config file
+    src/config.h
+    src/config.cpp
+    extern/inipp/inipp/inipp.h
 )
 
 # ╔═════════╗
@@ -100,4 +105,5 @@ TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/glm")
 TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/stb")
 
 FILE (COPY src/shaders DESTINATION .)
+FILE (COPY src/config.ini DESTINATION .)
 

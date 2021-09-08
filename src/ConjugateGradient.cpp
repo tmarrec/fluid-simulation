@@ -2,7 +2,7 @@
 #include <Eigen/src/Core/Matrix.h>
 #include <cstdint>
 
-void ConjugateGradient(const Laplacian& A, Eigen::VectorXd& x, const Eigen::VectorXd& b, Solver solverType, StaggeredGrid<double, std::uint16_t>& grid)
+void ConjugateGradient(const Laplacian& A, Eigen::VectorXd& x, const Eigen::VectorXd& b, StaggeredGrid<double, std::uint16_t>& grid)
 {
     const std::uint64_t diagSize = x.size();
 
@@ -14,7 +14,7 @@ void ConjugateGradient(const Laplacian& A, Eigen::VectorXd& x, const Eigen::Vect
     }
 #endif
 
-    if (solverType == PCG)
+    if (Config::solver == PCG)
     {
         buildPrecondtioner(grid);
     }
@@ -29,7 +29,7 @@ void ConjugateGradient(const Laplacian& A, Eigen::VectorXd& x, const Eigen::Vect
     x = Eigen::VectorXd::Zero(diagSize);
     
     Eigen::VectorXd z = x;
-    applyPreconditioner(r, z, solverType, grid);
+    applyPreconditioner(r, z, grid);
     Eigen::VectorXd s = z;
     double sig = z.dot(r);
 
@@ -43,7 +43,7 @@ void ConjugateGradient(const Laplacian& A, Eigen::VectorXd& x, const Eigen::Vect
         {
             break;
         }
-        applyPreconditioner(r, z, solverType, grid);
+        applyPreconditioner(r, z, grid);
         const double signew = z.dot(r);
         const double beta = signew / sig;
         s = z + beta * s;
@@ -98,9 +98,9 @@ void buildPrecondtioner(StaggeredGrid<double, std::uint16_t>& grid)
     }
 }
 
-void applyPreconditioner(const Eigen::VectorXd& r, Eigen::VectorXd& z, const Solver solver, StaggeredGrid<double, std::uint16_t>& grid)
+void applyPreconditioner(const Eigen::VectorXd& r, Eigen::VectorXd& z, StaggeredGrid<double, std::uint16_t>& grid)
 {
-    if (solver == CG)
+    if (Config::solver == CG)
     {
         z = r;
         return;
