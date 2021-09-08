@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "config.h"
 #include "Simulation.h"
 
 int main()
@@ -9,6 +10,8 @@ int main()
     windowInfos.title = "fluid-simulation - Tristan Marrec";
     windowInfos.x = 800;
     windowInfos.y = 800;
+
+    readConfig();
 
 	Simulation sim;
 	sim.run(windowInfos);
