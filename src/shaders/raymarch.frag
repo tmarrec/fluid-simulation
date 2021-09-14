@@ -46,7 +46,7 @@ vec4 rayMarching(vec3 ro, vec3 rd)
             vec3 pos = (p+vec3(cubeSize))/(cubeSize*2); // Tex pos
             vec3 eyeDir = normalize(pos-u_eyePos)*scale;
 
-            float T = 0.9f; // Transmittance
+            float T = 0.8f; // Transmittance
             vec3 Lo = vec3(0.0f); // In-scattered radiance
 
             for (int s = 0; s < numSamples; ++s)

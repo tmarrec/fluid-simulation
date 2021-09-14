@@ -6,6 +6,7 @@
 #include "Window.h"
 #include "Fluids.h"
 #include "Input.h"
+#include "MarchingCube.h"
 
 #include <iostream>
 #include <numeric>
@@ -26,19 +27,9 @@ private:
 
 	Window _window = {};
     Renderer _renderer = {};
+    MarchingCube marchingCube;
 
-    Camera _camera = 
-    {
-        .yaw = -572,
-        .pitch = -31,
-        .speed = 1,
-        .transform = Transform
-        {
-            .position = {14.85, 9.39, -8.22},
-            .rotation = {90, 0, 0},
-            .scale = {1, 1, 1}
-        },
-    };
+    Camera _camera;
     Fluids _fluid;
     FluidRenderer _fluidRenderer =
     {
