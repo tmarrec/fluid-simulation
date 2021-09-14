@@ -12,7 +12,7 @@ meshnames = '../build/result/*.ply'
 tempdir = 'temp'
 resdir = 'images'
 res = 512
-spp = 128
+spp = 256
 cubescale = 2048
 
 eyestart = np.array([80.0, 80.0, 80.0])

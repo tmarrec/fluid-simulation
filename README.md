@@ -1,7 +1,7 @@
 <p align="center">
   <h3 align="center">🌊 Fluid Simulation 🌊</h3>
   <p align="center">
-    An C++ fluid simulation solver implemented from scratch
+    C++ fluid simulation solver implemented from scratch !
     <br />
     <a href="#screenshots"><strong>Screenshots »</strong></a>
     <br />

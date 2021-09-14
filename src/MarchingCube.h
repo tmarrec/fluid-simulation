@@ -5,6 +5,7 @@
 
 #include <numeric>
 #include <glm/gtx/string_cast.hpp>
+#include <filesystem>
 
 class MarchingCube
 {
