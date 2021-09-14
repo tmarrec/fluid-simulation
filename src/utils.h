@@ -47,7 +47,7 @@
 #define ASSERT(c, m) \
     {\
 		do { \
-		} while(0)
+		} while(0)\
 	}
 #endif
 

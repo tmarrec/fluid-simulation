@@ -1,4 +1,5 @@
 #include "Simulation.h"
+#include "config.h"
 #include <glm/gtx/string_cast.hpp>
 
 void Simulation::run(WindowInfos windowInfos)
@@ -23,7 +24,7 @@ void Simulation::mainLoop()
         */
         if (it == 256)
         {
-            //exit(0);
+            exit(0);
         }
         //std::cout << "== Iteration " << iterations << " ==" << std::endl;
             
@@ -50,26 +51,33 @@ void Simulation::mainLoop()
         _renderer.applyMaterial(_fluidRenderer.material, _camera, _fluidRenderer.transform);
         _renderer.drawMesh(_fluidRenderer.mesh);
 
-        /*
-        _renderer.applyMaterial(_fluidRenderer.materialVec, _camera, _fluidRenderer.transform);
-        _renderer.drawMesh(_fluidRenderer.meshVec);
+        if (Config::dim == 2)
+        {
+            /*
+            _renderer.applyMaterial(_fluidRenderer.materialVec, _camera, _fluidRenderer.transform);
+            _renderer.drawMesh(_fluidRenderer.meshVec);
 
-        _renderer.applyMaterial(_fluidRenderer.materialGrid, _camera, _fluidRenderer.transform);
-        _renderer.drawMesh(_fluidRenderer.meshGrid);
-        */
+            _renderer.applyMaterial(_fluidRenderer.materialGrid, _camera, _fluidRenderer.transform);
+            _renderer.drawMesh(_fluidRenderer.meshGrid);
+            */
 
-        _renderer.setLineWidth(2);
-        _renderer.applyMaterial(_fluidRenderer.materialGridBorder, _camera, _fluidRenderer.transform);
-        _renderer.drawMesh(_fluidRenderer.meshGridBorder);
-        _renderer.setLineWidth(1);
+            _renderer.setLineWidth(2);
+            _renderer.applyMaterial(_fluidRenderer.materialGridBorder, _camera, _fluidRenderer.transform);
+            _renderer.drawMesh(_fluidRenderer.meshGridBorder);
+            _renderer.setLineWidth(1);
+        }
 
         _renderer.endPass();
         if (Config::dim == 3)
         {
             _renderer.raymarchPass();
+            marchingCube.run(_fluid.surface(), it);
         }
 
-        _renderer.writeImg(it);
+        if (Config::exportFrames)
+        {
+            _renderer.writeImg(it);
+        }
         _window.swapBuffers();
         _window.pollEvents();
 
@@ -99,7 +107,7 @@ void Simulation::updateMeshGrid()
     for (float i = 0; i <= N; ++i)
     {
         // Arrow line drawing
-        glm::vec2 A = { (i/N)-0.5f, -0.5f };
+        glm::vec2 A = { (i/N)-0.5f, -1.5f };
         mesh.vertices.emplace_back(A.x);
         mesh.vertices.emplace_back(z);
         mesh.vertices.emplace_back(A.y);
@@ -169,15 +177,14 @@ void Simulation::updateMeshGridBorder()
 
 void Simulation::updateMeshVec()
 {
-    /*
     Mesh& mesh = _fluidRenderer.meshVec;
-    const std::uint16_t& N = _fluid.N();
+    const std::uint16_t& N = Config::N;
     const std::vector<double>& X = _fluid.X();
     const std::vector<double>& Y = _fluid.Y();
 
     float z = 0.001f;
     std::uint64_t it = 0;
-    float reduce = 900.0f;
+    float reduce = 18000.0f;
 
     mesh.vertices.clear();
     mesh.indices.clear();
@@ -185,7 +192,7 @@ void Simulation::updateMeshVec()
     {
         for (float i = 0; i < N+1; ++i)
         {
-            if (_fluid.isCellActive(i,j))
+            //if (_fluid.isCellActive(i,j,0))
             {
                 float size = float(X[i+j*(N+1)]/reduce);
 
@@ -226,7 +233,7 @@ void Simulation::updateMeshVec()
     {
         for (float i = 0; i < N; ++i)
         {
-            if (_fluid.isCellActive(i,j))
+            //if (_fluid.isCellActive(i,j,0))
             {
                 float size = float(Y[i+j*N]/reduce);
 
@@ -263,7 +270,6 @@ void Simulation::updateMeshVec()
         }
     }
     _renderer.initMesh(mesh);
-    */
 }
 
 void Simulation::initSimulation()
@@ -348,6 +354,37 @@ void Simulation::initSimulation()
     };
     _fluidRenderer.materialGridBorder = materialGridBorder;
     _renderer.initMaterial(materialGridBorder);
+
+    if (Config::dim == 3)
+    {
+        _camera = 
+        {
+            .yaw = -572,
+            .pitch = -31,
+            .speed = 1,
+            .transform = Transform
+            {
+                .position = {14.85, 9.39, -8.22},
+                .rotation = {90, 0, 0},
+                .scale = {1, 1, 1}
+            },
+        };
+    }
+    else if (Config::dim == 2)
+    {
+        _camera = 
+        {
+            .yaw = -90-90-90,
+            .pitch = -90,
+            .speed = 1,
+            .transform = Transform
+            {
+                .position = {0.0, 1.0, 0.0},
+                .rotation = {0, 0, 0},
+                .scale = {1, 1, 1}
+            },
+        };
+    }
 }
 
 void Simulation::setCameraDir()
@@ -400,5 +437,4 @@ void Simulation::handleInputs()
     _camera.front = dir;
 
     Input::updateMouseMovements();
-
 }

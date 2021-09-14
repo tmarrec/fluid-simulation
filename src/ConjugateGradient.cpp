@@ -2,12 +2,12 @@
 #include <Eigen/src/Core/Matrix.h>
 #include <cstdint>
 
-void ConjugateGradient(const Laplacian& A, Eigen::VectorXd& x, const Eigen::VectorXd& b, StaggeredGrid<double, std::uint16_t>& grid)
+void ConjugateGradient(const Eigen::SparseMatrix<double>& A, Eigen::VectorXd& x, const Eigen::VectorXd& b, StaggeredGrid<double, std::uint16_t>& grid)
 {
     const std::uint64_t diagSize = x.size();
 
 #ifdef DEBUG
-    Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> lltOfA(A.A);
+    Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> lltOfA(A);
     if(lltOfA.info() == Eigen::NumericalIssue)
     {
         ERROR("DEBUG: Numerical Issue on the A matrix");
@@ -35,7 +35,7 @@ void ConjugateGradient(const Laplacian& A, Eigen::VectorXd& x, const Eigen::Vect
 
     for (std::uint64_t i = 0; i < static_cast<std::uint64_t>(b.size()); ++i)
     {
-        z = A.A * s;
+        z = A * s;
         const double alpha = sig / s.dot(z);
         x = x + alpha * s;
         r = r - alpha * z;

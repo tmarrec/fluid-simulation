@@ -73,6 +73,13 @@ ADD_EXECUTABLE (${PROJECT_NAME}
     src/ConjugateGradient.cpp
     src/StaggeredGrid.h
 
+    src/Advect.h
+    src/Advect.cpp
+    src/Project.h
+    src/Project.cpp
+    src/MarchingCube.h
+    src/MarchingCube.cpp
+
     # Engine
     src/Simulation.h
 	src/Renderer.h
@@ -93,6 +100,9 @@ ADD_EXECUTABLE (${PROJECT_NAME}
     src/config.h
     src/config.cpp
     extern/inipp/inipp/inipp.h
+
+    # Export .ply
+    extern/tinyply/source/tinyply.h
 )
 
 # ╔═════════╗
@@ -105,6 +115,8 @@ TARGET_LINK_LIBRARIES (${PROJECT_NAME} glad)
 
 TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/glm")
 TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/stb")
+TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/inipp/inipp")
+TARGET_INCLUDE_DIRECTORIES (${PROJECT_NAME} SYSTEM PRIVATE "extern/tinyply/source")
 
 FILE (COPY src/shaders DESTINATION .)
 FILE (COPY src/config.ini DESTINATION .)

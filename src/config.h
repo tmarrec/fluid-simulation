@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../inipp/inipp/inipp.h"
+#include "inipp.h"
 #include "utils.h"
 #include "types.h"
 
@@ -15,6 +15,7 @@ namespace Config
     extern double dt;
     extern Solver solver;
     extern Advection advection;
+    extern bool exportFrames;
 }
 
 void readConfig();
