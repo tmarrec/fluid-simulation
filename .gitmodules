@@ -16,9 +16,6 @@
 [submodule "extern/inipp"]
 	path = extern/inipp
 	url = https://github.com/mcmtroffaes/inipp
-[submodule "src/extern/tinyply"]
-	path = src/extern/tinyply
-	url = https://github.com/ddiakopoulos/tinyply
 [submodule "extern/tinyply"]
 	path = extern/tinyply
 	url = https://github.com/ddiakopoulos/tinyply
