@@ -1,4 +1,6 @@
 #include "MarchingCube.h"
+#include <cstdint>
+#include <glm/gtx/dual_quaternion.hpp>
 
 #define  TINYPLY_IMPLEMENTATION
 #include "tinyply.h"
@@ -27,8 +29,49 @@ inline double MarchingCube::interp(const Field<double,std::uint16_t>& F, double 
                 );
 }
 
-inline std::array<glm::vec3, 3> MarchingCube::computeNormal(std::array<glm::vec3, 3> p, float eps) const
+inline glm::vec3 MarchingCube::computeNormal(const Field<double, std::uint16_t>& F, const glm::vec3 p) const
 {
+    double divx = 0;
+    double divy = 0;
+    double divz = 0;
+    if (p.x < 1)
+    {
+        divx = interp(F,p.x+1,p.y,p.z) - interp(F,p.x,p.y,p.z);
+    }
+    else if (p.x >= Config::N-1)
+    {
+        divx = interp(F,p.x,p.y,p.z) - interp(F,p.x-1,p.y,p.z);
+    }
+    else
+    {
+        divx = interp(F,p.x+1,p.y,p.z) - interp(F,p.x-1,p.y,p.z);
+    }
+    if (p.y < 1)
+    {
+        divy = interp(F,p.x,p.y+1,p.z) - interp(F,p.x,p.y,p.z);
+    }
+    else if (p.y >= Config::N-1)
+    {
+        divy = interp(F,p.x,p.y,p.z) - interp(F,p.x,p.y-1,p.z);
+    }
+    else
+    {
+        divy = interp(F,p.x,p.y+1,p.z) - interp(F,p.x,p.y-1,p.z);
+    }
+    if (p.z < 1)
+    {
+        divz = interp(F,p.x,p.y,p.z+1) - interp(F,p.x,p.y,p.z);
+    }
+    else if (p.z >= Config::N-1)
+    {
+        divz = interp(F,p.x,p.y,p.z) - interp(F,p.x,p.y,p.z-1);
+    }
+    else
+    {
+        divz = interp(F,p.x,p.y,p.z+1) - interp(F,p.x,p.y,p.z-1);
+    }
+
+    return glm::normalize(0.5f * glm::vec3 {divx, divy, divz});
 }
 
 inline bool MarchingCube::check(const glm::vec3 &left, const glm::vec3 &right) const
@@ -76,7 +119,7 @@ void MarchingCube::run(const Field<double, std::uint16_t>& F, std::uint64_t iter
     std::vector<float> vertices;
     std::vector<float> normals;
     std::vector<std::uint32_t> indices;
-    const std::uint64_t nbEchant = 32;
+    const std::uint64_t nbEchant = Config::N * 2;
     for (std::uint16_t k = 0; k < nbEchant; ++k)
     {
         for (std::uint16_t j = 0; j < nbEchant; ++j)
@@ -111,62 +154,62 @@ void MarchingCube::run(const Field<double, std::uint16_t>& F, std::uint64_t iter
                     interp(F, p[7].x, p[7].y, p[7].z),
                 };
 
-                std::uint16_t cubeindex = 0;
-                if (cell[0] < 0.0) cubeindex |= 1;
-                if (cell[1] < 0.0) cubeindex |= 2;
-                if (cell[2] < 0.0) cubeindex |= 4;
-                if (cell[3] < 0.0) cubeindex |= 8;
-                if (cell[4] < 0.0) cubeindex |= 16;
-                if (cell[5] < 0.0) cubeindex |= 32;
-                if (cell[6] < 0.0) cubeindex |= 64;
-                if (cell[7] < 0.0) cubeindex |= 128;
+                std::uint16_t cubeIndex = 0;
+                if (cell[0] < 0.0) cubeIndex |= 1;
+                if (cell[1] < 0.0) cubeIndex |= 2;
+                if (cell[2] < 0.0) cubeIndex |= 4;
+                if (cell[3] < 0.0) cubeIndex |= 8;
+                if (cell[4] < 0.0) cubeIndex |= 16;
+                if (cell[5] < 0.0) cubeIndex |= 32;
+                if (cell[6] < 0.0) cubeIndex |= 64;
+                if (cell[7] < 0.0) cubeIndex |= 128;
 
                 // Cube is entirely in/out of the surface
-                if (_edgeTable[cubeindex] != 0)
+                if (_edgeTable[cubeIndex] != 0)
                 {
                     glm::vec3 vertlist[12];
                     // Find the vertices where the surface intersects the cube
-                    if (_edgeTable[cubeindex] & 1)
+                    if (_edgeTable[cubeIndex] & 1)
                         vertlist[0] = VertexInterp(p[0],p[1],cell[0],cell[1]);
-                    if (_edgeTable[cubeindex] & 2)
+                    if (_edgeTable[cubeIndex] & 2)
                         vertlist[1] = VertexInterp(p[1],p[2],cell[1],cell[2]);
-                    if (_edgeTable[cubeindex] & 4)
+                    if (_edgeTable[cubeIndex] & 4)
                         vertlist[2] = VertexInterp(p[2],p[3],cell[2],cell[3]);
-                    if (_edgeTable[cubeindex] & 8)
+                    if (_edgeTable[cubeIndex] & 8)
                         vertlist[3] = VertexInterp(p[3],p[0],cell[3],cell[0]);
-                    if (_edgeTable[cubeindex] & 16)
+                    if (_edgeTable[cubeIndex] & 16)
                         vertlist[4] = VertexInterp(p[4],p[5],cell[4],cell[5]);
-                    if (_edgeTable[cubeindex] & 32)
+                    if (_edgeTable[cubeIndex] & 32)
                         vertlist[5] = VertexInterp(p[5],p[6],cell[5],cell[6]);
-                    if (_edgeTable[cubeindex] & 64)
+                    if (_edgeTable[cubeIndex] & 64)
                         vertlist[6] = VertexInterp(p[6],p[7],cell[6],cell[7]);
-                    if (_edgeTable[cubeindex] & 128)
+                    if (_edgeTable[cubeIndex] & 128)
                         vertlist[7] = VertexInterp(p[7],p[4],cell[7],cell[4]);
-                    if (_edgeTable[cubeindex] & 256)
+                    if (_edgeTable[cubeIndex] & 256)
                         vertlist[8] = VertexInterp(p[0],p[4],cell[0],cell[4]);
-                    if (_edgeTable[cubeindex] & 512)
+                    if (_edgeTable[cubeIndex] & 512)
                         vertlist[9] = VertexInterp(p[1],p[5],cell[1],cell[5]);
-                    if (_edgeTable[cubeindex] & 1024)
+                    if (_edgeTable[cubeIndex] & 1024)
                         vertlist[10] = VertexInterp(p[2],p[6],cell[2],cell[6]);
-                    if (_edgeTable[cubeindex] & 2048)
+                    if (_edgeTable[cubeIndex] & 2048)
                         vertlist[11] = VertexInterp(p[3],p[7],cell[3],cell[7]);
 
                     // Create the triangle
-                    for (std::uint64_t n = 0; _triTable[cubeindex][n] != -1; n += 3)
+                    for (std::uint64_t n = 0; _triTable[cubeIndex][n] != -1; n += 3)
                     {
                         std::array<glm::vec3, 3> triangle;
-                        triangle[0] = vertlist[static_cast<std::uint8_t>(_triTable[cubeindex][n  ])];
-                        triangle[1] = vertlist[static_cast<std::uint8_t>(_triTable[cubeindex][n+1])];
-                        triangle[2] = vertlist[static_cast<std::uint8_t>(_triTable[cubeindex][n+2])];
+                        triangle[0] = vertlist[static_cast<std::uint8_t>(_triTable[cubeIndex][n  ])];
+                        triangle[1] = vertlist[static_cast<std::uint8_t>(_triTable[cubeIndex][n+1])];
+                        triangle[2] = vertlist[static_cast<std::uint8_t>(_triTable[cubeIndex][n+2])];
 
                         std::uint64_t oldSize = vertices.size();
                         vertices.resize(oldSize+9);
                         memcpy(&vertices[oldSize], &triangle, sizeof(float)*9);
 
                         std::array<glm::vec3, 3> ns;
-                        ns[0] = glm::vec3{1,1,1};
-                        ns[1] = glm::vec3{1,1,1};
-                        ns[2] = glm::vec3{1,1,1};
+                        ns[0] = computeNormal(F, triangle[0]);
+                        ns[1] = computeNormal(F, triangle[1]);
+                        ns[2] = computeNormal(F, triangle[2]);
                         normals.resize(oldSize+9);
                         memcpy(&normals[oldSize], &ns, sizeof(float)*9);
                     }

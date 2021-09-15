@@ -8,7 +8,7 @@
 	</emitter>
 
     <integrator type='path'>
-        <integer name="max_depth" value="4"/>
+        <integer name="max_depth" value="8"/>
     </integrator>
 
 	<sensor type="perspective">
@@ -16,7 +16,7 @@
 		<float name="far_clip" value="1000"/>
 
 		<transform name="to_world">
-			<lookat target="0.0, 0.0, 0.0"
+			<lookat target="0.0, 20, -19.0"
 					origin="$eyepos"
 					up	="0.0, 1.0, 0.0"/>
 		</transform>
@@ -45,16 +45,54 @@
             <string name="ext_ior" value="air"/>
         </bsdf>
         -->
-    </shape>
-
-    <shape type="ply">
-        <string name="filename" value="cube.ply"/>
         <transform name="to_world">
-			<scale x="$scale" y="$scale" z="$scale"/>
-            <translate x="16" y="-$scale" z="16"/>
+            <rotate y="1" angle="180"/>
 		</transform>
     </shape>
 
+    <shape type="rectangle">
+        <bsdf type="diffuse">
+            <texture name="reflectance" type="checkerboard">
+                <transform name="to_uv">
+                    <scale x="10" y="10" z="10" />
+                </transform>
+            </texture>
+        </bsdf>
+        <transform name="to_world">
+            <scale value="100" />
+            <rotate y="1" angle="90"/>
+            <translate x="-100"/>
+		</transform>
+    </shape>
+
+    <shape type="rectangle">
+        <bsdf type="diffuse">
+            <texture name="reflectance" type="checkerboard">
+                <transform name="to_uv">
+                    <scale x="10" y="10" z="10" />
+                </transform>
+            </texture>
+        </bsdf>
+        <transform name="to_world">
+            <scale value="100" />
+            <rotate y="1" angle="0"/>
+            <translate z="-90"/>
+		</transform>
+    </shape>
+
+    <shape type="rectangle">
+        <bsdf type="diffuse">
+            <texture name="reflectance" type="checkerboard">
+                <transform name="to_uv">
+                    <scale x="10" y="10" z="10" />
+                </transform>
+            </texture>
+        </bsdf>
+        <transform name="to_world">
+            <scale value="100" />
+            <rotate x="1" angle="-90"/>
+		</transform>
+    </shape>
 
 
 </scene>

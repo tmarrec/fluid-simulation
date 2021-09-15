@@ -12,8 +12,8 @@ meshnames = '../build/result/*.ply'
 tempdir = 'temp'
 resdir = 'images'
 res = 512
-spp = 256
-cubescale = 2048
+spp = 64
+cubescale = 1024
 
 eyestart = np.array([80.0, 80.0, 80.0])
 eyeend = np.array([10, 0, 0])
@@ -29,7 +29,7 @@ def render():
     eyepos = eyestart
     for mesh in meshesdir:
         eyepos += eyediff
-        eyepos = np.array([80.0, 60.0, 80.0])
+        eyepos = np.array([80.0, 70.0, -1.0])
         xmlpos = str(eyepos[0])+','+str(eyepos[1])+','+str(eyepos[2])
         scene = load_file(filename, meshname=mesh, eyepos=xmlpos, spp=spp, res=res, cubescale=cubescale)
 

@@ -39,47 +39,17 @@ void Fluids::update([[maybe_unused]] std::uint64_t iteration)
 
 void Fluids::step()
 {
-    _grid._surface.setLabels(_grid._U, _grid._V, _grid._W);
-
-    // Extrapolate the velocity field
-    extrapolate(_grid._U, _grid._UPrev);
-    extrapolate(_grid._V, _grid._VPrev);
-    extrapolate(_grid._W, _grid._WPrev);
-
-    // Advect level-set everywhere using the fully extrapolated velocity
-    _advection->advect(_grid, _grid._surface, _grid._surfacePrev, 0);
-    redistancing(4, _grid._surface, _grid._surfacePrev);
-
-    // Advect velocity everywhere using the fully extrapolated velocity
-    _advection->advect(_grid, _grid._U, _grid._UPrev, 1);
-    _advection->advect(_grid, _grid._V, _grid._VPrev, 2);
-    _advection->advect(_grid, _grid._W, _grid._WPrev, 3);
-
-    _grid._surface.setLabels(_grid._U, _grid._V, _grid._W);
-
-    // Add external forces
-    addForces();
-
-    // Tag the cells that are inside the liquids and assign integer labels
-    _grid.tagActiveCells();
-
-    // Ensure incompressibility
-    _projection->project();
-}
-
-void Fluids::addForces()
-{
     for (std::uint16_t k = 0; k < _grid._surface.z(); ++k)
     {
         for (std::uint16_t j = 0; j < _grid._surface.y(); ++j)
         {
             for (std::uint16_t i = 0; i < _grid._surface.x(); ++i)
             {
-                double dist = std::sqrt(std::pow(i-_grid._surface.x()/2,2)+std::pow(j-_grid._surface.y()/2,2)+std::pow(k-_grid._surface.z()/2,2));
-                if (dist < 10)
+                /*double dist = std::sqrt(std::pow(i-_grid._surface.x()/2,2)+std::pow(j-_grid._surface.y()/3,2)+std::pow(k-_grid._surface.z()/2,2));
+                if (dist < 8)
                 {
                     if (_iteration == 1)
-                    _grid._surface(i,j,k) = -10;
+                        _grid._surface(i,j,k) = -10;
                 }
                 else
                 {
@@ -88,7 +58,8 @@ void Fluids::addForces()
                         _grid._surface(i,j,k) = 10;
                     }
                 }
-                //_grid._surface(i,j,k) = 10;
+                */
+                /*
                 if (_iteration == 0)
                 {
                     if (j < 4)
@@ -100,10 +71,81 @@ void Fluids::addForces()
                         _grid._surface(i,j,k) = 10;
                     }
                 }
+                */
+                if (_iteration == 0)
+                    _grid._surface(i,j,k) = 10;
             }
         }
     }
-    const double G = 15.0;
+    for (std::uint16_t j = 0; j < _grid._surface.y(); ++j)
+    {
+        for (std::uint16_t i = 0; i < _grid._surface.x(); ++i)
+        {
+            double dist = std::sqrt(std::pow(i-_grid._surface.x()/2,2)+std::pow(j-_grid._surface.y()/2,2));
+            if (dist < 5)
+            {
+                _grid._surface(i,j,0) = -10;
+                _grid._W(i,j,0) = 300;
+                _grid._W(i,j,1) = 300;
+                _grid._V(i,j,0) = 0;
+                _grid._V(i,j,1) = 0;
+            }
+        }
+    }
+    _grid._surface.setLabels(_grid._U, _grid._V, _grid._W);
+
+    // Extrapolate the velocity field
+    extrapolate(_grid._U, _grid._UPrev);
+    extrapolate(_grid._V, _grid._VPrev);
+    extrapolate(_grid._W, _grid._WPrev);
+
+    // Advect level-set everywhere using the fully extrapolated velocity
+    _advection->advect(_grid, _grid._surface, _grid._surfacePrev, 0);
+    redistancing(16, _grid._surface, _grid._surfacePrev);
+
+    // Advect velocity everywhere using the fully extrapolated velocity
+    _advection->advect(_grid, _grid._U, _grid._UPrev, 1);
+    _advection->advect(_grid, _grid._V, _grid._VPrev, 2);
+    _advection->advect(_grid, _grid._W, _grid._WPrev, 3);
+
+    _grid._surface.setLabels(_grid._U, _grid._V, _grid._W);
+
+    // Add external forces
+    addForces();
+    if (_iteration == 0)
+        redistancing(256, _grid._surface, _grid._surfacePrev);
+
+    // Tag the cells that are inside the liquids and assign integer labels
+    _grid.tagActiveCells();
+
+    // Ensure incompressibility
+    _projection->project();
+
+    /*
+    if (_iteration == 5)
+    {
+        std::cout << _grid._surface << std::endl;
+
+        std::cout << std::endl;
+        for (std::uint16_t j = 0; j < _grid._V.z(); ++j)
+        {
+            for (std::uint16_t i = 0; i < _grid._V.x(); ++i)
+            {
+                if (_grid._V.label(i,0,j) >= 0)
+                    std::cout << " ";
+                std::cout << _grid._V.label(i,0,j) << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+    */
+
+
+}
+
+void Fluids::addForces()
+{
+    const double G = 10.0;
     for (std::uint16_t k = 0; k < _grid._V.z(); ++k)
     {
         for (std::uint16_t j = 0; j < _grid._V.y(); ++j)

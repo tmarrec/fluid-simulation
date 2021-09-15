@@ -22,7 +22,7 @@ void Simulation::mainLoop()
         std::cout << _camera.pitch << std::endl;
         std::cout << glm::to_string(_camera.transform.position) << std::endl;
         */
-        if (it == 256)
+        if (it == 512)
         {
             exit(0);
         }

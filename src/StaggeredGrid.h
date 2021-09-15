@@ -205,20 +205,19 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const Field& obj)
     {
-        os << std::fixed << std::setprecision(0);
-        for (U k = 0; k < obj._Zsize; ++k)
+        os << std::fixed << std::setprecision(2);
+        for (std::int64_t j = obj._Ysize-1; j >= 0; --j)
         {
-            for (U j = 0; j < obj._Ysize; ++j)
+            for (std::int64_t k = 0; k < obj._Zsize; ++k)
             {
-                for (U i = 0; i < obj._Xsize; ++i)
+                for (std::int64_t i = 0; i < obj._Xsize; ++i)
                 {
-                    /*
                     if (obj(i,j,k) >= 0)
                     {
                         os << " ";
                     }
-                    */
-                    os << obj.label(i,j,k) << " ";
+                    //os << obj.label(i,j,k) << " ";
+                    os << obj(i,j,k) << " ";
                 }
                 os << std::endl;
             }
