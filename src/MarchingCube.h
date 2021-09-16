@@ -15,7 +15,7 @@ public:
 
 private:
     inline double interp(const Field<double,std::uint16_t>& F, double x, double y, double z) const;
-    inline glm::vec3 computeNormal(const Field<double, std::uint16_t>& F, const glm::vec3 p) const;
+    inline glm::vec3 computeNormal(const Field<double, std::uint16_t>& F, const glm::vec3 p, const std::uint64_t nbEchant) const;
     inline bool check(const glm::vec3 &left, const glm::vec3 &right) const;
     std::uint16_t getCubeIndex(const Field<double, std::uint16_t>& F, const double x, const double y, const double z) const;
     glm::vec3 VertexInterp(glm::vec3 p1, glm::vec3 p2, float valp1, float valp2) const;

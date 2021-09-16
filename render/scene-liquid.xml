@@ -16,7 +16,7 @@
 		<float name="far_clip" value="1000"/>
 
 		<transform name="to_world">
-			<lookat target="0.0, 20, -19.0"
+			<lookat target="0.0, 33, -17.0"
 					origin="$eyepos"
 					up	="0.0, 1.0, 0.0"/>
 		</transform>
@@ -46,7 +46,9 @@
         </bsdf>
         -->
         <transform name="to_world">
-            <rotate y="1" angle="180"/>
+            <rotate y="1" angle="0"/>
+            <translate x="-50" />
+            <translate z="-50" />
 		</transform>
     </shape>
 

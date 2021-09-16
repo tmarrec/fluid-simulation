@@ -8,11 +8,12 @@ from mitsuba.core.xml import load_file
 from mitsuba.core import Bitmap, Struct
 
 filename = 'scene-liquid.xml'
+#meshnames = 'save-ply/*.ply'
 meshnames = '../build/result/*.ply'
 tempdir = 'temp'
 resdir = 'images'
-res = 512
-spp = 64
+res = 1024
+spp = 32
 cubescale = 1024
 
 eyestart = np.array([80.0, 80.0, 80.0])
@@ -29,7 +30,7 @@ def render():
     eyepos = eyestart
     for mesh in meshesdir:
         eyepos += eyediff
-        eyepos = np.array([80.0, 70.0, -1.0])
+        eyepos = np.array([130.0, 150.0, -1.0])
         xmlpos = str(eyepos[0])+','+str(eyepos[1])+','+str(eyepos[2])
         scene = load_file(filename, meshname=mesh, eyepos=xmlpos, spp=spp, res=res, cubescale=cubescale)
 

@@ -37,3 +37,4 @@ build/
 *.mp4
 render/results
 render/temp
+render/save-ply

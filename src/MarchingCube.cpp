@@ -7,6 +7,11 @@
 
 inline double MarchingCube::interp(const Field<double,std::uint16_t>& F, double x, double y, double z) const
 {
+    // Outside of the simulation cube positive to build triangle around the mesh
+    if (x < 0 || y < 0 || z < 0 || x > F.x()-1 || y > F.y()-1 || z > F.z()-1)
+    {
+        return 65536;
+    }
     const std::uint16_t i0 = static_cast<std::uint16_t>(x);
     const std::uint16_t i1 = i0 + 1;
     const std::uint16_t j0 = static_cast<std::uint16_t>(y);
@@ -29,49 +34,18 @@ inline double MarchingCube::interp(const Field<double,std::uint16_t>& F, double 
                 );
 }
 
-inline glm::vec3 MarchingCube::computeNormal(const Field<double, std::uint16_t>& F, const glm::vec3 p) const
+inline glm::vec3 MarchingCube::computeNormal(const Field<double, std::uint16_t>& F, const glm::vec3 p, const std::uint64_t nbEchant) const
 {
     double divx = 0;
     double divy = 0;
     double divz = 0;
-    if (p.x < 1)
-    {
-        divx = interp(F,p.x+1,p.y,p.z) - interp(F,p.x,p.y,p.z);
-    }
-    else if (p.x >= Config::N-1)
-    {
-        divx = interp(F,p.x,p.y,p.z) - interp(F,p.x-1,p.y,p.z);
-    }
-    else
-    {
-        divx = interp(F,p.x+1,p.y,p.z) - interp(F,p.x-1,p.y,p.z);
-    }
-    if (p.y < 1)
-    {
-        divy = interp(F,p.x,p.y+1,p.z) - interp(F,p.x,p.y,p.z);
-    }
-    else if (p.y >= Config::N-1)
-    {
-        divy = interp(F,p.x,p.y,p.z) - interp(F,p.x,p.y-1,p.z);
-    }
-    else
-    {
-        divy = interp(F,p.x,p.y+1,p.z) - interp(F,p.x,p.y-1,p.z);
-    }
-    if (p.z < 1)
-    {
-        divz = interp(F,p.x,p.y,p.z+1) - interp(F,p.x,p.y,p.z);
-    }
-    else if (p.z >= Config::N-1)
-    {
-        divz = interp(F,p.x,p.y,p.z) - interp(F,p.x,p.y,p.z-1);
-    }
-    else
-    {
-        divz = interp(F,p.x,p.y,p.z+1) - interp(F,p.x,p.y,p.z-1);
-    }
+    //double const eps = (1.0/nbEchant);
+    double const eps = 0.5;
+    divx = interp(F,p.x+eps,p.y,p.z) - interp(F,p.x-eps,p.y,p.z);
+    divy = interp(F,p.x,p.y+eps,p.z) - interp(F,p.x,p.y-eps,p.z);
+    divz = interp(F,p.x,p.y,p.z+eps) - interp(F,p.x,p.y,p.z-eps);
 
-    return glm::normalize(0.5f * glm::vec3 {divx, divy, divz});
+    return glm::normalize(glm::vec3 {divx, divy, divz});
 }
 
 inline bool MarchingCube::check(const glm::vec3 &left, const glm::vec3 &right) const
@@ -207,9 +181,9 @@ void MarchingCube::run(const Field<double, std::uint16_t>& F, std::uint64_t iter
                         memcpy(&vertices[oldSize], &triangle, sizeof(float)*9);
 
                         std::array<glm::vec3, 3> ns;
-                        ns[0] = computeNormal(F, triangle[0]);
-                        ns[1] = computeNormal(F, triangle[1]);
-                        ns[2] = computeNormal(F, triangle[2]);
+                        ns[0] = computeNormal(F, triangle[0], nbEchant);
+                        ns[1] = computeNormal(F, triangle[1], nbEchant);
+                        ns[2] = computeNormal(F, triangle[2], nbEchant);
                         normals.resize(oldSize+9);
                         memcpy(&normals[oldSize], &ns, sizeof(float)*9);
                     }

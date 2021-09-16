@@ -62,7 +62,7 @@ void Fluids::step()
                 /*
                 if (_iteration == 0)
                 {
-                    if (j < 4)
+                    if (j < 8)
                     {
                         _grid._surface(i,j,k) = -10;
                     }
@@ -72,6 +72,7 @@ void Fluids::step()
                     }
                 }
                 */
+
                 if (_iteration == 0)
                     _grid._surface(i,j,k) = 10;
             }
@@ -84,11 +85,20 @@ void Fluids::step()
             double dist = std::sqrt(std::pow(i-_grid._surface.x()/2,2)+std::pow(j-_grid._surface.y()/2,2));
             if (dist < 5)
             {
-                _grid._surface(i,j,0) = -10;
-                _grid._W(i,j,0) = 300;
-                _grid._W(i,j,1) = 300;
-                _grid._V(i,j,0) = 0;
-                _grid._V(i,j,1) = 0;
+                _grid._surface(i,_grid._surface.y()-2,j) = -1;
+                _grid._surface(i,_grid._surface.y()-3,j) = -1;
+                _grid._V(i,_grid._V.y()-2,j) = -800;
+                _grid._V(i,_grid._V.y()-3,j) = -800;
+            }
+            dist = std::sqrt(std::pow(i-_grid._surface.x()/2,2)+std::pow(j-_grid._surface.y()/2,2));
+            if (dist < 8)
+            {
+                _grid._surface(i,j,5) = -1;
+                _grid._surface(i,j,6) = -1;
+                _grid._W(i,j,5) = 1100;
+                _grid._V(i,j,5) = 0;
+                _grid._W(i,j,6) = 1100;
+                _grid._V(i,j,6) = 0;
             }
         }
     }
@@ -112,8 +122,6 @@ void Fluids::step()
 
     // Add external forces
     addForces();
-    if (_iteration == 0)
-        redistancing(256, _grid._surface, _grid._surfacePrev);
 
     // Tag the cells that are inside the liquids and assign integer labels
     _grid.tagActiveCells();
@@ -145,7 +153,7 @@ void Fluids::step()
 
 void Fluids::addForces()
 {
-    const double G = 10.0;
+    const double G = 50.0;
     for (std::uint16_t k = 0; k < _grid._V.z(); ++k)
     {
         for (std::uint16_t j = 0; j < _grid._V.y(); ++j)
@@ -247,11 +255,11 @@ void Fluids::redistancing(const std::uint64_t nbIte, Field<double, std::uint16_t
     const double dx = 1.0/Config::N;
     auto F = field;
     auto QNew = field;
-    for (std::uint16_t k = 0; k < field.z(); ++k)
+    for (std::int16_t k = 0; k < field.z(); ++k)
     {
-        for (std::uint16_t j = 0; j < field.y(); ++j)
+        for (std::int16_t j = 0; j < field.y(); ++j)
         {
-            for (std::uint16_t i = 0; i < field.x(); ++i)
+            for (std::int16_t i = 0; i < field.x(); ++i)
             {
                 if (    (i+1 < field.x() && !((field(i,j,k) >= 0) ^ (field(i+1,j,k) < 0))) ||
                         (i-1 >= 0 && !((field(i,j,k) >= 0) ^ (field(i-1,j,k) < 0))) ||
