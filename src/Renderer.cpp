@@ -1,23 +1,24 @@
 #include "Renderer.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "./stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include "./stb_image_write.h"
 
-void Renderer::init(const WindowInfos& windowInfos)
+void Renderer::init()
 {
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
     {
         ERROR("Failed to initialize glad");
     }
 
-    _windowInfos = windowInfos;
-    glViewport(0, 0, _windowInfos.x, _windowInfos.y);
+    glViewport(0, 0, Config::width, Config::height);
     glEnable(GL_DEPTH_TEST);
 
-    _initFrameBuffer(_screenbuffer, "shaders/screen.vert", "shaders/screen.frag");
-    _initFrameBuffer(_raymarchingbuffer, "shaders/screen.vert", "shaders/raymarch.frag");
+    initFrameBuffer(_screenbuffer,
+            "shaders/screen.vert", "shaders/screen.frag");
+    initFrameBuffer(_raymarchingbuffer,
+            "shaders/screen.vert", "shaders/raymarch.frag");
 }
 
 
@@ -32,26 +33,25 @@ void Renderer::prePass()
 void Renderer::endPass() const
 {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //glClear(GL_COLOR_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST);
 
     // Screenbuffer step
-	_screenbuffer.shader->use();
-	glBindVertexArray(_screenbuffer.VAO);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, _screenbuffer.texture);
+    _screenbuffer.shader->use();
+    glBindVertexArray(_screenbuffer.VAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _screenbuffer.texture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void Renderer::raymarchPass() const
 {
-	_raymarchingbuffer.shader->use();
+    _raymarchingbuffer.shader->use();
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBindVertexArray(_raymarchingbuffer.VAO);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, _raymarchingbuffer.texture);
+    glBindVertexArray(_raymarchingbuffer.VAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _raymarchingbuffer.texture);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glDisable(GL_BLEND);
 }
@@ -59,23 +59,26 @@ void Renderer::raymarchPass() const
 void Renderer::writeImg(const std::uint32_t iteration) const
 {
     GLsizei nbChannels = 3;
-    GLsizei stride = nbChannels * _windowInfos.x;
+    GLsizei stride = nbChannels * Config::width;
     stride += (stride % 4) ? (4 - stride % 4) : 0;
-    GLsizei bufferSize = stride * _windowInfos.y;
+    GLsizei bufferSize = stride * Config::height;
     std::vector<std::uint8_t> buffer(bufferSize);
     glPixelStorei(GL_PACK_ALIGNMENT, 4);
     glReadBuffer(GL_FRONT);
-    glReadPixels(0, 0, _windowInfos.x, _windowInfos.y, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
+    glReadPixels(0, 0, Config::width, Config::height,
+            GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
     stbi_flip_vertically_on_write(true);
     std::string path = "result/";
     path += std::to_string(iteration);
     path += ".png";
-    stbi_write_png(path.c_str(), _windowInfos.x, _windowInfos.y, nbChannels, buffer.data(), stride);
-    stbi_write_png("last.png", _windowInfos.x, _windowInfos.y, nbChannels, buffer.data(), stride);
+    stbi_write_png(path.c_str(), Config::width, Config::height,
+            nbChannels, buffer.data(), stride);
+    stbi_write_png("last.png", Config::width, Config::height,
+            nbChannels, buffer.data(), stride);
     INFO("Frame " << iteration << " saved");
 }
 
-void Renderer::drawMesh(Mesh& mesh) const
+void Renderer::drawMesh(const Mesh& mesh) const
 {
     GLenum renderMode = GL_TRIANGLES;
     switch (mesh.renderMode)
@@ -88,63 +91,79 @@ void Renderer::drawMesh(Mesh& mesh) const
             break;
     }
     glBindVertexArray(mesh.VAO);
-    glDrawElements(renderMode, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(renderMode, mesh.indices.size(),
+            GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 }
 
-void Renderer::_initFrameBuffer(FrameBuffer& framebuffer, std::string vert, std::string frag)
+void Renderer::initFrameBuffer(
+        FrameBuffer& framebuffer,
+        std::string vert,
+        std::string frag
+    )
 {
     float quadVertices[] =
-	{
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		-1.0f, -1.0f,  0.0f, 0.0f,
-		 1.0f, -1.0f,  1.0f, 0.0f,
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		 1.0f, -1.0f,  1.0f, 0.0f,
-		 1.0f,  1.0f,  1.0f, 1.0f
-	};
-	glGenFramebuffers(1, &framebuffer.FBO);
-	glGenTextures(1, &framebuffer.texture);
-	glGenRenderbuffers(1, &framebuffer.RBO);
-	glGenVertexArrays(1, &framebuffer.VAO);
-	glGenBuffers(1, &framebuffer.VBO);
-	glBindVertexArray(framebuffer.VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, framebuffer.VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4*sizeof(float), (void*)(2*sizeof(float)));
-	glBindVertexArray(0);
+    {
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
+    };
+    glGenFramebuffers(1, &framebuffer.FBO);
+    glGenTextures(1, &framebuffer.texture);
+    glGenRenderbuffers(1, &framebuffer.RBO);
+    glGenVertexArrays(1, &framebuffer.VAO);
+    glGenBuffers(1, &framebuffer.VBO);
+    glBindVertexArray(framebuffer.VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, framebuffer.VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices),
+            &quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE,
+            4*sizeof(float), static_cast<void*>(0));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
+            4*sizeof(float), reinterpret_cast<void*>(2*sizeof(float)));
+    glBindVertexArray(0);
     Shader shaderProgram {};
     shaderProgram.setVert(vert);
     shaderProgram.setFrag(frag);
-	framebuffer.shader = std::make_shared<Shader>(shaderProgram);
+    framebuffer.shader = std::make_shared<Shader>(shaderProgram);
 
     // Do this at each resize
     framebuffer.shader->use();
     
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.FBO);
-	// Color attachment texture
-	glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _windowInfos.x, _windowInfos.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebuffer.texture, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.FBO);
+    // Color attachment texture
+    glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Config::width, Config::height,
+            0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+            GL_TEXTURE_2D, framebuffer.texture, 0);
 
-	// Renderbuffer for depth and stencil
-	glBindRenderbuffer(GL_RENDERBUFFER, framebuffer.RBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, _windowInfos.x, _windowInfos.y);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, framebuffer.RBO);
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		ERROR("Framebuffer is not complete");
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, _windowInfos.x, _windowInfos.y);
+    // Renderbuffer for depth and stencil
+    glBindRenderbuffer(GL_RENDERBUFFER, framebuffer.RBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8,
+            Config::width, Config::height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+            GL_RENDERBUFFER, framebuffer.RBO);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        ERROR("Framebuffer is not complete");
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, Config::width, Config::height);
 }
 
-void Renderer::applyMaterial(Material& material, Camera& camera, Transform& transform) const
+void Renderer::applyMaterial(
+        const Material& material,
+        const Camera& camera,
+        const Transform& transform
+    ) const
 {
     auto& shader = material.shader;
     if (!material.noShader)
@@ -157,12 +176,18 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
         {
             glBindTexture(GL_TEXTURE_3D, material.texture);
             _raymarchingbuffer.shader->use();
-            _raymarchingbuffer.shader->set2f("u_resolution", {_windowInfos.x, _windowInfos.y});
-            _raymarchingbuffer.shader->set3f("u_eyePos", camera.transform.position);
-            _raymarchingbuffer.shader->set3f("u_eyeFront", camera.front);
-            _raymarchingbuffer.shader->set1f("u_eyeFOV", 60);
-            _raymarchingbuffer.shader->set1f("u_absorption", material.absorption);
-            _raymarchingbuffer.shader->set3f("u_lightIntensity", material.lightIntensity);
+            _raymarchingbuffer.shader->set2f("u_resolution",
+                    {Config::width, Config::height});
+            _raymarchingbuffer.shader->set3f("u_eyePos",
+                    camera.transform.position);
+            _raymarchingbuffer.shader->set3f("u_eyeFront",
+                    camera.front);
+            _raymarchingbuffer.shader->set1f("u_eyeFOV",
+                    60);
+            _raymarchingbuffer.shader->set1f("u_absorption",
+                    material.absorption);
+            _raymarchingbuffer.shader->set3f("u_lightIntensity",
+                    material.lightIntensity);
         }
         else
         {
@@ -176,13 +201,17 @@ void Renderer::applyMaterial(Material& material, Camera& camera, Transform& tran
 
     glm::mat4 model {1.0f};
     model = glm::translate(model, transform.position);
-    model = glm::rotate(model, glm::radians(transform.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    model = glm::rotate(model, glm::radians(transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    model = glm::rotate(model, glm::radians(transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::rotate(model, glm::radians(transform.rotation.x),
+            glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(transform.rotation.y),
+            glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(transform.rotation.z),
+            glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::scale(model, glm::vec3{transform.scale});
     glm::mat4 projection = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f, 0.1f, 10.0f);
 
-    const glm::mat4 view = glm::lookAt(camera.transform.position, camera.transform.position+camera.front, camera.up);
+    const glm::mat4 view = glm::lookAt(camera.transform.position,
+            camera.transform.position+camera.front, camera.up);
 
     shader.setMat4("model", model);
     shader.setMat4("view", view);
@@ -200,34 +229,37 @@ void Renderer::initMesh(Mesh& mesh) const
 
     glBindVertexArray(mesh.VAO);
         glBindBuffer(GL_ARRAY_BUFFER, mesh.VBO);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			mesh.vertices.size()*sizeof(GLfloat),
-			mesh.vertices.data(),
-			GL_STATIC_DRAW
-		);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
-		glEnableVertexAttribArray(0);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            mesh.vertices.size()*sizeof(GLfloat),
+            mesh.vertices.data(),
+            GL_STATIC_DRAW
+        );
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
+                3*sizeof(GLfloat), static_cast<GLvoid*>(nullptr));
+        glEnableVertexAttribArray(0);
 
-		glBindBuffer(GL_ARRAY_BUFFER, mesh.NBO);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			mesh.normals.size()*sizeof(GLfloat),
-			mesh.normals.data(),
-			GL_STATIC_DRAW
-		);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
-		glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh.NBO);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            mesh.normals.size()*sizeof(GLfloat),
+            mesh.normals.data(),
+            GL_STATIC_DRAW
+        );
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
+                3*sizeof(GLfloat), static_cast<GLvoid*>(nullptr));
+        glEnableVertexAttribArray(1);
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO);
-		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER,
-			mesh.indices.size()*sizeof(GLuint),
-			mesh.indices.data(),
-			GL_STATIC_DRAW
-		);
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLuint), (GLvoid*)nullptr);
-		glEnableVertexAttribArray(2);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO);
+        glBufferData(
+            GL_ELEMENT_ARRAY_BUFFER,
+            mesh.indices.size()*sizeof(GLuint),
+            mesh.indices.data(),
+            GL_STATIC_DRAW
+        );
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE,
+                3*sizeof(GLuint), static_cast<GLvoid*>(nullptr));
+        glEnableVertexAttribArray(2);
 
         if (mesh.dim == 3)
         {
@@ -249,14 +281,15 @@ void Renderer::initMesh(Mesh& mesh) const
                 texCoords.data(),
                 GL_STATIC_DRAW
             );
-            glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), (GLvoid*)nullptr);
+            glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE,
+                    3*sizeof(GLfloat), static_cast<GLvoid*>(nullptr));
             glEnableVertexAttribArray(3);
         }
         else if (mesh.dim == 2)
         {
             std::vector<float> texCoords =
             {
-                0.0f, 0.0f, 
+                0.0f, 0.0f,
                 0.0f, 1.0f,
                 1.0f, 1.0f,
                 1.0f, 0.0f,
@@ -268,7 +301,8 @@ void Renderer::initMesh(Mesh& mesh) const
                 texCoords.data(),
                 GL_STATIC_DRAW
             );
-            glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 2*sizeof(GLfloat), (GLvoid*)nullptr);
+            glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE,
+                    2*sizeof(GLfloat), static_cast<GLvoid*>(nullptr));
             glEnableVertexAttribArray(3);
         }
 
@@ -282,38 +316,43 @@ void Renderer::initMaterial(Material& material) const
     glGenTextures(1, &material.texture);
 }
 
-void Renderer::initTexture3D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const
+void Renderer::initTexture3D(
+        const std::vector<std::uint8_t>& texture,
+        const std::uint32_t textureGL
+    ) const
 {
-    std::uint32_t size = (std::uint32_t)std::cbrt(static_cast<std::uint32_t>(texture.size()));
+    std::uint32_t size =
+        (std::uint32_t)std::cbrt(static_cast<std::uint32_t>(texture.size()));
     glBindTexture(GL_TEXTURE_3D, textureGL);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    /*
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    */
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER,
+            GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER,
+            GL_NEAREST);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, size, size, size, 0, GL_RED, GL_UNSIGNED_BYTE, texture.data());
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, size, size, size, 0,
+            GL_RED, GL_UNSIGNED_BYTE, texture.data());
     glGenerateMipmap(GL_TEXTURE_3D);
 }
 
-void Renderer::initTexture2D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const
+void Renderer::initTexture2D(
+        const std::vector<std::uint8_t>& texture,
+        const std::uint32_t textureGL
+    ) const
 {
     std::uint32_t size = (std::uint32_t)sqrt(texture.size()/3);
     glBindTexture(GL_TEXTURE_2D, textureGL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    /*
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    */
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+            GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+            GL_LINEAR_MIPMAP_LINEAR);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, texture.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0,
+            GL_RGB, GL_UNSIGNED_BYTE, texture.data());
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 

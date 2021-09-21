@@ -2,7 +2,7 @@
 
 namespace Config
 {
-    std::uint16_t N = 256;
+    std::uint16_t N = 64;
     std::uint16_t dim = 2;
     Solver solver = PCG;
     Advection advection = SEMI_LAGRANGIAN;
@@ -10,25 +10,41 @@ namespace Config
     double diffusion = 1.00;
     double dt = 0.000004;
     bool exportFrames = false;
-}
+    bool renderFrames = true;
+    std::uint16_t width = 800;
+    std::uint16_t height = 800;
+}  // namespace Config
 
+// Read config.ini file and set variables of the global namespace Config
 void readConfig()
 {
     inipp::Ini<char> ini;
     std::ifstream is("config.ini");
     if (!is.is_open())
     {
-        WARNING("No config file! Will use default configuration values");
+        WARNING("No config.ini file! Will use default configuration values");
     }
     else
     {
         ini.parse(is);
-        inipp::get_value(ini.sections["GRID"], "N", Config::N);
-        inipp::get_value(ini.sections["GRID"], "dim", Config::dim);
-        inipp::get_value(ini.sections["FLUID"], "dt", Config::dt);
-        inipp::get_value(ini.sections["FLUID"], "viscosity", Config::viscosity);
-        inipp::get_value(ini.sections["FLUID"], "diffusion", Config::diffusion);
-        inipp::get_value(ini.sections["RENDER"], "exportFrames", Config::exportFrames);
+        inipp::get_value(ini.sections["GRID"], "N",
+                Config::N);
+        inipp::get_value(ini.sections["GRID"], "dim",
+                Config::dim);
+        inipp::get_value(ini.sections["FLUID"], "dt",
+                Config::dt);
+        inipp::get_value(ini.sections["FLUID"], "viscosity",
+                Config::viscosity);
+        inipp::get_value(ini.sections["FLUID"], "diffusion",
+                Config::diffusion);
+        inipp::get_value(ini.sections["RENDER"], "exportFrames",
+                Config::exportFrames);
+        inipp::get_value(ini.sections["RENDER"], "renderFrames",
+                Config::renderFrames);
+        inipp::get_value(ini.sections["RENDER"], "width",
+                Config::width);
+        inipp::get_value(ini.sections["RENDER"], "height",
+                Config::height);
 
         if (!(Config::dim == 2 || Config::dim == 3))
         {
@@ -49,20 +65,5 @@ void readConfig()
         else if (temp == "MACCORMACK")
             Config::advection = MACCORMACK;
     }
-
-    INFO("\033[1m=== CONFIGURATION ===\033[0m");
-    INFO("\033[1m[GRID]\033[0m")
-    INFO("N             = " << Config::N);
-    INFO("dim           = " << Config::dim);
-    INFO("\033[1m[SOLVER]\033[0m")
-    INFO("solver        = " << Config::solver);
-    INFO("advection     = " << Config::advection);
-    INFO("\033[1m[FLUID]\033[0m")
-    INFO("dt            = " << Config::dt);
-    INFO("viscosity     = " << Config::viscosity);
-    INFO("diffusion     = " << Config::diffusion);
-    INFO("\033[1m[RENDER]\033[0m")
-    INFO("exportFrames  = " << Config::exportFrames);
-    INFO("\033[1m=====================\033[0m");
 }
 

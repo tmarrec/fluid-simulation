@@ -2,7 +2,7 @@
 
 void Shader::use() const
 {
-	glUseProgram(_id);
+    glUseProgram(_id);
 }
 
 void Shader::setVert(const std::string &filename)
@@ -39,30 +39,32 @@ void Shader::setMat4(const std::string &name, const glm::mat4 values) const
 
 void Shader::checkCompilation(std::uint64_t shader, const std::string& type)
 {
-	GLint success;
-	GLsizei infoLogLength = 0;
-	if (type != "PROGRAM")
-	{
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
-		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-		if (!success)
-		{
-		    char* infoLog = new char[infoLogLength];
-			glGetShaderInfoLog(shader, infoLogLength, NULL, infoLog);
-			ERROR("Shader compilation error of type : " << type << "\n" << infoLog << "\n");
-		}
-	}
-	else
-	{
-		glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
-		glGetProgramiv(shader, GL_LINK_STATUS, &success);
-		if (!success)
-		{
-		    char* infoLog = new char[infoLogLength];
-			glGetProgramInfoLog(shader, infoLogLength, NULL, infoLog);
-			ERROR("Program linking error of type : " << type << "\n" << infoLog << "\n");
-		}
-	}
+    GLint success;
+    GLsizei infoLogLength = 0;
+    if (type != "PROGRAM")
+    {
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            char* infoLog = new char[infoLogLength];
+            glGetShaderInfoLog(shader, infoLogLength, NULL, infoLog);
+            ERROR("Shader compilation error of type : " <<
+                    type << "\n" << infoLog << "\n");
+        }
+    }
+    else
+    {
+        glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
+        glGetProgramiv(shader, GL_LINK_STATUS, &success);
+        if (!success)
+        {
+            char* infoLog = new char[infoLogLength];
+            glGetProgramInfoLog(shader, infoLogLength, NULL, infoLog);
+            ERROR("Program linking error of type : " <<
+                    type << "\n" << infoLog << "\n");
+        }
+    }
 }
 
 GLint Shader::getLocation(const std::string &name) const
@@ -70,13 +72,14 @@ GLint Shader::getLocation(const std::string &name) const
     const GLint location = glGetUniformLocation(_id, name.c_str());
     if (location == -1) {
         WARNING("Cannot find uniform location : " << name);
-    }	
+    }
     return location;
 }
 
 void Shader::init()
 {
-    glDeleteProgram(_id); // Could create trouble..
+    // Could create trouble..
+    glDeleteProgram(_id);
 
     // Retrieve the vertex/fragment source code
     std::string vertexCode;
@@ -84,10 +87,11 @@ void Shader::init()
     std::ifstream vShaderFile;
     std::ifstream fShaderFile;
     std::ifstream gShaderFile;
+
     // Check if files exists
-    vShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
-    fShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
-    gShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
+    vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     try
     {
         if (!_vertPath.empty())

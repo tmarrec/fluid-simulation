@@ -1,15 +1,20 @@
 #pragma once
 
-#include "types.h"
-#include "utils.h"
-#include "Shader.h"
-#include "Window.h"
+#include <vector>
+#include <memory>
+#include <string>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/gtx/string_cast.hpp>
+#include "./glm/glm.hpp"
+#include "./glm/gtc/matrix_transform.hpp"
+#include "./glm/gtc/type_ptr.hpp"
+#include "./glm/ext/matrix_clip_space.hpp"
+#include "./glm/gtx/string_cast.hpp"
+
+#include "./types.h"
+#include "./utils.h"
+#include "./Shader.h"
+#include "./Window.h"
+#include "./config.h"
 
 struct FrameBuffer
 {
@@ -23,27 +28,40 @@ struct FrameBuffer
 
 class Renderer
 {
-public:
-    void init(const WindowInfos& windowInfos);
+ public:
+    void init();
     void prePass();
     void endPass() const;
     void raymarchPass() const;
     void initMesh(Mesh& mesh) const;
-    void drawMesh(Mesh& mesh) const;
+    void drawMesh(const Mesh& mesh) const;
     void freeMesh(Mesh& mesh) const;
-    void applyMaterial(Material& material, Camera& camera, Transform& transform) const;
+    void applyMaterial(
+            const Material& material,
+            const Camera& camera,
+            const Transform& transform
+        ) const;
     void initMaterial(Material& material) const;
-    void initTexture3D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
-    void initTexture2D(const std::vector<std::uint8_t>& texture, const std::uint32_t textureGL) const;
+    void initTexture3D(
+            const std::vector<std::uint8_t>& texture,
+            const std::uint32_t textureGL
+        ) const;
+    void initTexture2D(
+            const std::vector<std::uint8_t>& texture,
+            const std::uint32_t textureGL
+        ) const;
     void writeImg(const std::uint32_t iteration) const;
     void setLineWidth(const float width) const;
 
-private:
-	std::shared_ptr<Window> _window = nullptr;
+ private:
+    std::shared_ptr<Window> _window = nullptr;
     FrameBuffer _screenbuffer {};
     FrameBuffer _raymarchingbuffer {};
-    WindowInfos _windowInfos {};
 
-    void _initFrameBuffer(FrameBuffer& framebuffer, std::string vert, std::string frag);
+    void initFrameBuffer(
+            FrameBuffer& framebuffer,
+            std::string vert,
+            std::string frag
+        );
 };
 

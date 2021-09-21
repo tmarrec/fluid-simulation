@@ -6,14 +6,13 @@ int main()
 {
     PRINT_TITLE();
 
-    WindowInfos windowInfos;
-    windowInfos.title = "fluid-simulation - Tristan Marrec";
-    windowInfos.x = 800;
-    windowInfos.y = 800;
-
     readConfig();
 
-	Simulation sim;
-	sim.run(windowInfos);
-	return EXIT_SUCCESS;
+    Simulation sim;
+    if (Config::renderFrames)
+    {
+        sim.initRendering();
+    }
+    sim.run();
+    return EXIT_SUCCESS;
 }

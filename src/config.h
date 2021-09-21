@@ -1,10 +1,11 @@
 #pragma once
 
-#include "inipp.h"
-#include "utils.h"
-#include "types.h"
-
 #include <fstream>
+#include <string>
+
+#include "./inipp.h"
+#include "./utils.h"
+#include "./types.h"
 
 namespace Config
 {
@@ -16,6 +17,9 @@ namespace Config
     extern Solver solver;
     extern Advection advection;
     extern bool exportFrames;
-}
+    extern bool renderFrames;
+    extern std::uint16_t width;
+    extern std::uint16_t height;
+}  // namespace Config
 
 void readConfig();

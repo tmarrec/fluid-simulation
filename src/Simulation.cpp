@@ -1,97 +1,134 @@
 #include "Simulation.h"
-#include "config.h"
-#include <glm/gtx/string_cast.hpp>
 
-void Simulation::run(WindowInfos windowInfos)
+void Simulation::initRendering()
 {
-	_window.init(windowInfos);
-	_renderer.init(windowInfos);
-    initSimulation();
-	mainLoop();
+    _window.init();
+    _renderer.init();
+    initSimulationRendering();
 }
 
-void Simulation::mainLoop()
+void Simulation::stepFluid(const std::uint64_t it)
 {
-    [[maybe_unused]] float dt = 0.0f;
-    std::uint64_t it = 0;
+    _fluid.update(it);
+}
 
-	while (!_window.windowShouldClose())
-	{
-        /*
-        std::cout << _camera.yaw << std::endl;
-        std::cout << _camera.pitch << std::endl;
-        std::cout << glm::to_string(_camera.transform.position) << std::endl;
-        */
-        if (it == 256)
-        {
-            exit(0);
-        }
-        //std::cout << "== Iteration " << iterations << " ==" << std::endl;
-            
+void Simulation::printStatus(const std::uint64_t it, const float dt) const
+{
+    std::cout << "\033[2J" << std::endl;
+    PRINT_TITLE();
+    INFO("\033[1m=== CONFIGURATION ===\033[0m");
+    INFO("\033[42m[GRID]\033[49m")
+    INFO("N             = " << Config::N);
+    INFO("dim           = " << Config::dim);
+    INFO("\033[42m[SOLVER]\033[49m")
+    INFO("solver        = " << Config::solver);
+    INFO("advection     = " << Config::advection);
+    INFO("\033[42m[FLUID]\033[49m")
+    INFO("dt            = " << Config::dt);
+    INFO("viscosity     = " << Config::viscosity);
+    INFO("diffusion     = " << Config::diffusion);
+    INFO("\033[42m[RENDER]\033[49m")
+    INFO("exportFrames  = " << Config::exportFrames);
+    INFO("\033[1m=====================\033[0m");
+    if (it > 0)
+    {
+        INFO("\033[1mITERATION " << it << "\033[0m was computed in "
+                << dt << " sec !");
+    }
+}
+
+void Simulation::run()
+{
+    float dt = 0.0f;
+    std::uint64_t it = 0;
+    printStatus(it, dt);
+    while ((Config::renderFrames && !_window.windowShouldClose()) || it < 600)
+    {
         auto startTime = std::chrono::high_resolution_clock::now();
 
-        _fluid.update(it);
+        // Simulation update in the step-time
+        stepFluid(it);
 
-        handleInputs();
-        setCameraDir();
-        if (Config::dim == 2)
+        // Simulation rendering
+        if (Config::renderFrames)
         {
-	        _renderer.initTexture2D(_fluid.texture(), _fluidRenderer.material.texture);
-            updateMeshVec();
-            updateMeshGrid();
-            updateMeshGridBorder();
-        }
-        else if (Config::dim == 3)
-        {
-	        _renderer.initTexture3D(_fluid.texture(), _fluidRenderer.material.texture);
+            renderFrame();
         }
 
-        _renderer.prePass();
-
-        _renderer.applyMaterial(_fluidRenderer.material, _camera, _fluidRenderer.transform);
-        _renderer.drawMesh(_fluidRenderer.mesh);
-
-        if (Config::dim == 2)
+        // Simulation results export
+        // in either .png or .ply depending on the grid dimension
+        switch (Config::dim)
         {
-            /*
-            _renderer.applyMaterial(_fluidRenderer.materialVec, _camera, _fluidRenderer.transform);
-            _renderer.drawMesh(_fluidRenderer.meshVec);
-
-            _renderer.applyMaterial(_fluidRenderer.materialGrid, _camera, _fluidRenderer.transform);
-            _renderer.drawMesh(_fluidRenderer.meshGrid);
-            */
-
-            _renderer.setLineWidth(2);
-            _renderer.applyMaterial(_fluidRenderer.materialGridBorder, _camera, _fluidRenderer.transform);
-            _renderer.drawMesh(_fluidRenderer.meshGridBorder);
-            _renderer.setLineWidth(1);
+            case 2:
+                _renderer.writeImg(it);
+                break;
+            case 3:
+                marchingCube.run(_fluid.surface(), it);
+                break;
         }
-
-        _renderer.endPass();
-        if (Config::dim == 3)
-        {
-            _renderer.raymarchPass();
-            marchingCube.run(_fluid.surface(), it);
-        }
-
-        if (Config::exportFrames)
-        {
-            _renderer.writeImg(it);
-        }
-        _window.swapBuffers();
-        _window.pollEvents();
 
         auto stopTime = std::chrono::high_resolution_clock::now();
-        dt = std::chrono::duration<float, std::chrono::seconds::period>(stopTime - startTime).count();
-        //std::cout << "Done in " << dt << " sec" << std::endl << std::endl;
+        dt = std::chrono::duration<float, std::chrono::seconds::period>(
+                stopTime - startTime).count();
+        printStatus(it, dt);
 
         it++;
-	}
+    }
 
     _renderer.freeMesh(_fluidRenderer.mesh);
     _renderer.freeMesh(_fluidRenderer.meshGrid);
     _renderer.freeMesh(_fluidRenderer.meshGridBorder);
     _renderer.freeMesh(_fluidRenderer.meshVec);
+}
+
+void Simulation::renderFrame()
+{
+    handleInputs();
+    setCameraDir();
+    if (Config::dim == 2)
+    {
+        _renderer.initTexture2D(_fluid.texture(),
+                _fluidRenderer.material.texture);
+        updateMeshVec();
+        updateMeshGrid();
+        updateMeshGridBorder();
+    }
+    else if (Config::dim == 3)
+    {
+        _renderer.initTexture3D(_fluid.texture(),
+                _fluidRenderer.material.texture);
+    }
+
+    _renderer.prePass();
+    _renderer.applyMaterial(_fluidRenderer.material,
+            _camera, _fluidRenderer.transform);
+    _renderer.drawMesh(_fluidRenderer.mesh);
+
+    if (Config::dim == 2)
+    {
+        _renderer.applyMaterial(_fluidRenderer.materialVec,
+                _camera, _fluidRenderer.transform);
+        _renderer.drawMesh(_fluidRenderer.meshVec);
+
+        _renderer.applyMaterial(_fluidRenderer.materialGrid,
+                _camera, _fluidRenderer.transform);
+        _renderer.drawMesh(_fluidRenderer.meshGrid);
+
+        _renderer.setLineWidth(2);
+        _renderer.applyMaterial(_fluidRenderer.materialGridBorder,
+                _camera, _fluidRenderer.transform);
+        _renderer.drawMesh(_fluidRenderer.meshGridBorder);
+        _renderer.setLineWidth(1);
+    }
+
+    _renderer.endPass();
+    if (Config::dim == 3)
+    {
+        _renderer.raymarchPass();
+    }
+
+    _window.swapBuffers();
+    _window.pollEvents();
 }
 
 void Simulation::updateMeshGrid()
@@ -192,9 +229,9 @@ void Simulation::updateMeshVec()
     {
         for (float i = 0; i < N+1; ++i)
         {
-            //if (_fluid.isCellActive(i,j,0))
+            if (_fluid.isCellActive(i, j, 0))
             {
-                float size = float(X[i+j*(N+1)]/reduce);
+                float size = static_cast<float>(X[i+j*(N+1)]/reduce);
 
                 glm::vec2 A = { (i/N)-0.5f, ((j+0.5f)/N)-0.5f };
                 mesh.vertices.emplace_back(A.x);
@@ -210,7 +247,7 @@ void Simulation::updateMeshVec()
                 mesh.indices.emplace_back(it+1);
                 it += 2;
 
-                size = float(X[(i+1)+j*(N+1)]/reduce);
+                size = static_cast<float>(X[(i+1)+j*(N+1)]/reduce);
 
                 A = { ((i+1)/N)-0.5f, ((j+0.5f)/N)-0.5f };
                 mesh.vertices.emplace_back(A.x);
@@ -233,9 +270,9 @@ void Simulation::updateMeshVec()
     {
         for (float i = 0; i < N; ++i)
         {
-            //if (_fluid.isCellActive(i,j,0))
+            if (_fluid.isCellActive(i, j, 0))
             {
-                float size = float(Y[i+j*N]/reduce);
+                float size = static_cast<float>(Y[i+j*N]/reduce);
 
                 glm::vec2 A = { ((i+0.5f)/N)-0.5f, (j/N)-0.5f };
                 mesh.vertices.emplace_back(A.x);
@@ -251,7 +288,7 @@ void Simulation::updateMeshVec()
                 mesh.indices.emplace_back(it+1);
                 it += 2;
 
-                size = float(Y[i+(j+1)*N]/reduce);
+                size = static_cast<float>(Y[i+(j+1)*N]/reduce);
 
                 A = { ((i+0.5f)/N)-0.5f, ((j+1)/N)-0.5f };
                 mesh.vertices.emplace_back(A.x);
@@ -272,7 +309,7 @@ void Simulation::updateMeshVec()
     _renderer.initMesh(mesh);
 }
 
-void Simulation::initSimulation()
+void Simulation::initSimulationRendering()
 {
     Shader shaderProgram {};
 
@@ -287,7 +324,7 @@ void Simulation::initSimulation()
         shaderProgram.setVert("shaders/vert2D.vert");
         shaderProgram.setFrag("shaders/fluid2D.frag");
     }
-    Material material = 
+    Material material =
     {
         .shader = shaderProgram,
         .dim = Config::dim,
@@ -296,7 +333,7 @@ void Simulation::initSimulation()
         {
             1.0f, 1.0f,
             1.0f, 0.0f,
-            0.0f, 0.0f, 
+            0.0f, 0.0f,
             0.0f, 1.0f
         },
     };
@@ -307,14 +344,14 @@ void Simulation::initSimulation()
     Shader shaderProgramVec {};
     shaderProgramVec.setVert("shaders/vert.vert");
     shaderProgramVec.setFrag("shaders/vec.frag");
-    Material materialVec = 
+    Material materialVec =
     {
         .shader = shaderProgramVec,
         .texCoords =
         {
             1.0f, 1.0f,
             1.0f, 0.0f,
-            0.0f, 0.0f, 
+            0.0f, 0.0f,
             0.0f, 1.0f
         },
     };
@@ -324,14 +361,14 @@ void Simulation::initSimulation()
     Shader shaderProgramGrid {};
     shaderProgramGrid.setVert("shaders/vert.vert");
     shaderProgramGrid.setFrag("shaders/grid.frag");
-    Material materialGrid = 
+    Material materialGrid =
     {
         .shader = shaderProgramGrid,
         .texCoords =
         {
             1.0f, 1.0f,
             1.0f, 0.0f,
-            0.0f, 0.0f, 
+            0.0f, 0.0f,
             0.0f, 1.0f
         },
     };
@@ -341,14 +378,14 @@ void Simulation::initSimulation()
     Shader shaderProgramGridBorder {};
     shaderProgramGridBorder.setVert("shaders/vert.vert");
     shaderProgramGridBorder.setFrag("shaders/gridBorder.frag");
-    Material materialGridBorder = 
+    Material materialGridBorder =
     {
         .shader = shaderProgramGridBorder,
         .texCoords =
         {
             1.0f, 1.0f,
             1.0f, 0.0f,
-            0.0f, 0.0f, 
+            0.0f, 0.0f,
             0.0f, 1.0f
         },
     };
@@ -357,7 +394,7 @@ void Simulation::initSimulation()
 
     if (Config::dim == 3)
     {
-        _camera = 
+        _camera =
         {
             .yaw = -572,
             .pitch = -31,
@@ -372,7 +409,7 @@ void Simulation::initSimulation()
     }
     else if (Config::dim == 2)
     {
-        _camera = 
+        _camera =
         {
             .yaw = -90-90-90,
             .pitch = -90,
@@ -406,7 +443,9 @@ void Simulation::handleInputs()
     }
     if (Input::keyIsDown(GLFW_KEY_A))
     {
-        _camera.transform.position -= glm::normalize(glm::cross(_camera.front, _camera.up)) * _camera.speed;
+        _camera.transform.position -=
+            glm::normalize(glm::cross(_camera.front, _camera.up)) *
+            _camera.speed;
     }
     if (Input::keyIsDown(GLFW_KEY_S))
     {
@@ -414,7 +453,9 @@ void Simulation::handleInputs()
     }
     if (Input::keyIsDown(GLFW_KEY_D))
     {
-        _camera.transform.position += glm::normalize(glm::cross(_camera.front, _camera.up)) * _camera.speed;
+        _camera.transform.position +=
+            glm::normalize(glm::cross(_camera.front, _camera.up)) *
+            _camera.speed;
     }
     if (Input::keyIsDown(GLFW_KEY_LEFT_SHIFT))
     {
@@ -427,7 +468,9 @@ void Simulation::handleInputs()
 
     float sensitivity = 1.0f;
     _camera.yaw += Input::mouseOffsetX*sensitivity;
-    _camera.pitch = glm::clamp(_camera.pitch - Input::mouseOffsetY*sensitivity, -89.9f, 89.9f);
+    _camera.pitch =
+        glm::clamp(_camera.pitch - Input::mouseOffsetY*sensitivity,
+                -89.9f, 89.9f);
 
     glm::vec3 dir;
     dir.x = cos(glm::radians(_camera.yaw))*cos(glm::radians(_camera.pitch));

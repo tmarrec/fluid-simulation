@@ -7,7 +7,14 @@ float Input::mouseOffsetX;
 float Input::mouseOffsetY;
 bool Input::_focused = false;
 
-void Input::keyCallback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mobs)
+// Key callback, mainly used to know if the windows is focused or not
+void Input::keyCallback(
+        GLFWwindow* window,
+        int key,
+        [[maybe_unused]] int scancode,
+        int action,
+        [[maybe_unused]] int mobs
+    )
 {
     switch(action)
     {
@@ -38,9 +45,10 @@ void Input::keyCallback(GLFWwindow* window, int key, [[maybe_unused]] int scanco
     }
 }
 
+// Key pressed, add it to the _keysStatus map
 bool Input::keyIsDown(int key)
 {
-    bool result = false; 
+    bool result = false;
     std::map<int, bool>::iterator it = _keysStatus.find(key);
     if (it != _keysStatus.end())
     {
@@ -49,7 +57,12 @@ bool Input::keyIsDown(int key)
     return result;
 }
 
-void Input::cursorPositionCallback([[maybe_unused]] GLFWwindow* window, double xpos, double ypos)
+// Get the mouse position
+void Input::cursorPositionCallback(
+        [[maybe_unused]] GLFWwindow* window,
+        double xpos,
+        double ypos
+    )
 {
     if (_focused)
     {
@@ -60,10 +73,7 @@ void Input::cursorPositionCallback([[maybe_unused]] GLFWwindow* window, double x
     _lastMouseY = ypos;
 }
 
-void Input::mouseButtonCallback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] int button, [[maybe_unused]] int action, [[maybe_unused]] int mobs)
-{
-}
-
+// Reset mouse position offsets
 void Input::updateMouseMovements()
 {
     mouseOffsetX = 0.0f;

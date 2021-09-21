@@ -8,7 +8,7 @@
 	</emitter>
 
     <integrator type='path'>
-        <integer name="max_depth" value="8"/>
+        <integer name="max_depth" value="64"/>
     </integrator>
 
 	<sensor type="perspective">
@@ -22,11 +22,11 @@
 		</transform>
 
 		<film type="hdrfilm">
-			<rfilter type="box"/>
+			<rfilter type="gaussian"/>
 			<integer name="width" value="$res"/>
 			<integer name="height" value="$res"/>
-			<string name="pixel_format" value="rgb"/>
-			<string name="component_format" value="float16"/>
+			<string name="pixel_format" value="rgba"/>
+			<string name="component_format" value="float32"/>
 		</film>
 
 		<sampler type="independent">
@@ -36,15 +36,15 @@
 
     <shape type="ply">
         <string name="filename" value="$meshname"/>
+        <!--
         <bsdf type="diffuse">
             <rgb name="reflectance" value="0.39, 0.58, 0.93"/>
         </bsdf>
-        <!--
+        -->
         <bsdf type="dielectric">
             <string name="int_ior" value="water"/>
             <string name="ext_ior" value="air"/>
         </bsdf>
-        -->
         <transform name="to_world">
             <rotate y="1" angle="0"/>
             <translate x="-50" />

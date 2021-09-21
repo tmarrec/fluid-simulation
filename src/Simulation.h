@@ -1,39 +1,42 @@
 #pragma once
 
-#include "types.h"
-#include "Renderer.h"
-#include "Shader.h"
-#include "Window.h"
-#include "Fluids.h"
-#include "Input.h"
-#include "MarchingCube.h"
-
 #include <iostream>
 #include <numeric>
+#include <vector>
+
+#include "./types.h"
+#include "./Renderer.h"
+#include "./Shader.h"
+#include "./Window.h"
+#include "./Fluids.h"
+#include "./Input.h"
+#include "./MarchingCube.h"
 
 class Simulation
 {
-public:
-	void run(WindowInfos windowInfos);
+ public:
+    void initRendering();
+    void run();
 
-private:
-	void mainLoop();
-    void initSimulation();
+ private:
+    void initSimulationRendering();
     void updateMeshVec();
     void updateMeshGrid();
     void updateMeshGridBorder();
     void setCameraDir();
     void handleInputs();
+    void stepFluid(const std::uint64_t it);
+    void renderFrame();
+    void printStatus(const std::uint64_t it, const float dt) const;
 
-	Window _window = {};
+    Window _window = {};
     Renderer _renderer = {};
     MarchingCube marchingCube;
 
-    Camera _camera;
+    Camera _camera = {};
     Fluids _fluid;
     FluidRenderer _fluidRenderer =
     {
-
         .transform = Transform
         {
             .position = {0, 0, 0},

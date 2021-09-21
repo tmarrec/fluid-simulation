@@ -1,25 +1,23 @@
 #include "Window.h"
 
-void Window::init(const WindowInfos& windowInfos)
+void Window::init()
 {
-    _windowInfos = windowInfos;
-	if (glfwInit() != GLFW_TRUE)
-	{
-		ERROR("Failed to initalize glfw.");
-	}
-	glfwSetErrorCallback(&Window::glfwError);
+    if (glfwInit() != GLFW_TRUE)
+    {
+        ERROR("Failed to initalize glfw.");
+    }
+    glfwSetErrorCallback(&Window::glfwError);
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_FALSE);
 
-	windowInit();
+    windowInit();
 
     glfwSetKeyCallback(_glfwWindow.get(), Input::keyCallback);
     glfwSetCursorPosCallback(_glfwWindow.get(), Input::cursorPositionCallback);
-    glfwSetMouseButtonCallback(_glfwWindow.get(), Input::mouseButtonCallback);
     if (glfwRawMouseMotionSupported())
     {
         glfwSetInputMode(_glfwWindow.get(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
@@ -28,17 +26,12 @@ void Window::init(const WindowInfos& windowInfos)
 
 bool Window::windowShouldClose() const
 {
-	return glfwWindowShouldClose(_glfwWindow.get());
+    return glfwWindowShouldClose(_glfwWindow.get());
 }
 
 void Window::pollEvents()
 {
-	glfwPollEvents();
-}
-
-const WindowInfos Window::windowInfos() const
-{
-    return _windowInfos;
+    glfwPollEvents();
 }
 
 void Window::swapBuffers()
@@ -48,27 +41,28 @@ void Window::swapBuffers()
 
 void Window::windowInit()
 {
-    _glfwWindow.reset(glfwCreateWindow(_windowInfos.x, _windowInfos.y, _windowInfos.title.c_str(), nullptr, nullptr));
-	if (_glfwWindow == nullptr)
-	{
-        ERROR("Failed to create glfw window");		
-	}
+    _glfwWindow.reset(glfwCreateWindow(Config::width, Config::height,
+                "fluid-simulation - Tristan Marrec 2021", nullptr, nullptr));
+    if (_glfwWindow == nullptr)
+    {
+        ERROR("Failed to create glfw window");
+    }
     glfwMakeContextCurrent(_glfwWindow.get());
 }
 
 void Window::glfwError([[maybe_unused]] int error, const char* description)
 {
-	WARNING(description);
+    WARNING(description);
 }
 
 Window::~Window()
 {
-	glfwTerminate();
+    glfwTerminate();
 }
 
 void glfwDeleter::operator()(GLFWwindow* window)
 {
-	WARNING("GLFW Window deleted");
-	glfwDestroyWindow(window);
+    WARNING("GLFW Window deleted");
+    glfwDestroyWindow(window);
 }
 
