@@ -8,8 +8,6 @@
   </p>
 </p>
 
-
-
 <!-- TABLE OF CONTENTS -->
 <details open="open">
   <summary>Table of Contents</summary>
@@ -35,11 +33,7 @@
   </ol>
 </details>
 
-
-
 ## About The Project
-
-
 During my 6 months NII International Internship Program 2020 supervised by [Ryoichi Ando](https://ryichando.graphics/), I studied and implemented from scratch in C++ some research papers for fluid simulation. Here is a recap of what I've been working on :
 
 #### Fluid Simulation
@@ -62,7 +56,6 @@ During my 6 months NII International Internship Program 2020 supervised by [Ryoi
 - **OpenGL** : Volume Ray Marching
 - **Mitsuba** : Volume File export
 
-
 #### Built With
 * [Eigen](https://gitlab.com/libeigen/eigen) C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
 * [GLM](https://github.com/g-truc/glm) Header only C++ mathematics library for graphics software based on the OpenGL Shading Language (GLSL) specifications.
@@ -73,8 +66,6 @@ During my 6 months NII International Internship Program 2020 supervised by [Ryoi
 * [tinyply](https://github.com/ddiakopoulos/tinyply) A single-header, zero-dependency (except the C++ STL) public domain implementation of the PLY mesh file format.
 
 ## Getting Started
-### Prerequisites
-
 ### Installation
 1. Clone the repo with the submodules
    ```sh
