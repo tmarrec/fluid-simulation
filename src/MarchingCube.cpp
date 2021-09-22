@@ -75,6 +75,7 @@ inline bool MarchingCube::check(
     return false;
 }
 
+// Point interpolation
 glm::vec3 MarchingCube::vInterp(
         glm::vec3 p1,
         glm::vec3 p2,
@@ -233,9 +234,9 @@ void MarchingCube::run(
     std::iota(indices.begin(), indices.end(), 0);
 
     // Write the resulting mesh in .ply file
-    std::filesystem::create_directories("result");
+    std::filesystem::create_directory("result-ply");
     std::filebuf fb_binary;
-    std::string path = "result/";
+    std::string path = "result-ply/";
     path += std::to_string(iteration);
     path += ".ply";
     if (!fb_binary.open(path,

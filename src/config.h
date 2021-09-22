@@ -11,8 +11,6 @@ namespace Config
 {
     extern std::uint16_t N;
     extern std::uint16_t dim;
-    extern double viscosity;
-    extern double diffusion;
     extern double dt;
     extern Solver solver;
     extern Advection advection;
@@ -20,6 +18,7 @@ namespace Config
     extern bool renderFrames;
     extern std::uint16_t width;
     extern std::uint16_t height;
+    extern std::uint64_t endFrame;
 }  // namespace Config
 
 void readConfig();

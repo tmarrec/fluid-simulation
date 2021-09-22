@@ -1,5 +1,6 @@
 #include "Window.h"
 
+// Window initialization
 void Window::init()
 {
     if (glfwInit() != GLFW_TRUE)
@@ -24,21 +25,25 @@ void Window::init()
     }
 }
 
+// Window closed event
 bool Window::windowShouldClose() const
 {
     return glfwWindowShouldClose(_glfwWindow.get());
 }
 
+// Get windows events
 void Window::pollEvents()
 {
     glfwPollEvents();
 }
 
+// Swap window buffers
 void Window::swapBuffers()
 {
     glfwSwapBuffers(_glfwWindow.get());
 }
 
+// Init window, used to dynamically change size
 void Window::windowInit()
 {
     _glfwWindow.reset(glfwCreateWindow(Config::width, Config::height,
@@ -50,6 +55,7 @@ void Window::windowInit()
     glfwMakeContextCurrent(_glfwWindow.get());
 }
 
+// Window error event
 void Window::glfwError([[maybe_unused]] int error, const char* description)
 {
     WARNING(description);

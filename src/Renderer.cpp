@@ -5,6 +5,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "./stb_image_write.h"
 
+// Renderer initialization
 void Renderer::init()
 {
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
@@ -21,7 +22,7 @@ void Renderer::init()
             "shaders/screen.vert", "shaders/raymarch.frag");
 }
 
-
+// Rendering prepass
 void Renderer::prePass()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, _screenbuffer.FBO);
@@ -30,6 +31,7 @@ void Renderer::prePass()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+// Rendering endpass
 void Renderer::endPass() const
 {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -44,6 +46,7 @@ void Renderer::endPass() const
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
+// Raymarching pass
 void Renderer::raymarchPass() const
 {
     _raymarchingbuffer.shader->use();
@@ -56,6 +59,7 @@ void Renderer::raymarchPass() const
     glDisable(GL_BLEND);
 }
 
+// Write rendered frame into .png image
 void Renderer::writeImg(const std::uint32_t iteration) const
 {
     GLsizei nbChannels = 3;
@@ -68,16 +72,15 @@ void Renderer::writeImg(const std::uint32_t iteration) const
     glReadPixels(0, 0, Config::width, Config::height,
             GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
     stbi_flip_vertically_on_write(true);
-    std::string path = "result/";
+    std::filesystem::create_directory("result-frames");
+    std::string path = "result-frames/";
     path += std::to_string(iteration);
     path += ".png";
     stbi_write_png(path.c_str(), Config::width, Config::height,
             nbChannels, buffer.data(), stride);
-    stbi_write_png("last.png", Config::width, Config::height,
-            nbChannels, buffer.data(), stride);
-    INFO("Frame " << iteration << " saved");
 }
 
+// Draw mesh depending of its type
 void Renderer::drawMesh(const Mesh& mesh) const
 {
     GLenum renderMode = GL_TRIANGLES;
@@ -96,6 +99,7 @@ void Renderer::drawMesh(const Mesh& mesh) const
     glBindVertexArray(0);
 }
 
+// Frame buffer initialization
 void Renderer::initFrameBuffer(
         FrameBuffer& framebuffer,
         std::string vert,
@@ -159,6 +163,7 @@ void Renderer::initFrameBuffer(
     glViewport(0, 0, Config::width, Config::height);
 }
 
+// Shaders preparation to render specific material
 void Renderer::applyMaterial(
         const Material& material,
         const Camera& camera,
@@ -218,6 +223,7 @@ void Renderer::applyMaterial(
     shader.setMat4("projection", projection);
 }
 
+// Mesh OpenGL initialization
 void Renderer::initMesh(Mesh& mesh) const
 {
     glGenVertexArrays(1, &mesh.VAO);
@@ -310,12 +316,15 @@ void Renderer::initMesh(Mesh& mesh) const
     mesh.initialized = true;
 }
 
+// Material OpenGL initialization
 void Renderer::initMaterial(Material& material) const
 {
     material.hasTexture = true;
     glGenTextures(1, &material.texture);
 }
 
+// 3D texture OpenGL initialization (without texture filtering since
+// we will use mitsuba2 for clean renderings)
 void Renderer::initTexture3D(
         const std::vector<std::uint8_t>& texture,
         const std::uint32_t textureGL
@@ -337,6 +346,7 @@ void Renderer::initTexture3D(
     glGenerateMipmap(GL_TEXTURE_3D);
 }
 
+// 2D texture OpenGL initialization (with texture filtering)
 void Renderer::initTexture2D(
         const std::vector<std::uint8_t>& texture,
         const std::uint32_t textureGL
@@ -356,6 +366,7 @@ void Renderer::initTexture2D(
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
+// OpenGL meshes cleaning
 void Renderer::freeMesh(Mesh& mesh) const
 {
     glDeleteVertexArrays(1, &mesh.VAO);
@@ -365,6 +376,8 @@ void Renderer::freeMesh(Mesh& mesh) const
     glDeleteBuffers(1, &mesh.TBO);
 }
 
+// Set OpenGL rendering line width, used in 2D for simulation
+// borders
 void Renderer::setLineWidth(const float width) const
 {
     glLineWidth(width);

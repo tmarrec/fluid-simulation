@@ -1,5 +1,7 @@
 #include "Simulation.h"
+#include "config.h"
 
+// Init window and renderer to render frames
 void Simulation::initRendering()
 {
     _window.init();
@@ -7,11 +9,13 @@ void Simulation::initRendering()
     initSimulationRendering();
 }
 
+// Simulation step
 void Simulation::stepFluid(const std::uint64_t it)
 {
     _fluid.update(it);
 }
 
+// Print simulation status
 void Simulation::printStatus(const std::uint64_t it, const float dt) const
 {
     std::cout << "\033[2J" << std::endl;
@@ -25,10 +29,12 @@ void Simulation::printStatus(const std::uint64_t it, const float dt) const
     INFO("advection     = " << Config::advection);
     INFO("\033[42m[FLUID]\033[49m")
     INFO("dt            = " << Config::dt);
-    INFO("viscosity     = " << Config::viscosity);
-    INFO("diffusion     = " << Config::diffusion);
     INFO("\033[42m[RENDER]\033[49m")
     INFO("exportFrames  = " << Config::exportFrames);
+    INFO("renderFrames  = " << Config::renderFrames);
+    INFO("witdh         = " << Config::width);
+    INFO("height        = " << Config::height);
+    INFO("endFrame      = " << Config::endFrame);
     INFO("\033[1m=====================\033[0m");
     if (it > 0)
     {
@@ -37,12 +43,13 @@ void Simulation::printStatus(const std::uint64_t it, const float dt) const
     }
 }
 
+// Main simulation loop
 void Simulation::run()
 {
     float dt = 0.0f;
     std::uint64_t it = 0;
     printStatus(it, dt);
-    while ((Config::renderFrames && !_window.windowShouldClose()) || it < 600)
+    while (!_window.windowShouldClose() && it < Config::endFrame)
     {
         auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -63,6 +70,10 @@ void Simulation::run()
                 _renderer.writeImg(it);
                 break;
             case 3:
+                if (Config::exportFrames)
+                {
+                    _renderer.writeImg(it);
+                }
                 marchingCube.run(_fluid.surface(), it);
                 break;
         }
@@ -75,12 +86,14 @@ void Simulation::run()
         it++;
     }
 
+    // Clean meshes
     _renderer.freeMesh(_fluidRenderer.mesh);
     _renderer.freeMesh(_fluidRenderer.meshGrid);
     _renderer.freeMesh(_fluidRenderer.meshGridBorder);
     _renderer.freeMesh(_fluidRenderer.meshVec);
 }
 
+// Frame render when using window rendering
 void Simulation::renderFrame()
 {
     handleInputs();
@@ -131,6 +144,7 @@ void Simulation::renderFrame()
     _window.pollEvents();
 }
 
+// Update mesh vertices to get mesh grid
 void Simulation::updateMeshGrid()
 {
     Mesh& mesh = _fluidRenderer.meshGrid;
@@ -173,6 +187,7 @@ void Simulation::updateMeshGrid()
     _renderer.initMesh(mesh);
 }
 
+// Update mesh vertices to get mesh grid border
 void Simulation::updateMeshGridBorder()
 {
     Mesh& mesh = _fluidRenderer.meshGridBorder;
@@ -212,6 +227,7 @@ void Simulation::updateMeshGridBorder()
     _renderer.initMesh(mesh);
 }
 
+// Update mesh vertices to get cell velocities rendered
 void Simulation::updateMeshVec()
 {
     Mesh& mesh = _fluidRenderer.meshVec;
@@ -225,6 +241,7 @@ void Simulation::updateMeshVec()
 
     mesh.vertices.clear();
     mesh.indices.clear();
+    // U vector
     for (float j = 0; j < N; ++j)
     {
         for (float i = 0; i < N+1; ++i)
@@ -265,7 +282,7 @@ void Simulation::updateMeshVec()
             }
         }
     }
-
+    // V vector
     for (float j = 0; j < N+1; ++j)
     {
         for (float i = 0; i < N; ++i)
@@ -309,6 +326,7 @@ void Simulation::updateMeshVec()
     _renderer.initMesh(mesh);
 }
 
+// Init renderings data
 void Simulation::initSimulationRendering()
 {
     Shader shaderProgram {};
@@ -424,9 +442,9 @@ void Simulation::initSimulationRendering()
     }
 }
 
+// Set camera front
 void Simulation::setCameraDir()
 {
-    // Set camera front
     glm::vec3 dir;
     dir.x = cos(glm::radians(_camera.yaw))*cos(glm::radians(_camera.pitch));
     dir.y = sin(glm::radians(_camera.pitch));
@@ -435,6 +453,7 @@ void Simulation::setCameraDir()
     _camera.front = dir;
 }
 
+// Handle inputs from user to move the camera
 void Simulation::handleInputs()
 {
     if (Input::keyIsDown(GLFW_KEY_W))

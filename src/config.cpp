@@ -6,13 +6,12 @@ namespace Config
     std::uint16_t dim = 2;
     Solver solver = PCG;
     Advection advection = SEMI_LAGRANGIAN;
-    double viscosity = 1.15;
-    double diffusion = 1.00;
     double dt = 0.000004;
     bool exportFrames = false;
     bool renderFrames = true;
     std::uint16_t width = 800;
     std::uint16_t height = 800;
+    std::uint64_t endFrame = 65536;
 }  // namespace Config
 
 // Read config.ini file and set variables of the global namespace Config
@@ -33,10 +32,6 @@ void readConfig()
                 Config::dim);
         inipp::get_value(ini.sections["FLUID"], "dt",
                 Config::dt);
-        inipp::get_value(ini.sections["FLUID"], "viscosity",
-                Config::viscosity);
-        inipp::get_value(ini.sections["FLUID"], "diffusion",
-                Config::diffusion);
         inipp::get_value(ini.sections["RENDER"], "exportFrames",
                 Config::exportFrames);
         inipp::get_value(ini.sections["RENDER"], "renderFrames",
@@ -45,6 +40,8 @@ void readConfig()
                 Config::width);
         inipp::get_value(ini.sections["RENDER"], "height",
                 Config::height);
+        inipp::get_value(ini.sections["RENDER"], "endFrame",
+                Config::endFrame);
 
         if (!(Config::dim == 2 || Config::dim == 3))
         {

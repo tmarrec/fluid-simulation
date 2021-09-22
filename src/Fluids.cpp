@@ -55,7 +55,7 @@ void Fluids::step()
                         std::pow(i-_grid._surface.x()/2, 2)+
                         std::pow(j-_grid._surface.y()/3, 2)
                     );
-                if (dist < 8 && (k == 1 || k == 2))
+                if (dist < 6 && (k == 1 || k == 2))
                 {
                     _grid._surface(i, j, k) = -10;
                     _grid._W(i, j, k) = 5000;
@@ -63,7 +63,7 @@ void Fluids::step()
                     _grid._V(i, j, k) = 7000;
                     _grid._V(i, j, k+1) = 7000;
                 }
-                else if (dist < 8 &&
+                else if (dist < 6 &&
                         (k == _grid._surface.z()-2 || k == _grid._surface.z()-3)
                     )
                 {

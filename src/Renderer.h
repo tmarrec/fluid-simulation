@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <filesystem>
 
 #include "./glm/glm.hpp"
 #include "./glm/gtc/matrix_transform.hpp"

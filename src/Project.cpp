@@ -1,5 +1,7 @@
 #include "Project.h"
 
+// Ensure fluid incompressibility and borders
+// by computing its pressure and updating its velocities
 void Project3D::project()
 {
     if (_grid.activeCellsNb() > 0)
@@ -15,6 +17,7 @@ void Project3D::project()
         _grid._pressure.reset();
 
         std::uint64_t id;
+        // Updates the velocities with pressures
         for (std::uint16_t k = 0;
             k < std::max({_grid._U.z(), _grid._V.z(), _grid._W.z()});
             ++k)
@@ -63,6 +66,9 @@ void Project3D::project()
     }
 }
 
+// Prepare the 3D Laplacian matrice (A) with cells inside the liquid
+// and compute divergence (b) at thoses cell
+// After this we just need to find x from Ax = b
 void Project3D::preparePressureSolving(
         Eigen::SparseMatrix<double>& A,
         Eigen::VectorXd& b
@@ -166,6 +172,7 @@ void Project3D::preparePressureSolving(
     A.makeCompressed();
 }
 
+// 3D Staggered Grid divergence with central difference
 inline double Project3D::div(
         const std::uint16_t i,
         const std::uint16_t j,
@@ -179,6 +186,8 @@ inline double Project3D::div(
     return - h * (Udiv + Vdiv + Zdiv);
 }
 
+// Ensure fluid incompressibility and borders
+// by computing its pressure and updating its velocities
 void Project2D::project()
 {
     if (_grid.activeCellsNb() > 0)
@@ -228,6 +237,9 @@ void Project2D::project()
     }
 }
 
+// Prepare the 2D Laplacian matrice (A) with cells inside the liquid
+// and compute divergence (b) at thoses cell
+// After this we just need to find x from Ax = b
 void Project2D::preparePressureSolving(
         Eigen::SparseMatrix<double>& A,
         Eigen::VectorXd& b
@@ -308,6 +320,7 @@ void Project2D::preparePressureSolving(
     A.makeCompressed();
 }
 
+// 2D Staggered Grid divergence with central difference
 inline double Project2D::div(
         const std::uint16_t i,
         const std::uint16_t j,
