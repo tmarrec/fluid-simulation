@@ -1,3 +1,5 @@
+![Header](readme-medias/header.png)
+
 <p align="center">
   <h3 align="center">🌊 Fluid Simulation 🌊</h3>
   <p align="center">
@@ -69,7 +71,7 @@ During my 6 months NII International Internship Program 2020 supervised by [Ryoi
 ### Installation
 1. Clone the repo with the submodules
    ```sh
-   git clone --recurse-submodules git@github.com:Trietch/fluid-simulation.git
+   git clone --recurse-submodules https://github.com/Trietch/fluid-simulation.git
    ```
 2. Compile
    ```sh
@@ -88,6 +90,8 @@ During my 6 months NII International Internship Program 2020 supervised by [Ryoi
    ```
 
 ## Screenshots
+
+![Liquid Simulations](readme-medias/liquid.png)
 
 ## Contact
  » [contact@tmarrec.dev](mailto:contact@tmarrec.dev)
