@@ -3,7 +3,7 @@
   <p align="center">
     C++ fluid simulation solver implemented from scratch !
     <br />
-    <a href="#screenshots"><strong>Screenshots »</strong></a>
+    <a href="#results"><strong>See the results »</strong></a>
     <br />
   </p>
 </p>
@@ -21,12 +21,12 @@
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
+	<li><a href="#usage">Usage</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#screenshots">Screenshots</a></li>
+    <li><a href="#results">Results</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#references">References</a></li>
     <li><a href="#license">License</a></li>
@@ -34,7 +34,7 @@
 </details>
 
 ## About The Project
-During my 6 months NII International Internship Program 2020 supervised by [Ryoichi Ando](https://ryichando.graphics/), I studied and implemented from scratch in C++ some research papers for fluid simulation. Here is a recap of what I've been working on :
+During my 6 months NII International Internship Program 2020 supervised by [Ryoichi Ando](https://ryichando.graphics/), I studied some research papers for fluid simulation and implemented a fluid solver from scratch in C++ and OpenGL. Here is a recap of what I've been working on :
 
 #### Fluid Simulation
 - **Advection**
@@ -53,8 +53,8 @@ During my 6 months NII International Internship Program 2020 supervised by [Ryoi
 	- With reinitialisation
 
 #### Rendering 
-- **OpenGL** : Volume Ray Marching
-- **Mitsuba** : Volume File export
+- **OpenGL** : GLSL implementation of Volume Ray Marching
+- **Mitsuba** : Mitsuba 2 volume file export and Marching Cube meshes export to .ply file
 
 #### Built With
 * [Eigen](https://gitlab.com/libeigen/eigen) C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
@@ -87,10 +87,25 @@ During my 6 months NII International Internship Program 2020 supervised by [Ryoi
    ./fluid-simulation
    ```
 
-## Screenshots
+## Results
+<div align="center">
+	
+![liquid](https://user-images.githubusercontent.com/1809578/134812328-e47c10a8-489c-46f2-952a-0c4d3c7360b9.png)
 
-![Liquid Simulations](readme-medias/liquid.png)
-![Smokes collision video](readme-medias/smoke-collision.mp4)
+https://user-images.githubusercontent.com/1809578/134812359-900357b3-61eb-4739-a266-2f56151a0152.mp4
+
+https://user-images.githubusercontent.com/1809578/134812365-0757ab6d-bc8d-4443-b0e0-56042487c75a.mp4
+
+https://user-images.githubusercontent.com/1809578/134812366-9d3f132b-a4bf-4339-979b-c384b2ef9e5e.mp4
+
+https://user-images.githubusercontent.com/1809578/134812370-da8e69d5-1695-4b87-bd3e-fe8e7b3eed85.mp4
+
+https://user-images.githubusercontent.com/1809578/134812309-525dc6ce-d800-49f2-bdda-0b48aa3cec8d.mp4
+
+https://user-images.githubusercontent.com/1809578/134812315-38f5e219-c149-4aaf-8c58-c065288f2195.mp4
+
+</div>
+
 
 ## Contact
  » [contact@tmarrec.dev](mailto:contact@tmarrec.dev)
