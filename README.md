@@ -1,5 +1,3 @@
-![Header](readme-medias/header.png)
-
 <p align="center">
   <h3 align="center">🌊 Fluid Simulation 🌊</h3>
   <p align="center">
@@ -92,6 +90,7 @@ During my 6 months NII International Internship Program 2020 supervised by [Ryoi
 ## Screenshots
 
 ![Liquid Simulations](readme-medias/liquid.png)
+![Smokes collision video](readme-medias/smoke-collision.mp4)
 
 ## Contact
  » [contact@tmarrec.dev](mailto:contact@tmarrec.dev)
