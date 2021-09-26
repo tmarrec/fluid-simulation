@@ -25,7 +25,6 @@
 	<li><a href="#usage">Usage</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
     <li><a href="#results">Results</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#references">References</a></li>
@@ -79,8 +78,7 @@ During my 6 months NII International Internship Program 2020 supervised by [Ryoi
    make -j
    ```
 
-## Usage
-
+### Usage
 1. Edit the configuration file `config.ini`
 2. Execute the `fluid-simulation` binary file you just compiled
    ```sh
